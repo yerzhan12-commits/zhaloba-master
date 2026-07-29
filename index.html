@@ -178,6 +178,8 @@
       <div class="result-value" id="result-draft"></div>
       <div class="result-label" data-i18n="resultDeadlines">Сроки</div>
       <div class="result-value" id="result-deadlines"></div>
+      <div class="result-label" data-i18n="resultHowToSubmit">Как подать</div>
+      <div class="result-value" id="result-how-to-submit"></div>
       <div class="disclaimer" data-i18n="disclaimer">Это не юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
     </div>
     <button class="btn-secondary" id="restart-btn" data-i18n="restart">Начать заново</button>
@@ -211,6 +213,7 @@ const STRINGS = {
     resultAddressee: 'Куда подавать',
     resultDraft: 'Структура жалобы',
     resultDeadlines: 'Сроки',
+    resultHowToSubmit: 'Как подать',
     disclaimer: 'Это не юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.',
     restart: 'Начать заново',
     errorServer: 'Сервер вернул ошибку: ',
@@ -243,6 +246,7 @@ const STRINGS = {
     resultAddressee: 'Қайда беру керек',
     resultDraft: 'Шағымның құрылымы',
     resultDeadlines: 'Мерзімдер',
+    resultHowToSubmit: 'Қалай беру керек',
     disclaimer: 'Бұл заңгерлік кеңес емес және адвокатты алмастырмайды. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.',
     restart: 'Қайта бастау',
     errorServer: 'Сервер қате қайтарды: ',
@@ -352,6 +356,7 @@ function showResult(result){
   document.getElementById('result-addressee').textContent = result.addressee || '—';
   document.getElementById('result-draft').textContent = result.draft || '—';
   document.getElementById('result-deadlines').textContent = result.deadlines || '—';
+  document.getElementById('result-how-to-submit').textContent = result.howToSubmit || '—';
   window.va('event', { name: 'wizard_completed' });
   showScreen('result');
 }
