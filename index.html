@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Жалоба — мастер составления обращений</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --page:#0d0d0d;
+    --surface:#1a1a19;
+    --ink:#ffffff;
+    --ink2:#c3c2b7;
+    --muted:#898781;
+    --grid:#2c2c2a;
+    --border:rgba(255,255,255,0.10);
+    --blue:#3987e5;
+    --red:#e66767;
+    --good:#0ca30c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--page);
+    color:var(--ink);
+  }
+  .app{max-width:520px;margin:0 auto;padding:20px 16px 40px;min-height:100vh;}
+  header{padding:8px 4px 20px;text-align:center;}
+  header h1{font-size:22px;color:var(--blue);}
+  header .subtitle{font-size:13px;color:var(--muted);margin-top:4px;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .card h2{font-size:15px;margin-bottom:10px;color:var(--ink2);}
+  .card p{font-size:14px;line-height:1.5;}
+  .muted{color:var(--muted);font-size:13px;}
+
+  textarea, input[type=text]{
+    width:100%;padding:12px 14px;border:1px solid var(--border);
+    border-radius:10px;font-size:15px;background:var(--page);color:var(--ink);
+    font-family:inherit;resize:vertical;
+  }
+  textarea:focus, input:focus{outline:2px solid var(--blue);outline-offset:1px;}
+  textarea{min-height:140px;}
+
+  .btn-primary{
+    width:100%;padding:13px;border:none;border-radius:10px;
+    background:var(--blue);color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:14px;
+  }
+  .btn-primary:disabled{opacity:0.5;cursor:default;}
+  .btn-secondary{
+    display:block;width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;
+    background:var(--surface);color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;
+  }
+
+  .history{margin-bottom:16px;}
+  .bubble{
+    padding:11px 14px;border-radius:12px;margin-bottom:10px;font-size:14px;line-height:1.45;
+    max-width:88%;
+  }
+  .bubble.q{background:var(--surface);color:var(--ink2);border:1px solid var(--border);}
+  .bubble.a{background:var(--blue);color:#fff;margin-left:auto;}
+
+  .spinner{
+    display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;padding:6px 2px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:pulse 1.2s infinite ease-in-out;}
+  .dot:nth-child(2){animation-delay:0.2s;}
+  .dot:nth-child(3){animation-delay:0.4s;}
+  @keyframes pulse{0%,80%,100%{opacity:0.25;}40%{opacity:1;}}
+
+  .result-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:4px;}
+  .result-value{font-size:14px;line-height:1.55;white-space:pre-wrap;margin-bottom:16px;}
+  .result-value:last-child{margin-bottom:0;}
+
+  .disclaimer{
+    background:rgba(230,103,103,0.08);border:1px solid rgba(230,103,103,0.3);
+    border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5;color:#f0a5a5;margin-top:14px;
+  }
+
+  .error-box{
+    background:rgba(230,103,103,0.1);border:1px solid var(--red);border-radius:10px;
+    padding:12px 14px;font-size:14px;color:var(--red);margin-bottom:14px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Жалоба</h1>
+    <div class="subtitle">Мастер составления жалоб и обращений</div>
+  </header>
+
+  <!-- Экран 1: свободное описание -->
+  <div class="screen active" id="screen-intake">
+    <div class="card">
+      <h2>Опишите вашу ситуацию своими словами</h2>
+      <p class="muted" style="margin-bottom:12px;">Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.</p>
+      <textarea id="intake-text" placeholder="Например: подал заявление в акимат месяц назад, ответа так и не получил..."></textarea>
+      <button class="btn-primary" id="intake-submit">Продолжить</button>
+    </div>
+  </div>
+
+  <!-- Экран 2: уточняющие вопросы -->
+  <div class="screen" id="screen-chat">
+    <div class="history" id="chat-history"></div>
+    <div class="card" id="chat-input-card" style="display:none;">
+      <input type="text" id="chat-answer" placeholder="Ваш ответ...">
+      <button class="btn-primary" id="chat-submit">Ответить</button>
+    </div>
+    <div class="spinner" id="chat-spinner" style="display:none;">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <span>Мастер думает...</span>
+    </div>
+  </div>
+
+  <!-- Экран 3: результат -->
+  <div class="screen" id="screen-result">
+    <div class="card">
+      <div class="result-label">Тип обращения</div>
+      <div class="result-value" id="result-category"></div>
+      <div class="result-label">Куда подавать</div>
+      <div class="result-value" id="result-addressee"></div>
+      <div class="result-label">Структура жалобы</div>
+      <div class="result-value" id="result-draft"></div>
+      <div class="result-label">Сроки</div>
+      <div class="result-value" id="result-deadlines"></div>
+      <div class="disclaimer">Это не юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
+    </div>
+    <button class="btn-secondary" id="restart-btn">Начать заново</button>
+  </div>
+</div>
+
+<script>
+const state = { messages: [] };
+
+const screens = {
+  intake: document.getElementById('screen-intake'),
+  chat: document.getElementById('screen-chat'),
+  result: document.getElementById('screen-result'),
+};
+function showScreen(name){
+  Object.values(screens).forEach(s => s.classList.remove('active'));
+  screens[name].classList.add('active');
+}
+
+const chatHistory = document.getElementById('chat-history');
+const chatInputCard = document.getElementById('chat-input-card');
+const chatSpinner = document.getElementById('chat-spinner');
+const chatAnswer = document.getElementById('chat-answer');
+
+function addBubble(role, text){
+  const div = document.createElement('div');
+  div.className = 'bubble ' + (role === 'user' ? 'a' : 'q');
+  div.textContent = text;
+  chatHistory.appendChild(div);
+}
+
+function showError(text){
+  const box = document.createElement('div');
+  box.className = 'error-box';
+  box.textContent = text;
+  chatHistory.appendChild(box);
+  chatInputCard.style.display = 'none';
+  chatSpinner.style.display = 'none';
+}
+
+async function callWizard(){
+  chatInputCard.style.display = 'none';
+  chatSpinner.style.display = 'flex';
+  try {
+    const res = await fetch('/api/wizard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: state.messages }),
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error('Сервер вернул ошибку: ' + res.status + (errText ? ' — ' + errText : ''));
+    }
+    const data = await res.json();
+    chatSpinner.style.display = 'none';
+
+    if (data.status === 'need_more_info') {
+      state.messages.push({ role: 'assistant', content: data.question });
+      addBubble('assistant', data.question);
+      chatInputCard.style.display = 'block';
+      chatAnswer.value = '';
+      chatAnswer.focus();
+    } else if (data.status === 'done') {
+      showResult(data.result);
+    } else {
+      showError('Не удалось разобрать ответ мастера. Попробуйте ещё раз.');
+    }
+  } catch (err) {
+    chatSpinner.style.display = 'none';
+    showError('Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (' + err.message + ')');
+  }
+}
+
+function showResult(result){
+  document.getElementById('result-category').textContent = result.category || '—';
+  document.getElementById('result-addressee').textContent = result.addressee || '—';
+  document.getElementById('result-draft').textContent = result.draft || '—';
+  document.getElementById('result-deadlines').textContent = result.deadlines || '—';
+  showScreen('result');
+}
+
+document.getElementById('intake-submit').addEventListener('click', () => {
+  const text = document.getElementById('intake-text').value.trim();
+  if (!text) return;
+  state.messages = [{ role: 'user', content: text }];
+  chatHistory.innerHTML = '';
+  addBubble('user', text);
+  showScreen('chat');
+  callWizard();
+});
+
+document.getElementById('chat-submit').addEventListener('click', () => {
+  const answer = chatAnswer.value.trim();
+  if (!answer) return;
+  state.messages.push({ role: 'user', content: answer });
+  addBubble('user', answer);
+  callWizard();
+});
+
+chatAnswer.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('chat-submit').click();
+});
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  state.messages = [];
+  document.getElementById('intake-text').value = '';
+  chatHistory.innerHTML = '';
+  showScreen('intake');
+});
+</script>
+</body>
+</html>
