@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Жалоба — мастер составления обращений</title>
 <link rel="icon" href="data:,">
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
   :root{
     --page:#0d0d0d;
@@ -247,12 +251,14 @@ function showResult(result){
   document.getElementById('result-addressee').textContent = result.addressee || '—';
   document.getElementById('result-draft').textContent = result.draft || '—';
   document.getElementById('result-deadlines').textContent = result.deadlines || '—';
+  window.va('event', { name: 'wizard_completed' });
   showScreen('result');
 }
 
 document.getElementById('intake-submit').addEventListener('click', () => {
   const text = document.getElementById('intake-text').value.trim();
   if (!text) return;
+  window.va('event', { name: 'wizard_started' });
   state.messages = [{ role: 'user', content: text }];
   chatHistory.innerHTML = '';
   addBubble('user', text);
