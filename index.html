@@ -43,13 +43,14 @@
   .card p{font-size:14px;line-height:1.5;}
   .muted{color:var(--muted);font-size:13px;}
 
-  textarea, input[type=text]{
+  textarea, input[type=text], select{
     width:100%;padding:12px 14px;border:1px solid var(--border);
     border-radius:10px;font-size:15px;background:var(--page);color:var(--ink);
     font-family:inherit;resize:vertical;
   }
-  textarea:focus, input:focus{outline:2px solid var(--blue);outline-offset:1px;}
+  textarea:focus, input:focus, select:focus{outline:2px solid var(--blue);outline-offset:1px;}
   textarea{min-height:140px;}
+  select{margin-bottom:4px;}
 
   .btn-primary{
     width:100%;padding:13px;border:none;border-radius:10px;
@@ -122,7 +123,29 @@
     </div>
   </div>
 
-  <!-- Экран 3: результат -->
+  <!-- Экран 3: подтверждение категории -->
+  <div class="screen" id="screen-confirm">
+    <div class="card">
+      <h2>Мы определили это как:</h2>
+      <p class="result-value" id="confirm-category-text" style="margin-bottom:2px;"></p>
+      <button class="btn-primary" id="confirm-yes">Да, всё верно</button>
+      <button class="btn-secondary" id="confirm-change">Изменить категорию</button>
+      <div id="confirm-override" style="display:none;margin-top:14px;">
+        <label class="muted" style="display:block;margin-bottom:6px;">Выберите правильный вид обращения</label>
+        <select id="confirm-select">
+          <option value="Заявление">Заявление</option>
+          <option value="Жалоба">Жалоба</option>
+          <option value="Сообщение">Сообщение</option>
+          <option value="Запрос">Запрос</option>
+          <option value="Предложение">Предложение</option>
+          <option value="Отклик">Отклик</option>
+        </select>
+        <button class="btn-primary" id="confirm-override-submit">Пересчитать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Экран 4: результат -->
   <div class="screen" id="screen-result">
     <div class="card">
       <div class="result-label">Тип обращения</div>
@@ -140,11 +163,12 @@
 </div>
 
 <script>
-const state = { messages: [] };
+const state = { messages: [], pendingResult: null };
 
 const screens = {
   intake: document.getElementById('screen-intake'),
   chat: document.getElementById('screen-chat'),
+  confirm: document.getElementById('screen-confirm'),
   result: document.getElementById('screen-result'),
 };
 function showScreen(name){
@@ -190,20 +214,32 @@ async function callWizard(){
     chatSpinner.style.display = 'none';
 
     if (data.status === 'need_more_info') {
+      showScreen('chat');
       state.messages.push({ role: 'assistant', content: data.question });
       addBubble('assistant', data.question);
       chatInputCard.style.display = 'block';
       chatAnswer.value = '';
       chatAnswer.focus();
     } else if (data.status === 'done') {
-      showResult(data.result);
+      showConfirmCategory(data.result);
     } else {
+      showScreen('chat');
       showError('Не удалось разобрать ответ мастера. Попробуйте ещё раз.');
     }
   } catch (err) {
     chatSpinner.style.display = 'none';
+    showScreen('chat');
     showError('Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (' + err.message + ')');
   }
+}
+
+function showConfirmCategory(result){
+  state.pendingResult = result;
+  document.getElementById('confirm-category-text').textContent = result.category || '—';
+  document.getElementById('confirm-override').style.display = 'none';
+  document.getElementById('confirm-yes').style.display = 'block';
+  document.getElementById('confirm-change').style.display = 'block';
+  showScreen('confirm');
 }
 
 function showResult(result){
@@ -236,8 +272,28 @@ chatAnswer.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('chat-submit').click();
 });
 
+document.getElementById('confirm-yes').addEventListener('click', () => {
+  showResult(state.pendingResult);
+});
+
+document.getElementById('confirm-change').addEventListener('click', () => {
+  document.getElementById('confirm-override').style.display = 'block';
+  document.getElementById('confirm-yes').style.display = 'none';
+  document.getElementById('confirm-change').style.display = 'none';
+});
+
+document.getElementById('confirm-override-submit').addEventListener('click', () => {
+  const selected = document.getElementById('confirm-select').value;
+  const correction = 'Категория определена неверно. Правильный вид обращения — ' + selected + '. Пересчитай addressee, draft и deadlines с учётом этого вида обращения.';
+  state.messages.push({ role: 'user', content: correction });
+  showScreen('chat');
+  addBubble('user', 'Изменить категорию на: ' + selected);
+  callWizard();
+});
+
 document.getElementById('restart-btn').addEventListener('click', () => {
   state.messages = [];
+  state.pendingResult = null;
   document.getElementById('intake-text').value = '';
   chatHistory.innerHTML = '';
   showScreen('intake');
