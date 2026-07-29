@@ -82,6 +82,9 @@
   .dot:nth-child(3){animation-delay:0.4s;}
   @keyframes pulse{0%,80%,100%{opacity:0.25;}40%{opacity:1;}}
 
+  .result-actions{display:flex;gap:8px;margin-bottom:16px;}
+  .result-actions .btn-secondary{margin-top:0;flex:1;font-size:13px;padding:10px 6px;}
+
   .result-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:4px;}
   .result-value{font-size:14px;line-height:1.55;white-space:pre-wrap;margin-bottom:16px;}
   .result-value:last-child{margin-bottom:0;}
@@ -198,6 +201,10 @@
       <div class="result-value" id="result-addressee"></div>
       <div class="result-label" data-i18n="resultDraft">Структура жалобы</div>
       <div class="result-value" id="result-draft"></div>
+      <div class="result-actions">
+        <button class="btn-secondary" id="copy-draft-btn" data-i18n="copyDraft">📋 Скопировать черновик</button>
+        <button class="btn-secondary" id="download-doc-btn" data-i18n="downloadDoc">💾 Скачать как .doc</button>
+      </div>
       <div class="result-label" data-i18n="resultDeadlines">Сроки</div>
       <div class="result-value" id="result-deadlines"></div>
       <div class="result-label" data-i18n="resultHowToSubmit">Как подать</div>
@@ -237,6 +244,9 @@ const STRINGS = {
     resultDraft: 'Структура жалобы',
     resultDeadlines: 'Сроки',
     resultHowToSubmit: 'Как подать',
+    copyDraft: '📋 Скопировать черновик',
+    copyDraftDone: '✅ Скопировано!',
+    downloadDoc: '💾 Скачать как .doc',
     disclaimer: 'Это не юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.',
     restart: 'Начать заново',
     errorServer: 'Сервер вернул ошибку: ',
@@ -271,6 +281,9 @@ const STRINGS = {
     resultDraft: 'Шағымның құрылымы',
     resultDeadlines: 'Мерзімдер',
     resultHowToSubmit: 'Қалай беру керек',
+    copyDraft: '📋 Жобаны көшіру',
+    copyDraftDone: '✅ Көшірілді!',
+    downloadDoc: '💾 .doc түрінде жүктеу',
     disclaimer: 'Бұл заңгерлік кеңес емес және адвокатты алмастырмайды. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.',
     restart: 'Қайта бастау',
     errorServer: 'Сервер қате қайтарды: ',
@@ -421,6 +434,21 @@ function showConfirmCategory(result){
   showScreen('confirm');
 }
 
+function buildFullDocText(result){
+  const label = (key, fallbackRu) => t(key) || fallbackRu;
+  return [
+    label('resultCategory', 'Тип обращения') + ': ' + (result.category || ''),
+    '',
+    label('resultAddressee', 'Куда подавать') + ':\n' + (result.addressee || ''),
+    '',
+    label('resultDraft', 'Структура жалобы') + ':\n' + (result.draft || ''),
+    '',
+    label('resultDeadlines', 'Сроки') + ':\n' + (result.deadlines || ''),
+    '',
+    label('resultHowToSubmit', 'Как подать') + ':\n' + (result.howToSubmit || ''),
+  ].join('\n');
+}
+
 function showResult(result){
   document.getElementById('result-category').textContent = result.category || '—';
   document.getElementById('result-addressee').textContent = result.addressee || '—';
@@ -489,6 +517,36 @@ document.getElementById('lang-kk').addEventListener('click', () => {
 
 setupMic('intake-mic', document.getElementById('intake-text'));
 setupMic('chat-mic', chatAnswer);
+
+document.getElementById('copy-draft-btn').addEventListener('click', async () => {
+  if (!state.pendingResult) return;
+  const btn = document.getElementById('copy-draft-btn');
+  try {
+    await navigator.clipboard.writeText(state.pendingResult.draft || '');
+    const original = btn.textContent;
+    btn.textContent = t('copyDraftDone');
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  } catch (e) {
+    showError && console.error('clipboard error', e);
+  }
+});
+
+document.getElementById('download-doc-btn').addEventListener('click', () => {
+  if (!state.pendingResult) return;
+  const text = buildFullDocText(state.pendingResult);
+  const html = '<html><head><meta charset="UTF-8"></head><body><pre style="font-family:Arial,sans-serif;white-space:pre-wrap;">'
+    + text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    + '</pre></body></html>';
+  const blob = new Blob(['﻿', html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'zhaloba.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
 
 document.getElementById('lang-ru').addEventListener('click', () => {
   applyLang('ru');
