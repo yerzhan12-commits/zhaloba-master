@@ -1,4 +1,5 @@
 const Anthropic = require('@anthropic-ai/sdk');
+const { kv } = require('@vercel/kv');
 
 const SYSTEM_PROMPT = `Ты — помощник, который на основе практики работы отдела по работе с обращениями органов прокуратуры Республики Казахстан помогает обычным гражданам (не юристам) правильно оформить жалобу или обращение в государственный орган.
 
@@ -157,6 +158,25 @@ module.exports = async (req, res) => {
     }
 
     const parsed = JSON.parse(textBlock.text);
+
+    if (parsed.status === 'done' && parsed.result) {
+      // Логируем только конечный результат (без сырой переписки/личных данных) —
+      // сбой логирования не должен ломать ответ пользователю.
+      try {
+        await kv.lpush('wizard_log', JSON.stringify({
+          ts: new Date().toISOString(),
+          lang: lang === 'kk' ? 'kk' : 'ru',
+          category: parsed.result.category,
+          addressee: parsed.result.addressee,
+          draft: parsed.result.draft,
+          deadlines: parsed.result.deadlines,
+          howToSubmit: parsed.result.howToSubmit,
+        }));
+      } catch (logErr) {
+        console.error('wizard log error:', logErr);
+      }
+    }
+
     res.status(200).json(parsed);
   } catch (err) {
     console.error('wizard error:', err);

@@ -96,6 +96,21 @@
     padding:12px 14px;font-size:14px;color:var(--red);margin-bottom:14px;
   }
 
+  .input-wrap{position:relative;}
+  .input-wrap textarea, .input-wrap input[type=text]{padding-right:48px;}
+  .mic-btn{
+    position:absolute;right:6px;bottom:6px;width:34px;height:34px;border:none;border-radius:50%;
+    background:var(--surface);border:1px solid var(--border);color:var(--ink2);font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .mic-btn.mic-btn-inline{top:6px;bottom:auto;}
+  .mic-btn.recording{background:var(--red);color:#fff;border-color:var(--red);animation:pulse 1s infinite ease-in-out;}
+
+  .privacy-note{
+    background:rgba(57,135,229,0.08);border:1px solid rgba(57,135,229,0.3);
+    border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5;color:#9dc2f2;margin-bottom:14px;
+  }
+
   .lang-row{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
   .lang-btn{
     width:100%;padding:16px;border:1px solid var(--border);border-radius:12px;
@@ -124,10 +139,14 @@
 
   <!-- Экран 1: свободное описание -->
   <div class="screen" id="screen-intake">
+    <div class="privacy-note" data-i18n="privacyNote">Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.</div>
     <div class="card">
       <h2 data-i18n="intakeTitle">Опишите вашу ситуацию своими словами</h2>
       <p class="muted" style="margin-bottom:12px;" data-i18n="intakeDesc">Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.</p>
-      <textarea id="intake-text" data-i18n-placeholder="intakePlaceholder" placeholder="Например: подал заявление в акимат месяц назад, ответа так и не получил..."></textarea>
+      <div class="input-wrap">
+        <textarea id="intake-text" data-i18n-placeholder="intakePlaceholder" placeholder="Например: подал заявление в акимат месяц назад, ответа так и не получил..."></textarea>
+        <button type="button" class="mic-btn" id="intake-mic" style="display:none;" aria-label="Voice input">🎤</button>
+      </div>
       <button class="btn-primary" id="intake-submit" data-i18n="intakeSubmit">Продолжить</button>
     </div>
   </div>
@@ -136,7 +155,10 @@
   <div class="screen" id="screen-chat">
     <div class="history" id="chat-history"></div>
     <div class="card" id="chat-input-card" style="display:none;">
-      <input type="text" id="chat-answer" data-i18n-placeholder="chatAnswerPlaceholder" placeholder="Ваш ответ...">
+      <div class="input-wrap">
+        <input type="text" id="chat-answer" data-i18n-placeholder="chatAnswerPlaceholder" placeholder="Ваш ответ...">
+        <button type="button" class="mic-btn mic-btn-inline" id="chat-mic" style="display:none;" aria-label="Voice input">🎤</button>
+      </div>
       <button class="btn-primary" id="chat-submit" data-i18n="chatSubmit">Ответить</button>
     </div>
     <div class="spinner" id="chat-spinner" style="display:none;">
@@ -191,6 +213,7 @@ const STRINGS = {
   ru: {
     appTitle: 'Жалоба',
     appSubtitle: 'Мастер составления жалоб и обращений',
+    privacyNote: 'Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.',
     intakeTitle: 'Опишите вашу ситуацию своими словами',
     intakeDesc: 'Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.',
     intakePlaceholder: 'Например: подал заявление в акимат месяц назад, ответа так и не получил...',
@@ -224,6 +247,7 @@ const STRINGS = {
   kk: {
     appTitle: 'Шағым',
     appSubtitle: 'Шағым мен өтініш жасау шебері',
+    privacyNote: 'Құпия: аты-жөніңізді, ЖСН-ді немесе басқа жеке деректерді көрсетудің қажеті жоқ — жағдайды жай ғана сипаттаңыз.',
     intakeTitle: 'Жағдайыңызды өз сөзіңізбен сипаттаңыз',
     intakeDesc: 'Не болды, қандай орган/лауазымды тұлға қатысты, нені қалайтыныңызды жазыңыз. Шебер нысаны мен адресатын өзі анықтайды.',
     intakePlaceholder: 'Мысалы: бір ай бұрын әкімдікке өтініш бердім, жауап әлі алған жоқпын...',
@@ -289,6 +313,52 @@ const chatHistory = document.getElementById('chat-history');
 const chatInputCard = document.getElementById('chat-input-card');
 const chatSpinner = document.getElementById('chat-spinner');
 const chatAnswer = document.getElementById('chat-answer');
+
+// Голосовой ввод (Web Speech API) — работает надёжно только для русского в Chrome/Android.
+// Казахский язык (kk-KZ) большинство браузеров не распознаёт — в этом случае просто
+// не будет результата, без ошибки для пользователя. В Safari/iOS API может отсутствовать
+// вовсе — тогда кнопка микрофона скрыта через feature-detection ниже.
+const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function setupMic(buttonId, inputEl){
+  const btn = document.getElementById(buttonId);
+  if (!SpeechRecognitionClass) return; // кнопка остаётся скрытой (display:none по умолчанию)
+  btn.style.display = 'flex';
+
+  let recognition = null;
+  let listening = false;
+
+  btn.addEventListener('click', () => {
+    if (listening) {
+      recognition && recognition.stop();
+      return;
+    }
+    recognition = new SpeechRecognitionClass();
+    recognition.lang = state.lang === 'kk' ? 'kk-KZ' : 'ru-RU';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      listening = true;
+      btn.classList.add('recording');
+    };
+    recognition.onend = () => {
+      listening = false;
+      btn.classList.remove('recording');
+    };
+    recognition.onerror = () => {
+      listening = false;
+      btn.classList.remove('recording');
+    };
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      inputEl.value = (inputEl.value ? inputEl.value.trim() + ' ' : '') + transcript;
+      inputEl.focus();
+    };
+
+    recognition.start();
+  });
+}
 
 function addBubble(role, text){
   const div = document.createElement('div');
@@ -416,6 +486,9 @@ document.getElementById('lang-kk').addEventListener('click', () => {
   applyLang('kk');
   showScreen('intake');
 });
+
+setupMic('intake-mic', document.getElementById('intake-text'));
+setupMic('chat-mic', chatAnswer);
 
 document.getElementById('lang-ru').addEventListener('click', () => {
   applyLang('ru');
