@@ -87,6 +87,11 @@ const SYSTEM_PROMPT = `Ты — помощник, который на основ
 
 Отвечай только по существу казахстанского законодательства и практики. Если ситуация явно выходит за рамки административных обращений (уголовное дело, гражданский иск в суд, семейный спор) — всё равно дай лучший совет по АППК-логике: куда обратиться в первую очередь (часто это тоже прокуратура или профильный госорган), и укажи это в addressee.`;
 
+const LANG_INSTRUCTIONS = {
+  ru: 'Пиши все свои ответы (уточняющие вопросы и все поля result — category, addressee, draft, deadlines) на русском языке.',
+  kk: 'МАҢЫЗДЫ: барлық жауаптарыңды (нақтылау сұрақтарын және result өрістерінің барлығын — category, addressee, draft, deadlines) ТЕК қазақ тілінде жаз, табиғи әрі сауатты қазақ тілінде, орны келген жерде заң терминдерін де қазақша қолдан.',
+};
+
 const RESULT_SCHEMA = {
   type: 'object',
   properties: {
@@ -114,11 +119,13 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const { messages } = req.body || {};
+  const { messages, lang } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     res.status(400).json({ error: 'messages is required' });
     return;
   }
+
+  const langInstruction = LANG_INSTRUCTIONS[lang] || LANG_INSTRUCTIONS.ru;
 
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -127,7 +134,7 @@ module.exports = async (req, res) => {
       model: 'claude-sonnet-5',
       max_tokens: 2048,
       thinking: { type: 'disabled' },
-      system: SYSTEM_PROMPT,
+      system: SYSTEM_PROMPT + '\n\n' + langInstruction,
       output_config: { format: { type: 'json_schema', schema: RESULT_SCHEMA } },
       messages,
     });

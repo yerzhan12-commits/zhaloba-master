@@ -95,22 +95,40 @@
     background:rgba(230,103,103,0.1);border:1px solid var(--red);border-radius:10px;
     padding:12px 14px;font-size:14px;color:var(--red);margin-bottom:14px;
   }
+
+  .lang-row{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+  .lang-btn{
+    width:100%;padding:16px;border:1px solid var(--border);border-radius:12px;
+    background:var(--surface);color:var(--ink);font-size:16px;font-weight:600;cursor:pointer;
+  }
+  .lang-btn:hover{border-color:var(--blue);color:var(--blue);}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <h1>Жалоба</h1>
-    <div class="subtitle">Мастер составления жалоб и обращений</div>
+    <h1 data-i18n="appTitle">Жалоба</h1>
+    <div class="subtitle" data-i18n="appSubtitle">Мастер составления жалоб и обращений</div>
   </header>
 
-  <!-- Экран 1: свободное описание -->
-  <div class="screen active" id="screen-intake">
+  <!-- Экран 0: выбор языка -->
+  <div class="screen active" id="screen-language">
     <div class="card">
-      <h2>Опишите вашу ситуацию своими словами</h2>
-      <p class="muted" style="margin-bottom:12px;">Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.</p>
-      <textarea id="intake-text" placeholder="Например: подал заявление в акимат месяц назад, ответа так и не получил..."></textarea>
-      <button class="btn-primary" id="intake-submit">Продолжить</button>
+      <h2>Тілді таңдаңыз / Выберите язык</h2>
+      <div class="lang-row">
+        <button class="lang-btn" id="lang-kk">Қазақша</button>
+        <button class="lang-btn" id="lang-ru">Русский</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Экран 1: свободное описание -->
+  <div class="screen" id="screen-intake">
+    <div class="card">
+      <h2 data-i18n="intakeTitle">Опишите вашу ситуацию своими словами</h2>
+      <p class="muted" style="margin-bottom:12px;" data-i18n="intakeDesc">Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.</p>
+      <textarea id="intake-text" data-i18n-placeholder="intakePlaceholder" placeholder="Например: подал заявление в акимат месяц назад, ответа так и не получил..."></textarea>
+      <button class="btn-primary" id="intake-submit" data-i18n="intakeSubmit">Продолжить</button>
     </div>
   </div>
 
@@ -118,33 +136,33 @@
   <div class="screen" id="screen-chat">
     <div class="history" id="chat-history"></div>
     <div class="card" id="chat-input-card" style="display:none;">
-      <input type="text" id="chat-answer" placeholder="Ваш ответ...">
-      <button class="btn-primary" id="chat-submit">Ответить</button>
+      <input type="text" id="chat-answer" data-i18n-placeholder="chatAnswerPlaceholder" placeholder="Ваш ответ...">
+      <button class="btn-primary" id="chat-submit" data-i18n="chatSubmit">Ответить</button>
     </div>
     <div class="spinner" id="chat-spinner" style="display:none;">
       <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      <span>Мастер думает...</span>
+      <span data-i18n="chatThinking">Мастер думает...</span>
     </div>
   </div>
 
   <!-- Экран 3: подтверждение категории -->
   <div class="screen" id="screen-confirm">
     <div class="card">
-      <h2>Мы определили это как:</h2>
+      <h2 data-i18n="confirmTitle">Мы определили это как:</h2>
       <p class="result-value" id="confirm-category-text" style="margin-bottom:2px;"></p>
-      <button class="btn-primary" id="confirm-yes">Да, всё верно</button>
-      <button class="btn-secondary" id="confirm-change">Изменить категорию</button>
+      <button class="btn-primary" id="confirm-yes" data-i18n="confirmYes">Да, всё верно</button>
+      <button class="btn-secondary" id="confirm-change" data-i18n="confirmChange">Изменить категорию</button>
       <div id="confirm-override" style="display:none;margin-top:14px;">
-        <label class="muted" style="display:block;margin-bottom:6px;">Выберите правильный вид обращения</label>
+        <label class="muted" style="display:block;margin-bottom:6px;" data-i18n="confirmSelectLabel">Выберите правильный вид обращения</label>
         <select id="confirm-select">
-          <option value="Заявление">Заявление</option>
-          <option value="Жалоба">Жалоба</option>
-          <option value="Сообщение">Сообщение</option>
-          <option value="Запрос">Запрос</option>
-          <option value="Предложение">Предложение</option>
-          <option value="Отклик">Отклик</option>
+          <option value="Заявление" data-i18n="catZayavlenie">Заявление</option>
+          <option value="Жалоба" data-i18n="catZhaloba">Жалоба</option>
+          <option value="Сообщение" data-i18n="catSoobshenie">Сообщение</option>
+          <option value="Запрос" data-i18n="catZapros">Запрос</option>
+          <option value="Предложение" data-i18n="catPredlozhenie">Предложение</option>
+          <option value="Отклик" data-i18n="catOtklik">Отклик</option>
         </select>
-        <button class="btn-primary" id="confirm-override-submit">Пересчитать</button>
+        <button class="btn-primary" id="confirm-override-submit" data-i18n="confirmOverrideSubmit">Пересчитать</button>
       </div>
     </div>
   </div>
@@ -152,24 +170,107 @@
   <!-- Экран 4: результат -->
   <div class="screen" id="screen-result">
     <div class="card">
-      <div class="result-label">Тип обращения</div>
+      <div class="result-label" data-i18n="resultCategory">Тип обращения</div>
       <div class="result-value" id="result-category"></div>
-      <div class="result-label">Куда подавать</div>
+      <div class="result-label" data-i18n="resultAddressee">Куда подавать</div>
       <div class="result-value" id="result-addressee"></div>
-      <div class="result-label">Структура жалобы</div>
+      <div class="result-label" data-i18n="resultDraft">Структура жалобы</div>
       <div class="result-value" id="result-draft"></div>
-      <div class="result-label">Сроки</div>
+      <div class="result-label" data-i18n="resultDeadlines">Сроки</div>
       <div class="result-value" id="result-deadlines"></div>
-      <div class="disclaimer">Это не юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
+      <div class="disclaimer" data-i18n="disclaimer">Это не юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
     </div>
-    <button class="btn-secondary" id="restart-btn">Начать заново</button>
+    <button class="btn-secondary" id="restart-btn" data-i18n="restart">Начать заново</button>
   </div>
 </div>
 
 <script>
-const state = { messages: [], pendingResult: null };
+const STRINGS = {
+  ru: {
+    appTitle: 'Жалоба',
+    appSubtitle: 'Мастер составления жалоб и обращений',
+    intakeTitle: 'Опишите вашу ситуацию своими словами',
+    intakeDesc: 'Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.',
+    intakePlaceholder: 'Например: подал заявление в акимат месяц назад, ответа так и не получил...',
+    intakeSubmit: 'Продолжить',
+    chatAnswerPlaceholder: 'Ваш ответ...',
+    chatSubmit: 'Ответить',
+    chatThinking: 'Мастер думает...',
+    confirmTitle: 'Мы определили это как:',
+    confirmYes: 'Да, всё верно',
+    confirmChange: 'Изменить категорию',
+    confirmSelectLabel: 'Выберите правильный вид обращения',
+    confirmOverrideSubmit: 'Пересчитать',
+    catZayavlenie: 'Заявление',
+    catZhaloba: 'Жалоба',
+    catSoobshenie: 'Сообщение',
+    catZapros: 'Запрос',
+    catPredlozhenie: 'Предложение',
+    catOtklik: 'Отклик',
+    resultCategory: 'Тип обращения',
+    resultAddressee: 'Куда подавать',
+    resultDraft: 'Структура жалобы',
+    resultDeadlines: 'Сроки',
+    disclaimer: 'Это не юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.',
+    restart: 'Начать заново',
+    errorServer: 'Сервер вернул ошибку: ',
+    errorConnection: 'Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (',
+    errorParse: 'Не удалось разобрать ответ мастера. Попробуйте ещё раз.',
+    overrideBubblePrefix: 'Изменить категорию на: ',
+  },
+  kk: {
+    appTitle: 'Шағым',
+    appSubtitle: 'Шағым мен өтініш жасау шебері',
+    intakeTitle: 'Жағдайыңызды өз сөзіңізбен сипаттаңыз',
+    intakeDesc: 'Не болды, қандай орган/лауазымды тұлға қатысты, нені қалайтыныңызды жазыңыз. Шебер нысаны мен адресатын өзі анықтайды.',
+    intakePlaceholder: 'Мысалы: бір ай бұрын әкімдікке өтініш бердім, жауап әлі алған жоқпын...',
+    intakeSubmit: 'Жалғастыру',
+    chatAnswerPlaceholder: 'Жауабыңыз...',
+    chatSubmit: 'Жауап беру',
+    chatThinking: 'Шебер ойлануда...',
+    confirmTitle: 'Біз мұны келесідей анықтадық:',
+    confirmYes: 'Иә, дұрыс',
+    confirmChange: 'Санатты өзгерту',
+    confirmSelectLabel: 'Дұрыс өтініш түрін таңдаңыз',
+    confirmOverrideSubmit: 'Қайта есептеу',
+    catZayavlenie: 'Өтініш',
+    catZhaloba: 'Шағым',
+    catSoobshenie: 'Хабарлама',
+    catZapros: 'Сұрау',
+    catPredlozhenie: 'Ұсыныс',
+    catOtklik: 'Пікір',
+    resultCategory: 'Өтініш түрі',
+    resultAddressee: 'Қайда беру керек',
+    resultDraft: 'Шағымның құрылымы',
+    resultDeadlines: 'Мерзімдер',
+    disclaimer: 'Бұл заңгерлік кеңес емес және адвокатты алмастырмайды. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.',
+    restart: 'Қайта бастау',
+    errorServer: 'Сервер қате қайтарды: ',
+    errorConnection: 'Серверге қосыла алмадық. Байланысты тексеріп, қайта көріңіз. (',
+    errorParse: 'Шебердің жауабын түсіндіру мүмкін болмады. Қайта көріңіз.',
+    overrideBubblePrefix: 'Санатты мынаған өзгерту: ',
+  },
+};
+
+const state = { messages: [], pendingResult: null, lang: 'ru' };
+
+function t(key){
+  return STRINGS[state.lang][key] || STRINGS.ru[key] || key;
+}
+
+function applyLang(lang){
+  state.lang = lang;
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
+  });
+}
 
 const screens = {
+  language: document.getElementById('screen-language'),
   intake: document.getElementById('screen-intake'),
   chat: document.getElementById('screen-chat'),
   confirm: document.getElementById('screen-confirm'),
@@ -208,11 +309,11 @@ async function callWizard(){
     const res = await fetch('/api/wizard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: state.messages }),
+      body: JSON.stringify({ messages: state.messages, lang: state.lang }),
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
-      throw new Error('Сервер вернул ошибку: ' + res.status + (errText ? ' — ' + errText : ''));
+      throw new Error(t('errorServer') + res.status + (errText ? ' — ' + errText : ''));
     }
     const data = await res.json();
     chatSpinner.style.display = 'none';
@@ -228,12 +329,12 @@ async function callWizard(){
       showConfirmCategory(data.result);
     } else {
       showScreen('chat');
-      showError('Не удалось разобрать ответ мастера. Попробуйте ещё раз.');
+      showError(t('errorParse'));
     }
   } catch (err) {
     chatSpinner.style.display = 'none';
     showScreen('chat');
-    showError('Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (' + err.message + ')');
+    showError(t('errorConnection') + err.message + ')');
   }
 }
 
@@ -290,10 +391,11 @@ document.getElementById('confirm-change').addEventListener('click', () => {
 
 document.getElementById('confirm-override-submit').addEventListener('click', () => {
   const selected = document.getElementById('confirm-select').value;
+  const selectedLabel = document.getElementById('confirm-select').selectedOptions[0].textContent;
   const correction = 'Категория определена неверно. Правильный вид обращения — ' + selected + '. Пересчитай addressee, draft и deadlines с учётом этого вида обращения.';
   state.messages.push({ role: 'user', content: correction });
   showScreen('chat');
-  addBubble('user', 'Изменить категорию на: ' + selected);
+  addBubble('user', t('overrideBubblePrefix') + selectedLabel);
   callWizard();
 });
 
@@ -302,6 +404,16 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   state.pendingResult = null;
   document.getElementById('intake-text').value = '';
   chatHistory.innerHTML = '';
+  showScreen('intake');
+});
+
+document.getElementById('lang-kk').addEventListener('click', () => {
+  applyLang('kk');
+  showScreen('intake');
+});
+
+document.getElementById('lang-ru').addEventListener('click', () => {
+  applyLang('ru');
   showScreen('intake');
 });
 </script>
