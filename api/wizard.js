@@ -134,7 +134,13 @@ module.exports = async (req, res) => {
       model: 'claude-sonnet-5',
       max_tokens: 2048,
       thinking: { type: 'disabled' },
-      system: SYSTEM_PROMPT + '\n\n' + langInstruction,
+      system: [
+        {
+          type: 'text',
+          text: SYSTEM_PROMPT + '\n\n' + langInstruction,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       output_config: { format: { type: 'json_schema', schema: RESULT_SCHEMA } },
       messages,
     });
