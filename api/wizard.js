@@ -145,7 +145,7 @@ module.exports = async (req, res) => {
 
     const response = await client.messages.create({
       model: 'claude-sonnet-5',
-      max_tokens: 2048,
+      max_tokens: 4096,
       thinking: { type: 'disabled' },
       system: [
         {
@@ -164,7 +164,18 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const parsed = JSON.parse(textBlock.text);
+    let parsed;
+    try {
+      parsed = JSON.parse(textBlock.text);
+    } catch (parseErr) {
+      console.error('wizard parse error:', parseErr, 'stop_reason:', response.stop_reason);
+      res.status(502).json({
+        error: response.stop_reason === 'max_tokens'
+          ? 'Ответ получился слишком длинным и был обрезан. Попробуйте описать ситуацию покороче или повторите запрос.'
+          : 'Не удалось разобрать ответ модели. Попробуйте ещё раз.',
+      });
+      return;
+    }
 
     if (parsed.status === 'done' && parsed.result) {
       // Логируем только конечный результат (без сырой переписки/личных данных) —
