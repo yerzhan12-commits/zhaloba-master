@@ -115,6 +115,19 @@
   .mic-btn.mic-btn-inline{top:6px;bottom:auto;}
   .mic-btn.recording{background:var(--red);color:#fff;border-color:var(--red);animation:pulse 1s infinite ease-in-out;}
 
+  .example-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .example-chip{
+    padding:7px 12px;border-radius:16px;border:1px solid var(--border);
+    background:var(--surface);color:var(--muted);font-size:12px;cursor:pointer;
+  }
+  .example-chip:hover{border-color:var(--blue);color:var(--blue);}
+
+  .field-error{color:var(--red);font-size:13px;margin-top:8px;}
+
+  .progress-row{display:flex;gap:6px;margin-bottom:14px;}
+  .progress-dot{flex:1;height:4px;border-radius:2px;background:var(--grid);}
+  .progress-dot.done{background:var(--blue);}
+
   .privacy-note{
     background:rgba(57,135,229,0.08);border:1px solid rgba(57,135,229,0.3);
     border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5;color:#9dc2f2;margin-bottom:14px;
@@ -160,12 +173,18 @@
         <textarea id="intake-text" data-i18n-placeholder="intakePlaceholder" placeholder="Например: подал заявление в акимат месяц назад, ответа так и не получил..."></textarea>
         <button type="button" class="mic-btn" id="intake-mic" style="display:none;" aria-label="Voice input">🎤</button>
       </div>
+      <div class="example-row" id="example-row"></div>
+      <div class="field-error" id="intake-error" style="display:none;"></div>
       <button class="btn-primary" id="intake-submit" data-i18n="intakeSubmit">Продолжить</button>
+      <div class="muted" style="margin-top:10px;font-size:12px;" data-i18n="noSaveWarning">Данные нигде не сохраняются: если закроете вкладку, введённый текст будет потерян.</div>
     </div>
   </div>
 
   <!-- Экран 2: уточняющие вопросы -->
   <div class="screen" id="screen-chat">
+    <div class="progress-row" id="progress-row">
+      <div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div><div class="progress-dot"></div>
+    </div>
     <div class="history" id="chat-history"></div>
     <div class="card" id="chat-input-card" style="display:none;">
       <div class="input-wrap">
@@ -251,6 +270,7 @@
     <div class="card result-card">
       <h2 data-i18n="resultHowToSubmit">Как подать</h2>
       <div class="result-value" id="result-how-to-submit"></div>
+      <a class="btn-secondary" style="display:block;text-align:center;text-decoration:none;" href="https://eotinish.kz/ru" target="_blank" rel="noopener" data-i18n="openEotinish">🌐 Открыть eOtinish.kz</a>
     </div>
 
     <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
@@ -264,6 +284,16 @@ const STRINGS = {
     appTitle: 'Жалоба',
     appSubtitle: 'Мастер составления жалоб и обращений',
     privacyNote: 'Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.',
+    noSaveWarning: 'Данные нигде не сохраняются: если закроете вкладку, введённый текст будет потерян.',
+    minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
+    examples: ['Не отвечают на заявление', 'Отказали в пособии (АСП)', 'Шум от соседей', 'Задержка зарплаты', 'Бытовое насилие'],
+    exampleTexts: [
+      'Подал заявление в акимат месяц назад, ответа так и не получил',
+      'Отказали в назначении АСП, но не объяснили причину отказа письменно',
+      'Соседи сверху постоянно шумят по ночам, участковый на жалобы не реагирует',
+      'Работодатель уже два месяца не выплачивает зарплату',
+      'Муж применяет физическое насилие, участковый отказался выносить защитное предписание',
+    ],
     intakeTitle: 'Опишите вашу ситуацию своими словами',
     intakeDesc: 'Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.',
     intakePlaceholder: 'Например: подал заявление в акимат месяц назад, ответа так и не получил...',
@@ -291,6 +321,7 @@ const STRINGS = {
     resultDraft: 'Черновик обращения',
     resultDeadlines: 'Сроки',
     resultHowToSubmit: 'Как подать',
+    openEotinish: '🌐 Открыть eOtinish.kz',
     copyDraft: '📋 Скопировать черновик',
     copyDraftDone: '✅ Скопировано!',
     downloadDoc: '💾 Скачать как .doc',
@@ -305,6 +336,16 @@ const STRINGS = {
     appTitle: 'Шағым',
     appSubtitle: 'Шағым мен өтініш жасау шебері',
     privacyNote: 'Құпия: аты-жөніңізді, ЖСН-ді немесе басқа жеке деректерді көрсетудің қажеті жоқ — жағдайды жай ғана сипаттаңыз.',
+    noSaveWarning: 'Деректер ешқайда сақталмайды: қойындыны жабсаңыз, енгізген мәтін жоғалады.',
+    minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
+    examples: ['Өтінішке жауап жоқ', 'АСП-ден бас тартты', 'Көршілердің шуы', 'Жалақы кешіктірілуде', 'Тұрмыстық зорлық'],
+    exampleTexts: [
+      'Бір ай бұрын әкімдікке өтініш бердім, жауап әлі алған жоқпын',
+      'АСП тағайындаудан бас тартты, бірақ себебін жазбаша түсіндірмеді',
+      'Жоғарғы қабаттағы көршілер түнде үнемі шулайды, учаскелік полиция инспекторы шағымдарға назар аудармайды',
+      'Жұмыс беруші екі айдан бері жалақы төлемей отыр',
+      'Күйеуім физикалық күш қолданды, учаскелік полиция инспекторы қорғау нұсқауын шығарудан бас тартты',
+    ],
     intakeTitle: 'Жағдайыңызды өз сөзіңізбен сипаттаңыз',
     intakeDesc: 'Не болды, қандай орган/лауазымды тұлға қатысты, нені қалайтыныңызды жазыңыз. Шебер нысаны мен адресатын өзі анықтайды.',
     intakePlaceholder: 'Мысалы: бір ай бұрын әкімдікке өтініш бердім, жауап әлі алған жоқпын...',
@@ -332,6 +373,7 @@ const STRINGS = {
     resultDraft: 'Өтініш жобасы',
     resultDeadlines: 'Мерзімдер',
     resultHowToSubmit: 'Қалай беру керек',
+    openEotinish: '🌐 eOtinish.kz ашу',
     copyDraft: '📋 Жобаны көшіру',
     copyDraftDone: '✅ Көшірілді!',
     downloadDoc: '💾 .doc түрінде жүктеу',
@@ -344,7 +386,7 @@ const STRINGS = {
   },
 };
 
-const state = { messages: [], pendingResult: null, lang: 'ru' };
+const state = { messages: [], pendingResult: null, lang: 'ru', questionCount: 0 };
 
 function t(key){
   return STRINGS[state.lang][key] || STRINGS.ru[key] || key;
@@ -358,6 +400,25 @@ function applyLang(lang){
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
     el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
+  });
+  renderExampleChips();
+  updateMicVisibility();
+}
+
+function renderExampleChips(){
+  const row = document.getElementById('example-row');
+  row.innerHTML = '';
+  const labels = STRINGS[state.lang].examples || [];
+  const texts = STRINGS[state.lang].exampleTexts || [];
+  labels.forEach((label, i) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'example-chip';
+    chip.textContent = label;
+    chip.addEventListener('click', () => {
+      document.getElementById('intake-text').value = texts[i] || label;
+    });
+    row.appendChild(chip);
   });
 }
 
@@ -379,15 +440,24 @@ const chatSpinner = document.getElementById('chat-spinner');
 const chatAnswer = document.getElementById('chat-answer');
 
 // Голосовой ввод (Web Speech API) — работает надёжно только для русского в Chrome/Android.
-// Казахский язык (kk-KZ) большинство браузеров не распознаёт — в этом случае просто
-// не будет результата, без ошибки для пользователя. В Safari/iOS API может отсутствовать
-// вовсе — тогда кнопка микрофона скрыта через feature-detection ниже.
+// Казахский язык (kk-KZ) большинство браузеров не распознаёт, поэтому кнопка микрофона
+// скрывается целиком при выборе казахского (updateMicVisibility), а не просто молча не
+// срабатывает. В Safari/iOS API может отсутствовать вовсе — тогда кнопка скрыта всегда
+// через feature-detection ниже.
 const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+const micButtonIds = [];
+
+function updateMicVisibility(){
+  micButtonIds.forEach((id) => {
+    const btn = document.getElementById(id);
+    btn.style.display = (SpeechRecognitionClass && state.lang === 'ru') ? 'flex' : 'none';
+  });
+}
 
 function setupMic(buttonId, inputEl){
   const btn = document.getElementById(buttonId);
   if (!SpeechRecognitionClass) return; // кнопка остаётся скрытой (display:none по умолчанию)
-  btn.style.display = 'flex';
+  micButtonIds.push(buttonId);
 
   let recognition = null;
   let listening = false;
@@ -440,6 +510,12 @@ function showError(text){
   chatSpinner.style.display = 'none';
 }
 
+function updateProgress(){
+  const dots = document.querySelectorAll('#progress-row .progress-dot');
+  const filled = Math.min(state.questionCount || 0, dots.length);
+  dots.forEach((dot, i) => dot.classList.toggle('done', i < filled));
+}
+
 async function callWizard(){
   chatInputCard.style.display = 'none';
   chatSpinner.style.display = 'flex';
@@ -463,7 +539,11 @@ async function callWizard(){
       chatInputCard.style.display = 'block';
       chatAnswer.value = '';
       chatAnswer.focus();
+      state.questionCount = (state.questionCount || 0) + 1;
+      updateProgress();
     } else if (data.status === 'done') {
+      state.questionCount = 4;
+      updateProgress();
       showConfirmCategory(data.result);
     } else {
       showScreen('chat');
@@ -524,9 +604,17 @@ function showResult(result){
 
 document.getElementById('intake-submit').addEventListener('click', () => {
   const text = document.getElementById('intake-text').value.trim();
-  if (!text) return;
+  const errorEl = document.getElementById('intake-error');
+  if (text.length < 20) {
+    errorEl.textContent = t('minLengthError');
+    errorEl.style.display = 'block';
+    return;
+  }
+  errorEl.style.display = 'none';
   window.va('event', { name: 'wizard_started' });
   state.messages = [{ role: 'user', content: text }];
+  state.questionCount = 0;
+  updateProgress();
   chatHistory.innerHTML = '';
   addBubble('user', text);
   showScreen('chat');
@@ -568,7 +656,10 @@ document.getElementById('confirm-override-submit').addEventListener('click', () 
 document.getElementById('restart-btn').addEventListener('click', () => {
   state.messages = [];
   state.pendingResult = null;
+  state.questionCount = 0;
+  updateProgress();
   document.getElementById('intake-text').value = '';
+  document.getElementById('intake-error').style.display = 'none';
   chatHistory.innerHTML = '';
   showScreen('intake');
 });

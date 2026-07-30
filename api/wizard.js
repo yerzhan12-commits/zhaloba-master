@@ -233,3 +233,7 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: err.message || 'internal error' });
   }
 };
+
+// Ответ с большим max_tokens может генерироваться дольше стандартных 10 секунд
+// (лимит по умолчанию на бесплатном тарифе Vercel) — увеличиваем до максимума Hobby-тарифа.
+module.exports.config = { maxDuration: 60 };
