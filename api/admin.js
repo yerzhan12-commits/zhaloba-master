@@ -32,6 +32,22 @@ module.exports = async (req, res) => {
           <pre>${escapeHtml(e.addressee)}</pre>
         </details>
         <details>
+          <summary>Почему этот орган</summary>
+          <pre>${escapeHtml(e.addresseeReasoning)}</pre>
+        </details>
+        <details>
+          <summary>Порядок иерархии</summary>
+          <pre>${escapeHtml(e.hierarchyProcedure)}</pre>
+        </details>
+        <details>
+          <summary>Требования к ответу</summary>
+          <pre>${escapeHtml(e.responseRequirements)}</pre>
+        </details>
+        <details>
+          <summary>Если отфутболят</summary>
+          <pre>${escapeHtml(e.ifRedirected)}</pre>
+        </details>
+        <details>
           <summary>Черновик</summary>
           <pre>${escapeHtml(e.draft)}</pre>
         </details>
