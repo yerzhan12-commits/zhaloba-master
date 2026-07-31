@@ -32,6 +32,21 @@
   header{padding:8px 4px 20px;text-align:center;}
   header h1{font-size:22px;color:var(--blue);}
   header .subtitle{font-size:13px;color:var(--muted);margin-top:4px;}
+  .text-size-btn{
+    margin-top:10px;padding:6px 14px;border:1px solid var(--border);border-radius:20px;
+    background:var(--surface);color:var(--ink2);font-size:12px;cursor:pointer;
+  }
+  .text-size-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+  body.text-lg .result-value, body.text-lg .card p, body.text-lg .muted, body.text-lg .bubble,
+  body.text-lg .evidence-name, body.text-lg .evidence-where, body.text-lg textarea,
+  body.text-lg input[type=text], body.text-lg .btn-primary, body.text-lg .btn-secondary,
+  body.text-lg .result-card h2, body.text-lg .card h2, body.text-lg .example-chip{font-size:118%;}
+
+  body.text-xl .result-value, body.text-xl .card p, body.text-xl .muted, body.text-xl .bubble,
+  body.text-xl .evidence-name, body.text-xl .evidence-where, body.text-xl textarea,
+  body.text-xl input[type=text], body.text-xl .btn-primary, body.text-xl .btn-secondary,
+  body.text-xl .result-card h2, body.text-xl .card h2, body.text-xl .example-chip{font-size:136%;}
 
   .screen{display:none;}
   .screen.active{display:block;}
@@ -170,7 +185,7 @@
   @media print{
     body{background:#fff;color:#000;}
     .btn-primary, .btn-secondary, .mic-btn, .file-attach, .example-row,
-    .progress-row, .privacy-note, .lang-row, header .subtitle{display:none !important;}
+    .progress-row, .privacy-note, .lang-row, header .subtitle, .text-size-btn{display:none !important;}
     .card{background:#fff;border:1px solid #ccc;}
     .card h2{color:#000;}
     .result-card h2{color:#000;border-left-color:#000;}
@@ -185,6 +200,7 @@
   <header>
     <h1 data-i18n="appTitle">Жалоба</h1>
     <div class="subtitle" data-i18n="appSubtitle">Мастер составления жалоб и обращений</div>
+    <button type="button" id="text-size-btn" class="text-size-btn" data-i18n="textSizeBtn">Aa Размер текста</button>
   </header>
 
   <!-- Экран 0: выбор языка -->
@@ -404,6 +420,7 @@ const STRINGS = {
     restoreBannerPrefix: 'Найден сохранённый результат от ',
     restoreShow: 'Показать сохранённый результат',
     restoreDismiss: 'Удалить',
+    textSizeBtn: 'Aa Размер текста',
     minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
     modeTitle: 'Что вы хотите сделать?',
     modeComplaint: 'Составить обращение',
@@ -482,6 +499,7 @@ const STRINGS = {
     restoreBannerPrefix: 'Сақталған нәтиже табылды: ',
     restoreShow: 'Сақталған нәтижені көрсету',
     restoreDismiss: 'Жою',
+    textSizeBtn: 'Aa Мәтін өлшемі',
     minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
     modeTitle: 'Нені жасағыңыз келеді?',
     modeComplaint: 'Өтініш құрастыру',
@@ -1202,6 +1220,24 @@ document.getElementById('restore-dismiss-btn').addEventListener('click', () => {
   localStorage.removeItem(RESULT_STORAGE_KEY);
   document.getElementById('restore-banner').style.display = 'none';
 });
+
+const TEXT_SIZE_KEY = 'zhaloba_textsize';
+const TEXT_SIZES = ['normal', 'lg', 'xl'];
+
+function applyTextSize(size){
+  document.body.classList.remove('text-lg', 'text-xl');
+  if (size === 'lg') document.body.classList.add('text-lg');
+  if (size === 'xl') document.body.classList.add('text-xl');
+  localStorage.setItem(TEXT_SIZE_KEY, size);
+}
+
+document.getElementById('text-size-btn').addEventListener('click', () => {
+  const current = localStorage.getItem(TEXT_SIZE_KEY) || 'normal';
+  const next = TEXT_SIZES[(TEXT_SIZES.indexOf(current) + 1) % TEXT_SIZES.length];
+  applyTextSize(next);
+});
+
+applyTextSize(localStorage.getItem(TEXT_SIZE_KEY) || 'normal');
 
 checkSavedResult();
 </script>
