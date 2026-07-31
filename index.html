@@ -139,6 +139,14 @@
   }
   .file-chip button{background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;padding:0 4px;}
 
+  .evidence-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .evidence-item:last-child{border-bottom:none;}
+  .evidence-item input[type=checkbox]{margin-top:3px;width:18px;height:18px;flex-shrink:0;accent-color:var(--blue);}
+  .evidence-item .evidence-text{flex:1;}
+  .evidence-item .evidence-name{font-size:15px;line-height:1.4;}
+  .evidence-item .evidence-name.checked{text-decoration:line-through;color:var(--muted);}
+  .evidence-item .evidence-where{font-size:13px;color:var(--muted);margin-top:2px;}
+
   .progress-row{display:flex;gap:6px;margin-bottom:14px;}
   .progress-dot{flex:1;height:4px;border-radius:2px;background:var(--grid);}
   .progress-dot.done{background:var(--blue);}
@@ -154,6 +162,22 @@
     background:var(--surface);color:var(--ink);font-size:16px;font-weight:600;cursor:pointer;
   }
   .lang-btn:hover{border-color:var(--blue);color:var(--blue);}
+  details.card summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--ink2);}
+  details.card summary:hover{color:var(--blue);}
+  details.card p{margin-bottom:10px;}
+  details.card p b{color:var(--ink);}
+
+  @media print{
+    body{background:#fff;color:#000;}
+    .btn-primary, .btn-secondary, .mic-btn, .file-attach, .example-row,
+    .progress-row, .privacy-note, .lang-row, header .subtitle{display:none !important;}
+    .card{background:#fff;border:1px solid #ccc;}
+    .card h2{color:#000;}
+    .result-card h2{color:#000;border-left-color:#000;}
+    .result-value, .evidence-where{color:#000;}
+    .disclaimer{background:#fff;border:1px solid #999;color:#000;}
+    .evidence-item{border-bottom-color:#ccc;}
+  }
 </style>
 </head>
 <body>
@@ -187,6 +211,10 @@
         <button class="lang-btn" id="mode-review" data-i18n="modeReview">Проверить полученный ответ</button>
       </div>
     </div>
+    <details class="card">
+      <summary data-i18n="faqSummary">❓ Что такое АППК и в чём разница между видами обращений?</summary>
+      <div style="margin-top:10px;font-size:14px;line-height:1.6;" data-i18n-html="faqHtml"></div>
+    </details>
   </div>
 
   <!-- Экран 1: свободное описание -->
@@ -207,7 +235,10 @@
       <div class="example-row" id="example-row"></div>
       <div class="field-error" id="intake-error" style="display:none;"></div>
       <button class="btn-primary" id="intake-submit" data-i18n="intakeSubmit">Продолжить</button>
-      <div class="muted" style="margin-top:10px;font-size:12px;" data-i18n="noSaveWarning">Данные нигде не сохраняются: если закроете вкладку, введённый текст будет потерян.</div>
+      <div class="muted" style="margin-top:10px;font-size:12px;">
+        <span data-i18n="noSaveWarning">Черновик текста сохраняется только в этом браузере (никуда не отправляется) и восстановится при перезагрузке страницы.</span>
+        <span id="clear-draft-link" style="text-decoration:underline;cursor:pointer;white-space:nowrap;" data-i18n="clearDraftLink"> Очистить черновик</span>
+      </div>
     </div>
   </div>
 
@@ -291,11 +322,12 @@
         <button class="btn-secondary" id="copy-draft-btn" data-i18n="copyDraft">📋 Скопировать черновик</button>
         <button class="btn-secondary" id="download-doc-btn" data-i18n="downloadDoc">💾 Скачать как .doc</button>
       </div>
+      <button class="btn-secondary" id="print-result-btn" data-i18n="printPdf">🖨️ Сохранить как PDF</button>
     </div>
 
     <div class="card result-card">
       <h2 data-i18n="resultEvidenceGuide">Какие доказательства собрать</h2>
-      <div class="result-value" id="result-evidence-guide"></div>
+      <div id="result-evidence-guide"></div>
     </div>
 
     <div class="card result-card">
@@ -346,6 +378,7 @@
       <div class="result-actions">
         <button class="btn-secondary" id="copy-review-btn" data-i18n="copyAnalysis">📋 Скопировать анализ</button>
       </div>
+      <button class="btn-secondary" id="print-review-btn" data-i18n="printPdf">🖨️ Сохранить как PDF</button>
     </div>
 
     <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
@@ -359,7 +392,8 @@ const STRINGS = {
     appTitle: 'Жалоба',
     appSubtitle: 'Мастер составления жалоб и обращений',
     privacyNote: 'Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.',
-    noSaveWarning: 'Данные нигде не сохраняются: если закроете вкладку, введённый текст будет потерян.',
+    noSaveWarning: 'Черновик текста сохраняется только в этом браузере (никуда не отправляется) и восстановится при перезагрузке страницы.',
+    clearDraftLink: 'Очистить черновик',
     minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
     modeTitle: 'Что вы хотите сделать?',
     modeComplaint: 'Составить обращение',
@@ -376,6 +410,9 @@ const STRINGS = {
     reviewNextSteps: 'Что делать дальше',
     copyAnalysis: '📋 Скопировать анализ',
     copyAnalysisDone: '✅ Скопировано!',
+    printPdf: '🖨️ Сохранить как PDF',
+    faqSummary: '❓ Что такое АППК и в чём разница между видами обращений?',
+    faqHtml: '<p><b>Что такое АППК?</b><br>Административный процедурно-процессуальный кодекс — главный закон о том, как государственные органы должны рассматривать обращения граждан: сроки, порядок обжалования, требования к содержанию ответа.</p><p><b>Чем жалоба отличается от заявления?</b><br>Заявление — просьба о содействии (например, оформить документ, оказать услугу). Жалоба — требование восстановить право, которое уже нарушено действием, бездействием или неправильным решением органа.</p><p><b>Как правильно сформулировать требование?</b><br>Пишите конкретно: что именно вы хотите (например, «прошу отремонтировать дорогу по адресу…»), а не общие фразы вроде «наведите порядок».</p><p><b>Что делать, если орган не отвечает вовремя?</b><br>По закону молчание в установленный срок приравнивается к отказу — можно сразу обращаться дальше, не дожидаясь ответа.</p><p><b>Обязательно ли обращаться к юристу?</b><br>Нет, этот сервис помогает составить обращение самостоятельно. Но для сложных или спорных ситуаций юрист даст более точную оценку — сервис не заменяет консультацию.</p>',
     attachLabel: '📎 Прикрепить фото/PDF (необязательно)',
     fileTypeError: 'Можно прикреплять только фото (jpg/png) или PDF-файлы.',
     fileTooLarge: 'Слишком большой общий размер файлов. Уменьшите количество или качество фото и попробуйте снова.',
@@ -430,7 +467,8 @@ const STRINGS = {
     appTitle: 'Шағым',
     appSubtitle: 'Шағым мен өтініш жасау шебері',
     privacyNote: 'Құпия: аты-жөніңізді, ЖСН-ді немесе басқа жеке деректерді көрсетудің қажеті жоқ — жағдайды жай ғана сипаттаңыз.',
-    noSaveWarning: 'Деректер ешқайда сақталмайды: қойындыны жабсаңыз, енгізген мәтін жоғалады.',
+    noSaveWarning: 'Мәтін жобасы тек осы браузерде сақталады (ешқайда жіберілмейді) және бетті қайта жүктегенде қалпына келеді.',
+    clearDraftLink: 'Жобаны тазалау',
     minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
     modeTitle: 'Нені жасағыңыз келеді?',
     modeComplaint: 'Өтініш құрастыру',
@@ -447,6 +485,9 @@ const STRINGS = {
     reviewNextSteps: 'Әрі қарай не істеу керек',
     copyAnalysis: '📋 Талдауды көшіру',
     copyAnalysisDone: '✅ Көшірілді!',
+    printPdf: '🖨️ PDF ретінде сақтау',
+    faqSummary: '❓ АППК деген не және өтініш түрлерінің айырмашылығы қандай?',
+    faqHtml: '<p><b>АППК деген не?</b><br>Әкімшілік рәсімдік-процестік кодексі — мемлекеттік органдардың азаматтардың өтініштерін қалай қарауы керектігін белгілейтін негізгі заң: мерзімдер, шағымдану тәртібі, жауап мазмұнына қойылатын талаптар.</p><p><b>Шағым мен өтініштің айырмашылығы неде?</b><br>Өтініш — жәрдем сұрау (мысалы, құжат ресімдеу, қызмет көрсету). Шағым — әрекетпен, әрекетсіздікпен немесе дұрыс емес шешіммен бұзылған құқықты қалпына келтіру талабы.</p><p><b>Талапты қалай дұрыс тұжырымдау керек?</b><br>Нақты жазыңыз: не қалайтыныңызды (мысалы, «... мекенжайындағы жолды жөндеуді сұраймын»), жалпы «тәртіп орнатыңыз» деген сияқты сөздер емес.</p><p><b>Орган уақытында жауап бермесе не істеу керек?</b><br>Заң бойынша белгіленген мерзімде үнсіздік бас тарту деп есептеледі — жауапты күтпей-ақ әрі қарай жүгінуге болады.</p><p><b>Заңгерге міндетті түрде бару керек пе?</b><br>Жоқ, бұл құрал өтінішті өз бетіңізше құрастыруға көмектеседі. Бірақ күрделі немесе даулы жағдайларда заңгер дәлірек баға береді — құрал кеңес беруді алмастырмайды.</p>',
     attachLabel: '📎 Фото/PDF тіркеу (міндетті емес)',
     fileTypeError: 'Тек фото (jpg/png) немесе PDF файлдарын тіркеуге болады.',
     fileTooLarge: 'Файлдардың жалпы көлемі тым үлкен. Файл санын немесе фото сапасын азайтып, қайта көріңіз.',
@@ -505,6 +546,34 @@ const MAX_FILES = 5;
 const MAX_TOTAL_BASE64_CHARS = 4 * 1024 * 1024; // запас под лимит тела запроса Vercel (~4.5 МБ)
 const MAX_IMAGE_DIMENSION = 1600;
 
+const DRAFT_STORAGE_KEY = 'zhaloba_draft_v1';
+let draftSaveTimer = null;
+
+function saveDraft(){
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(() => {
+    const text = document.getElementById('intake-text').value;
+    if (text) {
+      localStorage.setItem(DRAFT_STORAGE_KEY, text);
+    } else {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+    }
+  }, 400);
+}
+
+function restoreDraft(){
+  const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+  const textarea = document.getElementById('intake-text');
+  if (saved && !textarea.value) {
+    textarea.value = saved;
+  }
+}
+
+function clearDraft(){
+  localStorage.removeItem(DRAFT_STORAGE_KEY);
+  document.getElementById('intake-text').value = '';
+}
+
 function t(key){
   return STRINGS[state.lang][key] || STRINGS.ru[key] || key;
 }
@@ -517,6 +586,9 @@ function applyLang(lang){
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
     el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+    el.innerHTML = t(el.getAttribute('data-i18n-html'));
   });
   renderExampleChips();
   updateMicVisibility();
@@ -597,6 +669,7 @@ document.getElementById('intake-files').addEventListener('change', async (e) => 
     return;
   }
 
+  let addedCount = 0;
   for (const file of files) {
     const isImage = file.type.startsWith('image/');
     const isPdf = file.type === 'application/pdf';
@@ -613,6 +686,7 @@ document.getElementById('intake-files').addEventListener('change', async (e) => 
         kind: isImage ? 'image' : 'document',
         base64,
       });
+      addedCount += 1;
     } catch (err) {
       console.error('file read error', err);
     }
@@ -620,7 +694,7 @@ document.getElementById('intake-files').addEventListener('change', async (e) => 
 
   const totalChars = state.attachedFiles.reduce((sum, f) => sum + f.base64.length, 0);
   if (totalChars > MAX_TOTAL_BASE64_CHARS) {
-    state.attachedFiles = state.attachedFiles.slice(0, -files.length);
+    state.attachedFiles = addedCount ? state.attachedFiles.slice(0, -addedCount) : state.attachedFiles;
     errorEl.textContent = t('fileTooLarge');
     errorEl.style.display = 'block';
   }
@@ -811,7 +885,9 @@ function buildFullDocText(result){
     '',
     label('resultDraft', 'Черновик обращения') + ':\n' + (result.draft || ''),
     '',
-    label('resultEvidenceGuide', 'Какие доказательства собрать') + ':\n' + (result.evidenceGuide || ''),
+    label('resultEvidenceGuide', 'Какие доказательства собрать') + ':\n' + (Array.isArray(result.evidenceGuide)
+      ? result.evidenceGuide.map((e) => '- ' + (e.item || '') + ' (' + (e.whereToGet || '') + ')').join('\n')
+      : (result.evidenceGuide || '')),
     '',
     label('resultDeadlines', 'Сроки') + ':\n' + (result.deadlines || ''),
     '',
@@ -836,6 +912,39 @@ function buildReviewDocText(result){
   ].join('\n');
 }
 
+function renderEvidenceChecklist(evidenceGuide){
+  const container = document.getElementById('result-evidence-guide');
+  container.innerHTML = '';
+  const items = Array.isArray(evidenceGuide) ? evidenceGuide : [];
+  if (!items.length) {
+    container.textContent = '—';
+    return;
+  }
+  items.forEach((entry, i) => {
+    const row = document.createElement('label');
+    row.className = 'evidence-item';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'evidence-check-' + i;
+    const textWrap = document.createElement('div');
+    textWrap.className = 'evidence-text';
+    const name = document.createElement('div');
+    name.className = 'evidence-name';
+    name.textContent = entry.item || '';
+    const where = document.createElement('div');
+    where.className = 'evidence-where';
+    where.textContent = entry.whereToGet || '';
+    checkbox.addEventListener('change', () => {
+      name.classList.toggle('checked', checkbox.checked);
+    });
+    textWrap.appendChild(name);
+    textWrap.appendChild(where);
+    row.appendChild(checkbox);
+    row.appendChild(textWrap);
+    container.appendChild(row);
+  });
+}
+
 function showResult(result){
   document.getElementById('result-category').textContent = result.category || '—';
   document.getElementById('result-addressee').textContent = result.addressee || '—';
@@ -844,7 +953,7 @@ function showResult(result){
   document.getElementById('result-response-req').textContent = result.responseRequirements || '—';
   document.getElementById('result-if-redirected').textContent = result.ifRedirected || '—';
   document.getElementById('result-draft').textContent = result.draft || '—';
-  document.getElementById('result-evidence-guide').textContent = result.evidenceGuide || '—';
+  renderEvidenceChecklist(result.evidenceGuide);
   document.getElementById('result-deadlines').textContent = result.deadlines || '—';
   document.getElementById('result-how-to-submit').textContent = result.howToSubmit || '—';
   document.getElementById('result-quality-check').textContent = result.draftQualityCheck || '—';
@@ -887,6 +996,7 @@ document.getElementById('intake-submit').addEventListener('click', () => {
   state.messages = [{ role: 'user', content }];
   state.attachedFiles = [];
   renderFileList();
+  localStorage.removeItem(DRAFT_STORAGE_KEY);
   state.questionCount = 0;
   updateProgress();
   chatHistory.innerHTML = '';
@@ -932,6 +1042,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   state.pendingResult = null;
   state.attachedFiles = [];
   renderFileList();
+  localStorage.removeItem(DRAFT_STORAGE_KEY);
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -945,6 +1056,7 @@ document.getElementById('restart-review-btn').addEventListener('click', () => {
   state.pendingReviewResult = null;
   state.attachedFiles = [];
   renderFileList();
+  localStorage.removeItem(DRAFT_STORAGE_KEY);
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -974,14 +1086,20 @@ document.getElementById('lang-kk').addEventListener('click', () => {
 document.getElementById('mode-complaint').addEventListener('click', () => {
   state.mode = 'complaint';
   applyMode();
+  restoreDraft();
   showScreen('intake');
 });
 
 document.getElementById('mode-review').addEventListener('click', () => {
   state.mode = 'review';
   applyMode();
+  restoreDraft();
   showScreen('intake');
 });
+
+document.getElementById('intake-text').addEventListener('input', saveDraft);
+
+document.getElementById('clear-draft-link').addEventListener('click', clearDraft);
 
 setupMic('intake-mic', document.getElementById('intake-text'));
 setupMic('chat-mic', chatAnswer);
@@ -998,6 +1116,9 @@ document.getElementById('copy-draft-btn').addEventListener('click', async () => 
     showError && console.error('clipboard error', e);
   }
 });
+
+document.getElementById('print-result-btn').addEventListener('click', () => window.print());
+document.getElementById('print-review-btn').addEventListener('click', () => window.print());
 
 document.getElementById('download-doc-btn').addEventListener('click', () => {
   if (!state.pendingResult) return;

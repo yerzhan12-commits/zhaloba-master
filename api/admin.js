@@ -6,6 +6,11 @@ function escapeHtml(str) {
   }[c]));
 }
 
+function formatEvidenceGuide(evidenceGuide) {
+  if (!Array.isArray(evidenceGuide)) return escapeHtml(evidenceGuide);
+  return evidenceGuide.map((e) => `• ${escapeHtml(e.item)} — ${escapeHtml(e.whereToGet)}`).join('\n');
+}
+
 module.exports = async (req, res) => {
   const password = (req.query && req.query.password) || '';
   if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
@@ -81,7 +86,7 @@ module.exports = async (req, res) => {
         </details>
         <details>
           <summary>Какие доказательства собрать</summary>
-          <pre>${escapeHtml(e.evidenceGuide)}</pre>
+          <pre>${formatEvidenceGuide(e.evidenceGuide)}</pre>
         </details>
         <details>
           <summary>Сроки</summary>
