@@ -124,6 +124,21 @@
 
   .field-error{color:var(--red);font-size:13px;margin-top:8px;}
 
+  .file-attach{margin-top:10px;}
+  .file-attach-label{
+    display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;
+    border:1px solid var(--border);background:var(--surface);color:var(--ink2);
+    font-size:13px;cursor:pointer;
+  }
+  .file-attach-label:hover{border-color:var(--blue);color:var(--blue);}
+  .file-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+  .file-chip{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:8px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);
+    font-size:12px;color:var(--ink2);
+  }
+  .file-chip button{background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;padding:0 4px;}
+
   .progress-row{display:flex;gap:6px;margin-bottom:14px;}
   .progress-dot{flex:1;height:4px;border-radius:2px;background:var(--grid);}
   .progress-dot.done{background:var(--blue);}
@@ -183,6 +198,11 @@
       <div class="input-wrap">
         <textarea id="intake-text" data-i18n-placeholder="intakePlaceholder" placeholder="Например: подал заявление в акимат месяц назад, ответа так и не получил..."></textarea>
         <button type="button" class="mic-btn" id="intake-mic" style="display:none;" aria-label="Voice input">🎤</button>
+      </div>
+      <div class="file-attach">
+        <label class="file-attach-label" for="intake-files" data-i18n="attachLabel">📎 Прикрепить фото/PDF (необязательно)</label>
+        <input type="file" id="intake-files" accept="image/*,.pdf" multiple style="display:none;">
+        <div class="file-list" id="file-list"></div>
       </div>
       <div class="example-row" id="example-row"></div>
       <div class="field-error" id="intake-error" style="display:none;"></div>
@@ -356,6 +376,10 @@ const STRINGS = {
     reviewNextSteps: 'Что делать дальше',
     copyAnalysis: '📋 Скопировать анализ',
     copyAnalysisDone: '✅ Скопировано!',
+    attachLabel: '📎 Прикрепить фото/PDF (необязательно)',
+    fileTypeError: 'Можно прикреплять только фото (jpg/png) или PDF-файлы.',
+    fileTooLarge: 'Слишком большой общий размер файлов. Уменьшите количество или качество фото и попробуйте снова.',
+    fileTooMany: 'Можно прикрепить не более 5 файлов.',
     examples: ['Не отвечают на заявление', 'Отказали в пособии (АСП)', 'Шум от соседей', 'Задержка зарплаты', 'Бытовое насилие'],
     exampleTexts: [
       'Подал заявление в акимат месяц назад, ответа так и не получил',
@@ -423,6 +447,10 @@ const STRINGS = {
     reviewNextSteps: 'Әрі қарай не істеу керек',
     copyAnalysis: '📋 Талдауды көшіру',
     copyAnalysisDone: '✅ Көшірілді!',
+    attachLabel: '📎 Фото/PDF тіркеу (міндетті емес)',
+    fileTypeError: 'Тек фото (jpg/png) немесе PDF файлдарын тіркеуге болады.',
+    fileTooLarge: 'Файлдардың жалпы көлемі тым үлкен. Файл санын немесе фото сапасын азайтып, қайта көріңіз.',
+    fileTooMany: '5 файлдан артық тіркеуге болмайды.',
     examples: ['Өтінішке жауап жоқ', 'АСП-ден бас тартты', 'Көршілердің шуы', 'Жалақы кешіктірілуде', 'Тұрмыстық зорлық'],
     exampleTexts: [
       'Бір ай бұрын әкімдікке өтініш бердім, жауап әлі алған жоқпын',
@@ -471,7 +499,11 @@ const STRINGS = {
   },
 };
 
-const state = { messages: [], pendingResult: null, pendingReviewResult: null, lang: 'ru', mode: 'complaint', questionCount: 0 };
+const state = { messages: [], pendingResult: null, pendingReviewResult: null, lang: 'ru', mode: 'complaint', questionCount: 0, attachedFiles: [] };
+
+const MAX_FILES = 5;
+const MAX_TOTAL_BASE64_CHARS = 4 * 1024 * 1024; // запас под лимит тела запроса Vercel (~4.5 МБ)
+const MAX_IMAGE_DIMENSION = 1600;
 
 function t(key){
   return STRINGS[state.lang][key] || STRINGS.ru[key] || key;
@@ -497,6 +529,104 @@ function applyMode(){
   document.getElementById('intake-text').setAttribute('placeholder', t(isReview ? 'reviewIntakePlaceholder' : 'intakePlaceholder'));
   document.getElementById('example-row').style.display = isReview ? 'none' : 'flex';
 }
+
+function compressImage(file){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => { img.src = reader.result; };
+    reader.onerror = reject;
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+        const scale = MAX_IMAGE_DIMENSION / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+      resolve(dataUrl.split(',')[1]);
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function readFileAsBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderFileList(){
+  const list = document.getElementById('file-list');
+  list.innerHTML = '';
+  state.attachedFiles.forEach((f, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'file-chip';
+    const name = document.createElement('span');
+    name.textContent = f.name;
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', () => {
+      state.attachedFiles.splice(i, 1);
+      renderFileList();
+    });
+    chip.appendChild(name);
+    chip.appendChild(removeBtn);
+    list.appendChild(chip);
+  });
+}
+
+document.getElementById('intake-files').addEventListener('change', async (e) => {
+  const errorEl = document.getElementById('intake-error');
+  errorEl.style.display = 'none';
+  const files = Array.from(e.target.files || []);
+  e.target.value = '';
+
+  if (state.attachedFiles.length + files.length > MAX_FILES) {
+    errorEl.textContent = t('fileTooMany');
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  for (const file of files) {
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+    if (!isImage && !isPdf) {
+      errorEl.textContent = t('fileTypeError');
+      errorEl.style.display = 'block';
+      continue;
+    }
+    try {
+      const base64 = isImage ? await compressImage(file) : await readFileAsBase64(file);
+      state.attachedFiles.push({
+        name: file.name,
+        mediaType: isImage ? 'image/jpeg' : 'application/pdf',
+        kind: isImage ? 'image' : 'document',
+        base64,
+      });
+    } catch (err) {
+      console.error('file read error', err);
+    }
+  }
+
+  const totalChars = state.attachedFiles.reduce((sum, f) => sum + f.base64.length, 0);
+  if (totalChars > MAX_TOTAL_BASE64_CHARS) {
+    state.attachedFiles = state.attachedFiles.slice(0, -files.length);
+    errorEl.textContent = t('fileTooLarge');
+    errorEl.style.display = 'block';
+  }
+
+  renderFileList();
+});
 
 function renderExampleChips(){
   const row = document.getElementById('example-row');
@@ -743,7 +873,20 @@ document.getElementById('intake-submit').addEventListener('click', () => {
   }
   errorEl.style.display = 'none';
   window.va('event', { name: 'wizard_started' });
-  state.messages = [{ role: 'user', content: text }];
+
+  let content = text;
+  if (state.attachedFiles.length) {
+    content = [{ type: 'text', text }];
+    state.attachedFiles.forEach((f) => {
+      content.push({
+        type: f.kind,
+        source: { type: 'base64', media_type: f.mediaType, data: f.base64 },
+      });
+    });
+  }
+  state.messages = [{ role: 'user', content }];
+  state.attachedFiles = [];
+  renderFileList();
   state.questionCount = 0;
   updateProgress();
   chatHistory.innerHTML = '';
@@ -787,6 +930,8 @@ document.getElementById('confirm-override-submit').addEventListener('click', () 
 document.getElementById('restart-btn').addEventListener('click', () => {
   state.messages = [];
   state.pendingResult = null;
+  state.attachedFiles = [];
+  renderFileList();
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -798,6 +943,8 @@ document.getElementById('restart-btn').addEventListener('click', () => {
 document.getElementById('restart-review-btn').addEventListener('click', () => {
   state.messages = [];
   state.pendingReviewResult = null;
+  state.attachedFiles = [];
+  renderFileList();
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
