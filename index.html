@@ -189,6 +189,13 @@
 
   <!-- Экран 0: выбор языка -->
   <div class="screen active" id="screen-language">
+    <div class="card" id="restore-banner" style="display:none;">
+      <p style="font-size:13px;margin-bottom:10px;" id="restore-banner-text"></p>
+      <div class="result-actions">
+        <button class="btn-secondary" id="restore-show-btn" data-i18n="restoreShow">Показать сохранённый результат</button>
+        <button class="btn-secondary" id="restore-dismiss-btn" data-i18n="restoreDismiss">Удалить</button>
+      </div>
+    </div>
     <div class="disclaimer" style="margin-bottom:14px;">
       <b>Дисклеймер.</b> Бұл — өтініш пен шағым жасауға арналған құрал. Мұндағы барлық жоба мен ұсыныстарды сіз енгізген деректер негізінде жасанды интеллект жасайды — бұл көмекші материал, ресми заңгерлік кеңес те, мемлекеттік органның ресми ұстанымы да, адвокатты алмастыру да емес. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.<br><br>
       <b>Дисклеймер.</b> Это конструктор для составления обращений и жалоб. Все черновики и рекомендации формируются искусственным интеллектом на основе введённых вами данных — это вспомогательный материал, а не официальная юридическая консультация, не официальная позиция госоргана и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.
@@ -394,6 +401,9 @@ const STRINGS = {
     privacyNote: 'Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.',
     noSaveWarning: 'Черновик текста сохраняется только в этом браузере (никуда не отправляется) и восстановится при перезагрузке страницы.',
     clearDraftLink: 'Очистить черновик',
+    restoreBannerPrefix: 'Найден сохранённый результат от ',
+    restoreShow: 'Показать сохранённый результат',
+    restoreDismiss: 'Удалить',
     minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
     modeTitle: 'Что вы хотите сделать?',
     modeComplaint: 'Составить обращение',
@@ -469,6 +479,9 @@ const STRINGS = {
     privacyNote: 'Құпия: аты-жөніңізді, ЖСН-ді немесе басқа жеке деректерді көрсетудің қажеті жоқ — жағдайды жай ғана сипаттаңыз.',
     noSaveWarning: 'Мәтін жобасы тек осы браузерде сақталады (ешқайда жіберілмейді) және бетті қайта жүктегенде қалпына келеді.',
     clearDraftLink: 'Жобаны тазалау',
+    restoreBannerPrefix: 'Сақталған нәтиже табылды: ',
+    restoreShow: 'Сақталған нәтижені көрсету',
+    restoreDismiss: 'Жою',
     minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
     modeTitle: 'Нені жасағыңыз келеді?',
     modeComplaint: 'Өтініш құрастыру',
@@ -547,7 +560,29 @@ const MAX_TOTAL_BASE64_CHARS = 4 * 1024 * 1024; // запас под лимит 
 const MAX_IMAGE_DIMENSION = 1600;
 
 const DRAFT_STORAGE_KEY = 'zhaloba_draft_v1';
+const RESULT_STORAGE_KEY = 'zhaloba_result_v1';
 let draftSaveTimer = null;
+
+function saveResultToStorage(mode, result){
+  localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify({
+    mode, result, lang: state.lang, ts: Date.now(),
+  }));
+}
+
+function checkSavedResult(){
+  const raw = localStorage.getItem(RESULT_STORAGE_KEY);
+  if (!raw) return;
+  let saved;
+  try {
+    saved = JSON.parse(raw);
+  } catch {
+    localStorage.removeItem(RESULT_STORAGE_KEY);
+    return;
+  }
+  const dateStr = new Date(saved.ts).toLocaleString(saved.lang === 'kk' ? 'kk-KZ' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+  document.getElementById('restore-banner-text').textContent = t('restoreBannerPrefix') + dateStr;
+  document.getElementById('restore-banner').style.display = 'block';
+}
 
 function saveDraft(){
   clearTimeout(draftSaveTimer);
@@ -957,6 +992,7 @@ function showResult(result){
   document.getElementById('result-deadlines').textContent = result.deadlines || '—';
   document.getElementById('result-how-to-submit').textContent = result.howToSubmit || '—';
   document.getElementById('result-quality-check').textContent = result.draftQualityCheck || '—';
+  saveResultToStorage('complaint', result);
   window.va('event', { name: 'wizard_completed' });
   showScreen('result');
 }
@@ -968,6 +1004,7 @@ function showReviewResult(result){
   document.getElementById('review-arguments').textContent = result.argumentsCoverage || '—';
   document.getElementById('review-verdict').textContent = result.verdict || '—';
   document.getElementById('review-next-steps').textContent = result.nextSteps || '—';
+  saveResultToStorage('review', result);
   window.va('event', { name: 'review_completed' });
   showScreen('resultReview');
 }
@@ -985,7 +1022,9 @@ document.getElementById('intake-submit').addEventListener('click', () => {
 
   let content = text;
   if (state.attachedFiles.length) {
-    content = [{ type: 'text', text }];
+    const fileNames = state.attachedFiles.map((f) => f.name).join(', ');
+    const textWithFiles = text + '\n\n[Приложены файлы: ' + fileNames + ']';
+    content = [{ type: 'text', text: textWithFiles }];
     state.attachedFiles.forEach((f) => {
       content.push({
         type: f.kind,
@@ -1043,6 +1082,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   state.attachedFiles = [];
   renderFileList();
   localStorage.removeItem(DRAFT_STORAGE_KEY);
+  localStorage.removeItem(RESULT_STORAGE_KEY);
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -1057,6 +1097,7 @@ document.getElementById('restart-review-btn').addEventListener('click', () => {
   state.attachedFiles = [];
   renderFileList();
   localStorage.removeItem(DRAFT_STORAGE_KEY);
+  localStorage.removeItem(RESULT_STORAGE_KEY);
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -1141,6 +1182,28 @@ document.getElementById('lang-ru').addEventListener('click', () => {
   applyLang('ru');
   showScreen('mode');
 });
+
+document.getElementById('restore-show-btn').addEventListener('click', () => {
+  const raw = localStorage.getItem(RESULT_STORAGE_KEY);
+  if (!raw) return;
+  const saved = JSON.parse(raw);
+  applyLang(saved.lang);
+  document.getElementById('restore-banner').style.display = 'none';
+  if (saved.mode === 'review') {
+    showReviewResult(saved.result);
+  } else {
+    state.mode = 'complaint';
+    state.pendingResult = saved.result;
+    showResult(saved.result);
+  }
+});
+
+document.getElementById('restore-dismiss-btn').addEventListener('click', () => {
+  localStorage.removeItem(RESULT_STORAGE_KEY);
+  document.getElementById('restore-banner').style.display = 'none';
+});
+
+checkSavedResult();
 </script>
 </body>
 </html>
