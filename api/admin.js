@@ -23,9 +23,37 @@ module.exports = async (req, res) => {
       }
     }).filter(Boolean);
 
-    const rows = entries.map((e) => `
+    const rows = entries.map((e) => {
+      const meta = `<div class="meta">${escapeHtml(e.ts)} · ${e.lang === 'kk' ? 'Қазақша' : 'Русский'} · ${e.mode === 'review' ? 'Проверка ответа' : 'Обращение'}</div>`;
+
+      if (e.mode === 'review') {
+        return `
       <div class="entry">
-        <div class="meta">${escapeHtml(e.ts)} · ${e.lang === 'kk' ? 'Қазақша' : 'Русский'}</div>
+        ${meta}
+        <div class="cat">${escapeHtml(e.verdict)}</div>
+        <details>
+          <summary>Мотивирован ли ответ</summary>
+          <pre>${escapeHtml(e.motivationAssessment)}</pre>
+        </details>
+        <details>
+          <summary>Соблюдены ли сроки</summary>
+          <pre>${escapeHtml(e.deadlineAssessment)}</pre>
+        </details>
+        <details>
+          <summary>Разобраны ли все доводы</summary>
+          <pre>${escapeHtml(e.argumentsCoverage)}</pre>
+        </details>
+        <details>
+          <summary>Что делать дальше</summary>
+          <pre>${escapeHtml(e.nextSteps)}</pre>
+        </details>
+      </div>
+    `;
+      }
+
+      return `
+      <div class="entry">
+        ${meta}
         <div class="cat">${escapeHtml(e.category)}</div>
         <details>
           <summary>Куда подавать</summary>
@@ -52,6 +80,10 @@ module.exports = async (req, res) => {
           <pre>${escapeHtml(e.draft)}</pre>
         </details>
         <details>
+          <summary>Какие доказательства собрать</summary>
+          <pre>${escapeHtml(e.evidenceGuide)}</pre>
+        </details>
+        <details>
           <summary>Сроки</summary>
           <pre>${escapeHtml(e.deadlines)}</pre>
         </details>
@@ -59,8 +91,13 @@ module.exports = async (req, res) => {
           <summary>Как подать</summary>
           <pre>${escapeHtml(e.howToSubmit)}</pre>
         </details>
+        <details>
+          <summary>Проверка полноты черновика</summary>
+          <pre>${escapeHtml(e.draftQualityCheck)}</pre>
+        </details>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.status(200).send(`<!DOCTYPE html>

@@ -163,12 +163,23 @@
     </div>
   </div>
 
+  <!-- Экран 0.5: выбор режима -->
+  <div class="screen" id="screen-mode">
+    <div class="card">
+      <h2 data-i18n="modeTitle">Что вы хотите сделать?</h2>
+      <div class="lang-row">
+        <button class="lang-btn" id="mode-complaint" data-i18n="modeComplaint">Составить обращение</button>
+        <button class="lang-btn" id="mode-review" data-i18n="modeReview">Проверить полученный ответ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Экран 1: свободное описание -->
   <div class="screen" id="screen-intake">
     <div class="privacy-note" data-i18n="privacyNote">Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.</div>
     <div class="card">
-      <h2 data-i18n="intakeTitle">Опишите вашу ситуацию своими словами</h2>
-      <p class="muted" style="margin-bottom:12px;" data-i18n="intakeDesc">Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.</p>
+      <h2 id="intake-title-el" data-i18n="intakeTitle">Опишите вашу ситуацию своими словами</h2>
+      <p class="muted" id="intake-desc-el" style="margin-bottom:12px;" data-i18n="intakeDesc">Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.</p>
       <div class="input-wrap">
         <textarea id="intake-text" data-i18n-placeholder="intakePlaceholder" placeholder="Например: подал заявление в акимат месяц назад, ответа так и не получил..."></textarea>
         <button type="button" class="mic-btn" id="intake-mic" style="display:none;" aria-label="Voice input">🎤</button>
@@ -263,6 +274,11 @@
     </div>
 
     <div class="card result-card">
+      <h2 data-i18n="resultEvidenceGuide">Какие доказательства собрать</h2>
+      <div class="result-value" id="result-evidence-guide"></div>
+    </div>
+
+    <div class="card result-card">
       <h2 data-i18n="resultDeadlines">Сроки</h2>
       <div class="result-value" id="result-deadlines"></div>
     </div>
@@ -273,8 +289,47 @@
       <a class="btn-secondary" style="display:block;text-align:center;text-decoration:none;" href="https://eotinish.kz/ru" target="_blank" rel="noopener" data-i18n="openEotinish">🌐 Открыть eOtinish.kz</a>
     </div>
 
+    <div class="card result-card">
+      <h2 data-i18n="resultQualityCheck">Проверка полноты черновика</h2>
+      <div class="result-value" id="result-quality-check"></div>
+    </div>
+
     <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
     <button class="btn-secondary" id="restart-btn" data-i18n="restart">Начать заново</button>
+  </div>
+
+  <!-- Экран 5: результат проверки полученного ответа -->
+  <div class="screen" id="screen-result-review">
+    <div class="card result-card">
+      <h2 data-i18n="reviewMotivation">Мотивирован ли ответ</h2>
+      <div class="result-value" id="review-motivation"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="reviewDeadline">Соблюдены ли сроки</h2>
+      <div class="result-value" id="review-deadline"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="reviewArguments">Разобраны ли все ваши доводы</h2>
+      <div class="result-value" id="review-arguments"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="reviewVerdict">Итоговый вывод</h2>
+      <div class="result-value" id="review-verdict"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="reviewNextSteps">Что делать дальше</h2>
+      <div class="result-value" id="review-next-steps"></div>
+      <div class="result-actions">
+        <button class="btn-secondary" id="copy-review-btn" data-i18n="copyAnalysis">📋 Скопировать анализ</button>
+      </div>
+    </div>
+
+    <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
+    <button class="btn-secondary" id="restart-review-btn" data-i18n="restart">Начать заново</button>
   </div>
 </div>
 
@@ -286,6 +341,21 @@ const STRINGS = {
     privacyNote: 'Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.',
     noSaveWarning: 'Данные нигде не сохраняются: если закроете вкладку, введённый текст будет потерян.',
     minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
+    modeTitle: 'Что вы хотите сделать?',
+    modeComplaint: 'Составить обращение',
+    modeReview: 'Проверить полученный ответ',
+    reviewIntakeTitle: 'Что вы просили и что вам ответили',
+    reviewIntakeDesc: 'Кратко опишите, что вы просили в своём обращении, и вставьте текст ответа, который получили от органа. Мастер проверит, законен ли этот ответ.',
+    reviewIntakePlaceholder: 'Например: просил ремонт дороги во дворе, акимат ответил, что вопрос не в их компетенции...',
+    resultEvidenceGuide: 'Какие доказательства собрать',
+    resultQualityCheck: 'Проверка полноты черновика',
+    reviewMotivation: 'Мотивирован ли ответ',
+    reviewDeadline: 'Соблюдены ли сроки',
+    reviewArguments: 'Разобраны ли все ваши доводы',
+    reviewVerdict: 'Итоговый вывод',
+    reviewNextSteps: 'Что делать дальше',
+    copyAnalysis: '📋 Скопировать анализ',
+    copyAnalysisDone: '✅ Скопировано!',
     examples: ['Не отвечают на заявление', 'Отказали в пособии (АСП)', 'Шум от соседей', 'Задержка зарплаты', 'Бытовое насилие'],
     exampleTexts: [
       'Подал заявление в акимат месяц назад, ответа так и не получил',
@@ -338,6 +408,21 @@ const STRINGS = {
     privacyNote: 'Құпия: аты-жөніңізді, ЖСН-ді немесе басқа жеке деректерді көрсетудің қажеті жоқ — жағдайды жай ғана сипаттаңыз.',
     noSaveWarning: 'Деректер ешқайда сақталмайды: қойындыны жабсаңыз, енгізген мәтін жоғалады.',
     minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
+    modeTitle: 'Нені жасағыңыз келеді?',
+    modeComplaint: 'Өтініш құрастыру',
+    modeReview: 'Алынған жауапты тексеру',
+    reviewIntakeTitle: 'Не сұрадыңыз және сізге не деп жауап берді',
+    reviewIntakeDesc: 'Өтінішіңізде нені сұрағаныңызды қысқаша жазыңыз және органнан алған жауап мәтінін енгізіңіз. Шебер бұл жауаптың заңды екенін тексереді.',
+    reviewIntakePlaceholder: 'Мысалы: аула жолын жөндеуді сұрадым, әкімдік бұл біздің құзыретімізде емес деп жауап берді...',
+    resultEvidenceGuide: 'Қандай дәлелдер жинау керек',
+    resultQualityCheck: 'Жоба толықтығын тексеру',
+    reviewMotivation: 'Жауап негізделген бе',
+    reviewDeadline: 'Мерзімдер сақталды ма',
+    reviewArguments: 'Барлық дәлелдеріңіз қаралды ма',
+    reviewVerdict: 'Қорытынды баға',
+    reviewNextSteps: 'Әрі қарай не істеу керек',
+    copyAnalysis: '📋 Талдауды көшіру',
+    copyAnalysisDone: '✅ Көшірілді!',
     examples: ['Өтінішке жауап жоқ', 'АСП-ден бас тартты', 'Көршілердің шуы', 'Жалақы кешіктірілуде', 'Тұрмыстық зорлық'],
     exampleTexts: [
       'Бір ай бұрын әкімдікке өтініш бердім, жауап әлі алған жоқпын',
@@ -386,7 +471,7 @@ const STRINGS = {
   },
 };
 
-const state = { messages: [], pendingResult: null, lang: 'ru', questionCount: 0 };
+const state = { messages: [], pendingResult: null, pendingReviewResult: null, lang: 'ru', mode: 'complaint', questionCount: 0 };
 
 function t(key){
   return STRINGS[state.lang][key] || STRINGS.ru[key] || key;
@@ -403,6 +488,14 @@ function applyLang(lang){
   });
   renderExampleChips();
   updateMicVisibility();
+}
+
+function applyMode(){
+  const isReview = state.mode === 'review';
+  document.getElementById('intake-title-el').textContent = t(isReview ? 'reviewIntakeTitle' : 'intakeTitle');
+  document.getElementById('intake-desc-el').textContent = t(isReview ? 'reviewIntakeDesc' : 'intakeDesc');
+  document.getElementById('intake-text').setAttribute('placeholder', t(isReview ? 'reviewIntakePlaceholder' : 'intakePlaceholder'));
+  document.getElementById('example-row').style.display = isReview ? 'none' : 'flex';
 }
 
 function renderExampleChips(){
@@ -424,10 +517,12 @@ function renderExampleChips(){
 
 const screens = {
   language: document.getElementById('screen-language'),
+  mode: document.getElementById('screen-mode'),
   intake: document.getElementById('screen-intake'),
   chat: document.getElementById('screen-chat'),
   confirm: document.getElementById('screen-confirm'),
   result: document.getElementById('screen-result'),
+  resultReview: document.getElementById('screen-result-review'),
 };
 function showScreen(name){
   Object.values(screens).forEach(s => s.classList.remove('active'));
@@ -523,7 +618,7 @@ async function callWizard(){
     const res = await fetch('/api/wizard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: state.messages, lang: state.lang }),
+      body: JSON.stringify({ messages: state.messages, lang: state.lang, mode: state.mode }),
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
@@ -544,7 +639,11 @@ async function callWizard(){
     } else if (data.status === 'done') {
       state.questionCount = 4;
       updateProgress();
-      showConfirmCategory(data.result);
+      if (state.mode === 'review') {
+        showReviewResult(data.result);
+      } else {
+        showConfirmCategory(data.result);
+      }
     } else {
       showScreen('chat');
       showError(t('errorParse'));
@@ -582,9 +681,28 @@ function buildFullDocText(result){
     '',
     label('resultDraft', 'Черновик обращения') + ':\n' + (result.draft || ''),
     '',
+    label('resultEvidenceGuide', 'Какие доказательства собрать') + ':\n' + (result.evidenceGuide || ''),
+    '',
     label('resultDeadlines', 'Сроки') + ':\n' + (result.deadlines || ''),
     '',
     label('resultHowToSubmit', 'Как подать') + ':\n' + (result.howToSubmit || ''),
+    '',
+    label('resultQualityCheck', 'Проверка полноты черновика') + ':\n' + (result.draftQualityCheck || ''),
+  ].join('\n');
+}
+
+function buildReviewDocText(result){
+  const label = (key, fallbackRu) => t(key) || fallbackRu;
+  return [
+    label('reviewMotivation', 'Мотивирован ли ответ') + ':\n' + (result.motivationAssessment || ''),
+    '',
+    label('reviewDeadline', 'Соблюдены ли сроки') + ':\n' + (result.deadlineAssessment || ''),
+    '',
+    label('reviewArguments', 'Разобраны ли все ваши доводы') + ':\n' + (result.argumentsCoverage || ''),
+    '',
+    label('reviewVerdict', 'Итоговый вывод') + ':\n' + (result.verdict || ''),
+    '',
+    label('reviewNextSteps', 'Что делать дальше') + ':\n' + (result.nextSteps || ''),
   ].join('\n');
 }
 
@@ -596,10 +714,23 @@ function showResult(result){
   document.getElementById('result-response-req').textContent = result.responseRequirements || '—';
   document.getElementById('result-if-redirected').textContent = result.ifRedirected || '—';
   document.getElementById('result-draft').textContent = result.draft || '—';
+  document.getElementById('result-evidence-guide').textContent = result.evidenceGuide || '—';
   document.getElementById('result-deadlines').textContent = result.deadlines || '—';
   document.getElementById('result-how-to-submit').textContent = result.howToSubmit || '—';
+  document.getElementById('result-quality-check').textContent = result.draftQualityCheck || '—';
   window.va('event', { name: 'wizard_completed' });
   showScreen('result');
+}
+
+function showReviewResult(result){
+  state.pendingReviewResult = result;
+  document.getElementById('review-motivation').textContent = result.motivationAssessment || '—';
+  document.getElementById('review-deadline').textContent = result.deadlineAssessment || '—';
+  document.getElementById('review-arguments').textContent = result.argumentsCoverage || '—';
+  document.getElementById('review-verdict').textContent = result.verdict || '—';
+  document.getElementById('review-next-steps').textContent = result.nextSteps || '—';
+  window.va('event', { name: 'review_completed' });
+  showScreen('resultReview');
 }
 
 document.getElementById('intake-submit').addEventListener('click', () => {
@@ -661,11 +792,47 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('intake-text').value = '';
   document.getElementById('intake-error').style.display = 'none';
   chatHistory.innerHTML = '';
-  showScreen('intake');
+  showScreen('mode');
+});
+
+document.getElementById('restart-review-btn').addEventListener('click', () => {
+  state.messages = [];
+  state.pendingReviewResult = null;
+  state.questionCount = 0;
+  updateProgress();
+  document.getElementById('intake-text').value = '';
+  document.getElementById('intake-error').style.display = 'none';
+  chatHistory.innerHTML = '';
+  showScreen('mode');
+});
+
+document.getElementById('copy-review-btn').addEventListener('click', async () => {
+  if (!state.pendingReviewResult) return;
+  const btn = document.getElementById('copy-review-btn');
+  try {
+    await navigator.clipboard.writeText(buildReviewDocText(state.pendingReviewResult));
+    const original = btn.textContent;
+    btn.textContent = t('copyAnalysisDone');
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  } catch (e) {
+    console.error('clipboard error', e);
+  }
 });
 
 document.getElementById('lang-kk').addEventListener('click', () => {
   applyLang('kk');
+  showScreen('mode');
+});
+
+document.getElementById('mode-complaint').addEventListener('click', () => {
+  state.mode = 'complaint';
+  applyMode();
+  showScreen('intake');
+});
+
+document.getElementById('mode-review').addEventListener('click', () => {
+  state.mode = 'review';
+  applyMode();
   showScreen('intake');
 });
 
@@ -704,7 +871,7 @@ document.getElementById('download-doc-btn').addEventListener('click', () => {
 
 document.getElementById('lang-ru').addEventListener('click', () => {
   applyLang('ru');
-  showScreen('intake');
+  showScreen('mode');
 });
 </script>
 </body>

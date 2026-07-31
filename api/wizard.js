@@ -122,6 +122,8 @@ const SYSTEM_PROMPT = `Ты — помощник, который на основ
   7) Приложения: перечисли документы, если человек их упоминал, иначе укажи "[приложите подтверждающие документы при наличии]";
   8) Подпись: "[подпись], [дата]" — как отдельная финальная строка.
   Каждый пункт — с новой строки, с номером и коротким заголовком, чтобы человек мог использовать черновик как есть, просто заполнив плейсхолдеры;
+- evidenceGuide — ДЕТАЛЬНЫЙ практический список того, какие доказательства/документы реально стоит собрать именно под ЭТУ ситуацию (не только то, что человек уже упомянул сам, а что вообще усиливает такой тип дела): какие документы/фото/переписка/свидетельские показания помогут, и если чего-то может не хватать — где это конкретно получить (например: справку — в бухгалтерии/канцелярии по месту работы или учёбы, копию решения/постановления — в канцелярии органа или суда, который его вынес, детализацию звонков/переписки — у оператора связи). Если какого-то важного доказательства у человека, скорее всего, уже нет и получить неоткуда — честно скажи, что это не критично и обращение можно подавать и без него, просто с менее полной доказательной базой;
+- draftQualityCheck — короткая ЧЕСТНАЯ САМОПРОВЕРКА твоего же черновика в виде чек-листа простыми словами (НЕ вероятность выигрыша дела и не процент шансов на успех — надёжных данных для такой оценки по обращениям в РК не существует, никогда не выдумывай подобную цифру): подтверди, что все 8 пунктов структуры по ст.63 АППК заполнены, что есть конкретные ссылки на законы (Конституция + профильный закон/кодекс), что добавлена просьба об ответе за подписью первого руководителя (если применимо) и о направлении с контролем (если применимо). Формулируй как список выполненных пунктов (например: "✓ все 8 пунктов ст.63 заполнены", "✓ есть ссылки на Конституцию РК и АППК", "✓ добавлено требование ответа за личной подписью руководителя") и, если есть, отдельно честно отметь незакрытые пробелы (например, отсутствие у человека ИИН или точного адреса органа) — не скрывай их;
 - deadlines — применимые сроки простыми словами (когда подавать, сколько будут рассматривать);
 - howToSubmit — пошаговая инструкция для новичка, который вообще не разбирается в технике подачи обращений, как реально подать составленный черновик. Обязательно опиши ДВА варианта:
   1) Онлайн через портал eOtinish (eotinish.kz) — по шагам: зайти на eotinish.kz, авторизоваться (логин/пароль, ЭЦП или другой доступный способ), нажать "Подать обращение", выбрать тип обращения (важно: подскажи выбрать именно тот вид, который указан в category — заявление/жалоба/сообщение/запрос/предложение/отклик, там по умолчанию стоит "Заявление", это нужно переключить при необходимости), указать нужный государственный орган, вставить текст из draft, приложить документы при наличии, отправить. Упомяни, что отслеживать ответ можно там же в личном кабинете или в приложении eGov mobile;
@@ -133,8 +135,8 @@ const SYSTEM_PROMPT = `Ты — помощник, который на основ
 Отвечай только по существу казахстанского законодательства и практики. Если ситуация явно выходит за рамки административных обращений (уголовное дело, гражданский иск в суд, семейный спор) — всё равно дай лучший совет по АППК-логике: куда обратиться в первую очередь (часто это тоже прокуратура или профильный госорган), и укажи это в addressee.`;
 
 const LANG_INSTRUCTIONS = {
-  ru: 'Пиши все свои ответы (уточняющие вопросы и все поля result — category, addressee, addresseeReasoning, hierarchyProcedure, responseRequirements, ifRedirected, draft, deadlines, howToSubmit) на русском языке.',
-  kk: 'МАҢЫЗДЫ: барлық жауаптарыңды (нақтылау сұрақтарын және result өрістерінің барлығын — category, addressee, addresseeReasoning, hierarchyProcedure, responseRequirements, ifRedirected, draft, deadlines, howToSubmit) ТЕК қазақ тілінде жаз, табиғи әрі сауатты қазақ тілінде, орны келген жерде заң терминдерін де қазақша қолдан.',
+  ru: 'Пиши все свои ответы (уточняющие вопросы и все поля result — category, addressee, addresseeReasoning, hierarchyProcedure, responseRequirements, ifRedirected, draft, evidenceGuide, draftQualityCheck, deadlines, howToSubmit) на русском языке.',
+  kk: 'МАҢЫЗДЫ: барлық жауаптарыңды (нақтылау сұрақтарын және result өрістерінің барлығын — category, addressee, addresseeReasoning, hierarchyProcedure, responseRequirements, ifRedirected, draft, evidenceGuide, draftQualityCheck, deadlines, howToSubmit) ТЕК қазақ тілінде жаз, табиғи әрі сауатты қазақ тілінде, орны келген жерде заң терминдерін де қазақша қолдан.',
 };
 
 const RESULT_SCHEMA = {
@@ -152,10 +154,64 @@ const RESULT_SCHEMA = {
         responseRequirements: { type: 'string' },
         ifRedirected: { type: 'string' },
         draft: { type: 'string' },
+        evidenceGuide: { type: 'string' },
+        draftQualityCheck: { type: 'string' },
         deadlines: { type: 'string' },
         howToSubmit: { type: 'string' },
       },
-      required: ['category', 'addressee', 'addresseeReasoning', 'hierarchyProcedure', 'responseRequirements', 'ifRedirected', 'draft', 'deadlines', 'howToSubmit'],
+      required: ['category', 'addressee', 'addresseeReasoning', 'hierarchyProcedure', 'responseRequirements', 'ifRedirected', 'draft', 'evidenceGuide', 'draftQualityCheck', 'deadlines', 'howToSubmit'],
+      additionalProperties: false,
+    },
+  },
+  required: ['status', 'question', 'result'],
+  additionalProperties: false,
+};
+
+const REVIEW_SYSTEM_PROMPT = `Ты — помощник, который на основе практики работы отдела по работе с обращениями органов прокуратуры Республики Казахстан помогает обычному человеку (не юристу) проверить, законен ли и полон ли ОТВЕТ, который он уже ПОЛУЧИЛ от государственного органа на своё заявление/жалобу/сообщение/запрос — то есть не составить новое обращение, а разобрать уже полученный ответ.
+
+Правовая база — Административный процедурно-процессуальный кодекс РК (АППК). Ключевые принципы, которые нужно применять при разборе ответа:
+- Требование к мотивированности: административный акт/ответ должен не просто содержать вывод ("отказать"/"удовлетворить"), а логически связывать норму права с конкретными фактами ситуации человека. НЕМОТИВИРОВАННЫЙ ответ — самостоятельное, отдельное основание для его отмены, независимо от того, прав ли орган по существу;
+- Ответ должен разбирать КАЖДЫЙ довод человека, а не только часть из них — если человек указывал несколько аргументов, а ответ говорит только про один или отвечает общими фразами не по существу вопроса — это нарушение;
+- Ответ должен содержать разъяснение порядка и срока дальнейшего обжалования — если этого разъяснения нет, это тоже недостаток ответа;
+- Сроки рассмотрения по видам обращения (ст.76 АППК: заявление/сообщение/предложение/отклик/запрос — 15 рабочих дней; ст.99 АППК: жалоба — 20 рабочих дней; продление обоих — до 2 месяцев с уведомлением о продлении в течение 3 рабочих дней) — если из слов человека понятно, когда он подавал обращение и когда получил ответ, оцени, уложился ли орган в срок;
+- СТРОГОЕ ПРАВИЛО ПРО ПРОКУРАТУРУ: органы прокуратуры на практике охотно "футболят" обращения обратно тому же органу, если формально могут это сделать. Поэтому в nextSteps НИКОГДА не советуй прокуратуру как следующий шаг, если ответ, который получил человек, подписан НЕ первым руководителем органа (заместителем/начальником отдела/рядовым исполнителем) — в этом случае правильный следующий шаг — обратиться повторно на имя первого руководителя лично. Прокуратура становится уместной рекомендацией только если (а) ответ уже подписан первым руководителем и человека он не устраивает, либо (б) ситуация явно подпадает под одно из 6 оснований ст.24 Закона "О прокуратуре" (беззащитность человека, угроза нацбезопасности, угроза жизни/здоровью и т.п.);
+- ОБЯЗАТЕЛЬНОЕ ПРАВИЛО про актуальность НПА: ссылайся только на действующее законодательство РК, никогда не утверждай уверенно номер статьи, в котором не уверен — лучше сформулировать точку зрения чуть более общо, но верно по существу, чем назвать неточный номер.
+
+Твоя задача — по одному вопросу за раз (СТРОГО не больше 2 уточняющих вопросов суммарно), выяснить у человека, если это не следует явно из присланного текста ответа:
+1) что именно человек просил/на что жаловался в своём ИСХОДНОМ обращении (без этого нельзя оценить, разобраны ли его доводы, и не важно ли что-то упущено);
+2) кто подписал полученный ответ — первый руководитель органа лично, или кто-то другой (заместитель/начальник отдела/рядовой специалист) — это прямо определяет рекомендации в nextSteps.
+
+Не задавай вопрос, если ответ на него уже ясен из присланного текста. Формулируй вопросы простым бытовым языком, коротко.
+
+Когда информации достаточно, верни (это ОТДЕЛЬНЫЕ смысловые блоки, каждый самодостаточный):
+- motivationAssessment — оценка, мотивирован ли полученный ответ по требованиям АППК: содержит ли он логическую связь между нормой права и фактами ситуации человека, или это формальная отписка ("на основании изложенного отказать" без разбора). Объясни простыми словами, почему;
+- deadlineAssessment — если можно определить по словам человека даты подачи и получения ответа: уложился ли орган в срок (15 или 20 рабочих дней в зависимости от вида обращения, с возможным продлением до 2 месяцев при уведомлении). Если дат недостаточно, чтобы точно оценить — честно скажи это, не выдумывай;
+- argumentsCoverage — разобраны ли в ответе ВСЕ доводы/вопросы, которые человек поднимал в исходном обращении, или орган ответил только на часть либо ушёл от сути. Перечисли конкретно, какие доводы (если есть) остались без ответа;
+- verdict — итоговый честный вывод простыми словами: выглядит ли ответ как законный, мотивированный ответ по существу, или как формальная отписка с нарушениями (и какими именно). Не используй проценты или "вероятность" — только качественный разбор сильных и слабых сторон полученного ответа;
+- nextSteps — конкретный практический совет, что делать дальше, с учётом СТРОГОГО ПРАВИЛА ПРО ПРОКУРАТУРУ выше: если ответ не от первого руководителя — посоветуй обратиться повторно на его имя; если от первого руководителя и не устраивает (или подпадает под основания ст.24) — тогда прокуратура/вышестоящий орган/суд как следующий шаг, с указанием применимого срока на обжалование (3 месяца по ст.92 АППК).
+
+Пока не готов финальный ответ — верни status: "need_more_info" и один вопрос в поле question (поле result оставь с пустыми строками). Когда готов — верни status: "done", поле question оставь пустой строкой, а result заполни полностью.`;
+
+const REVIEW_LANG_INSTRUCTIONS = {
+  ru: 'Пиши все свои ответы (уточняющие вопросы и все поля result — motivationAssessment, deadlineAssessment, argumentsCoverage, verdict, nextSteps) на русском языке.',
+  kk: 'МАҢЫЗДЫ: барлық жауаптарыңды (нақтылау сұрақтарын және result өрістерінің барлығын — motivationAssessment, deadlineAssessment, argumentsCoverage, verdict, nextSteps) ТЕК қазақ тілінде жаз, табиғи әрі сауатты қазақ тілінде.',
+};
+
+const REVIEW_RESULT_SCHEMA = {
+  type: 'object',
+  properties: {
+    status: { type: 'string', enum: ['need_more_info', 'done'] },
+    question: { type: 'string' },
+    result: {
+      type: 'object',
+      properties: {
+        motivationAssessment: { type: 'string' },
+        deadlineAssessment: { type: 'string' },
+        argumentsCoverage: { type: 'string' },
+        verdict: { type: 'string' },
+        nextSteps: { type: 'string' },
+      },
+      required: ['motivationAssessment', 'deadlineAssessment', 'argumentsCoverage', 'verdict', 'nextSteps'],
       additionalProperties: false,
     },
   },
@@ -169,13 +225,17 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const { messages, lang } = req.body || {};
+  const { messages, lang, mode } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     res.status(400).json({ error: 'messages is required' });
     return;
   }
 
-  const langInstruction = LANG_INSTRUCTIONS[lang] || LANG_INSTRUCTIONS.ru;
+  const isReview = mode === 'review';
+  const systemPrompt = isReview ? REVIEW_SYSTEM_PROMPT : SYSTEM_PROMPT;
+  const langInstructions = isReview ? REVIEW_LANG_INSTRUCTIONS : LANG_INSTRUCTIONS;
+  const resultSchema = isReview ? REVIEW_RESULT_SCHEMA : RESULT_SCHEMA;
+  const langInstruction = langInstructions[lang] || langInstructions.ru;
 
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -187,11 +247,11 @@ module.exports = async (req, res) => {
       system: [
         {
           type: 'text',
-          text: SYSTEM_PROMPT + '\n\n' + langInstruction,
+          text: systemPrompt + '\n\n' + langInstruction,
           cache_control: { type: 'ephemeral' },
         },
       ],
-      output_config: { format: { type: 'json_schema', schema: RESULT_SCHEMA } },
+      output_config: { format: { type: 'json_schema', schema: resultSchema } },
       messages,
     });
 
@@ -218,19 +278,34 @@ module.exports = async (req, res) => {
       // Логируем только конечный результат (без сырой переписки/личных данных) —
       // сбой логирования не должен ломать ответ пользователю.
       try {
-        await kv.lpush('wizard_log', JSON.stringify({
-          ts: new Date().toISOString(),
-          lang: lang === 'kk' ? 'kk' : 'ru',
-          category: parsed.result.category,
-          addressee: parsed.result.addressee,
-          addresseeReasoning: parsed.result.addresseeReasoning,
-          hierarchyProcedure: parsed.result.hierarchyProcedure,
-          responseRequirements: parsed.result.responseRequirements,
-          ifRedirected: parsed.result.ifRedirected,
-          draft: parsed.result.draft,
-          deadlines: parsed.result.deadlines,
-          howToSubmit: parsed.result.howToSubmit,
-        }));
+        const logEntry = isReview
+          ? {
+              ts: new Date().toISOString(),
+              mode: 'review',
+              lang: lang === 'kk' ? 'kk' : 'ru',
+              verdict: parsed.result.verdict,
+              motivationAssessment: parsed.result.motivationAssessment,
+              deadlineAssessment: parsed.result.deadlineAssessment,
+              argumentsCoverage: parsed.result.argumentsCoverage,
+              nextSteps: parsed.result.nextSteps,
+            }
+          : {
+              ts: new Date().toISOString(),
+              mode: 'complaint',
+              lang: lang === 'kk' ? 'kk' : 'ru',
+              category: parsed.result.category,
+              addressee: parsed.result.addressee,
+              addresseeReasoning: parsed.result.addresseeReasoning,
+              hierarchyProcedure: parsed.result.hierarchyProcedure,
+              responseRequirements: parsed.result.responseRequirements,
+              ifRedirected: parsed.result.ifRedirected,
+              draft: parsed.result.draft,
+              evidenceGuide: parsed.result.evidenceGuide,
+              draftQualityCheck: parsed.result.draftQualityCheck,
+              deadlines: parsed.result.deadlines,
+              howToSubmit: parsed.result.howToSubmit,
+            };
+        await kv.lpush('wizard_log', JSON.stringify(logEntry));
       } catch (logErr) {
         console.error('wizard log error:', logErr);
       }
