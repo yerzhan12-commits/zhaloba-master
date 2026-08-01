@@ -28,6 +28,15 @@ module.exports = async (req, res) => {
       }
     }).filter(Boolean);
 
+    const feedbackRaw = await kv.lrange('feedback_log', 0, -1);
+    const feedbackEntries = feedbackRaw.map((item) => {
+      try {
+        return typeof item === 'string' ? JSON.parse(item) : item;
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
+
     const rows = entries.map((e) => {
       const meta = `<div class="meta">${escapeHtml(e.ts)} · ${e.lang === 'kk' ? 'Қазақша' : 'Русский'} · ${e.mode === 'review' ? 'Проверка ответа' : 'Обращение'}</div>`;
 
@@ -104,6 +113,14 @@ module.exports = async (req, res) => {
     `;
     }).join('');
 
+    const feedbackRows = feedbackEntries.map((f) => `
+      <div class="entry">
+        <div class="meta">${escapeHtml(f.ts)} · ${f.lang === 'kk' ? 'Қазақша' : 'Русский'} · ${f.mode === 'review' ? 'Проверка ответа' : 'Обращение'}</div>
+        <div class="cat">${f.rating === 'up' ? '👍' : '👎'}</div>
+        ${f.comment ? `<pre>${escapeHtml(f.comment)}</pre>` : ''}
+      </div>
+    `).join('');
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.status(200).send(`<!DOCTYPE html>
 <html lang="ru"><head><meta charset="UTF-8">
@@ -123,6 +140,10 @@ module.exports = async (req, res) => {
   <h1>Лог обращений — Жалоба</h1>
   <div class="count">Всего записей: ${entries.length} (новые сверху)</div>
   ${rows || '<p>Пока пусто.</p>'}
+
+  <h1 style="margin-top:24px;">Отзывы пользователей</h1>
+  <div class="count">Всего отзывов: ${feedbackEntries.length} (новые сверху)</div>
+  ${feedbackRows || '<p>Пока пусто.</p>'}
 </body></html>`);
   } catch (err) {
     console.error('admin error:', err);

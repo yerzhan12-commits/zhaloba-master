@@ -162,6 +162,10 @@
   .evidence-item .evidence-name.checked{text-decoration:line-through;color:var(--muted);}
   .evidence-item .evidence-where{font-size:13px;color:var(--muted);margin-top:2px;}
 
+  .feedback-card .result-actions .btn-secondary{flex:0 0 auto;padding:10px 22px;font-size:18px;}
+  .feedback-card .result-actions .btn-secondary.selected{border-color:var(--blue);color:var(--blue);background:rgba(57,135,229,0.15);}
+  .feedback-card textarea{min-height:60px;margin-top:10px;}
+
   .progress-row{display:flex;gap:6px;margin-bottom:14px;}
   .progress-dot{flex:1;height:4px;border-radius:2px;background:var(--grid);}
   .progress-dot.done{background:var(--blue);}
@@ -185,7 +189,8 @@
   @media print{
     body{background:#fff;color:#000;}
     .btn-primary, .btn-secondary, .mic-btn, .file-attach, .example-row,
-    .progress-row, .privacy-note, .lang-row, header .subtitle, .text-size-btn{display:none !important;}
+    .progress-row, .privacy-note, .lang-row, header .subtitle, .text-size-btn,
+    .feedback-card{display:none !important;}
     .card{background:#fff;border:1px solid #ccc;}
     .card h2{color:#000;}
     .result-card h2{color:#000;border-left-color:#000;}
@@ -369,6 +374,19 @@
       <div class="result-value" id="result-quality-check"></div>
     </div>
 
+    <div class="card feedback-card">
+      <h2 data-i18n="feedbackTitle">Это было полезно?</h2>
+      <div id="feedback-form">
+        <div class="result-actions">
+          <button type="button" class="btn-secondary" id="feedback-up-btn">👍</button>
+          <button type="button" class="btn-secondary" id="feedback-down-btn">👎</button>
+        </div>
+        <textarea id="feedback-comment" data-i18n-placeholder="feedbackCommentPlaceholder" placeholder="Что можно улучшить? (необязательно)"></textarea>
+        <button class="btn-primary" id="feedback-submit-btn" data-i18n="feedbackSubmit">Отправить отзыв</button>
+      </div>
+      <div class="muted" id="feedback-thanks" style="display:none;" data-i18n="feedbackThanks">Спасибо за отзыв!</div>
+    </div>
+
     <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
     <button class="btn-secondary" id="restart-btn" data-i18n="restart">Начать заново</button>
   </div>
@@ -404,6 +422,19 @@
       <button class="btn-secondary" id="print-review-btn" data-i18n="printPdf">🖨️ Сохранить как PDF</button>
     </div>
 
+    <div class="card feedback-card">
+      <h2 data-i18n="feedbackTitle">Это было полезно?</h2>
+      <div id="feedback-review-form">
+        <div class="result-actions">
+          <button type="button" class="btn-secondary" id="feedback-review-up-btn">👍</button>
+          <button type="button" class="btn-secondary" id="feedback-review-down-btn">👎</button>
+        </div>
+        <textarea id="feedback-review-comment" data-i18n-placeholder="feedbackCommentPlaceholder" placeholder="Что можно улучшить? (необязательно)"></textarea>
+        <button class="btn-primary" id="feedback-review-submit-btn" data-i18n="feedbackSubmit">Отправить отзыв</button>
+      </div>
+      <div class="muted" id="feedback-review-thanks" style="display:none;" data-i18n="feedbackThanks">Спасибо за отзыв!</div>
+    </div>
+
     <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
     <button class="btn-secondary" id="restart-review-btn" data-i18n="restart">Начать заново</button>
   </div>
@@ -421,6 +452,10 @@ const STRINGS = {
     restoreShow: 'Показать сохранённый результат',
     restoreDismiss: 'Удалить',
     textSizeBtn: 'Aa Размер текста',
+    feedbackTitle: 'Это было полезно?',
+    feedbackCommentPlaceholder: 'Что можно улучшить? (необязательно)',
+    feedbackSubmit: 'Отправить отзыв',
+    feedbackThanks: 'Спасибо за отзыв!',
     minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
     modeTitle: 'Что вы хотите сделать?',
     modeComplaint: 'Составить обращение',
@@ -500,6 +535,10 @@ const STRINGS = {
     restoreShow: 'Сақталған нәтижені көрсету',
     restoreDismiss: 'Жою',
     textSizeBtn: 'Aa Мәтін өлшемі',
+    feedbackTitle: 'Бұл пайдалы болды ма?',
+    feedbackCommentPlaceholder: 'Нені жақсартуға болады? (міндетті емес)',
+    feedbackSubmit: 'Пікір жіберу',
+    feedbackThanks: 'Пікіріңізге рахмет!',
     minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
     modeTitle: 'Нені жасағыңыз келеді?',
     modeComplaint: 'Өтініш құрастыру',
@@ -1055,6 +1094,51 @@ function renderEvidenceChecklist(evidenceGuide){
   });
 }
 
+function resetFeedbackWidget(prefix){
+  const formEl = document.getElementById(prefix + '-form');
+  delete formEl.dataset.rating;
+  document.getElementById(prefix + '-up-btn').classList.remove('selected');
+  document.getElementById(prefix + '-down-btn').classList.remove('selected');
+  document.getElementById(prefix + '-comment').value = '';
+  formEl.style.display = 'block';
+  document.getElementById(prefix + '-thanks').style.display = 'none';
+}
+
+function setupFeedbackWidget(prefix, mode){
+  const upBtn = document.getElementById(prefix + '-up-btn');
+  const downBtn = document.getElementById(prefix + '-down-btn');
+  const commentEl = document.getElementById(prefix + '-comment');
+  const submitBtn = document.getElementById(prefix + '-submit-btn');
+  const thanksEl = document.getElementById(prefix + '-thanks');
+  const formEl = document.getElementById(prefix + '-form');
+
+  function selectRating(value){
+    formEl.dataset.rating = value;
+    upBtn.classList.toggle('selected', value === 'up');
+    downBtn.classList.toggle('selected', value === 'down');
+  }
+  upBtn.addEventListener('click', () => selectRating('up'));
+  downBtn.addEventListener('click', () => selectRating('down'));
+
+  submitBtn.addEventListener('click', async () => {
+    const rating = formEl.dataset.rating;
+    if (!rating) return;
+    submitBtn.disabled = true;
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, comment: commentEl.value.trim(), mode, lang: state.lang }),
+      });
+    } catch (e) {
+      console.error('feedback submit error', e);
+    }
+    submitBtn.disabled = false;
+    formEl.style.display = 'none';
+    thanksEl.style.display = 'block';
+  });
+}
+
 function showResult(result){
   document.getElementById('result-category').textContent = result.category || '—';
   document.getElementById('result-addressee').textContent = result.addressee || '—';
@@ -1067,6 +1151,7 @@ function showResult(result){
   document.getElementById('result-deadlines').textContent = result.deadlines || '—';
   document.getElementById('result-how-to-submit').textContent = result.howToSubmit || '—';
   document.getElementById('result-quality-check').textContent = result.draftQualityCheck || '—';
+  resetFeedbackWidget('feedback');
   saveResultToStorage('complaint', result);
   window.va('event', { name: 'wizard_completed' });
   showScreen('result');
@@ -1079,6 +1164,7 @@ function showReviewResult(result){
   document.getElementById('review-arguments').textContent = result.argumentsCoverage || '—';
   document.getElementById('review-verdict').textContent = result.verdict || '—';
   document.getElementById('review-next-steps').textContent = result.nextSteps || '—';
+  resetFeedbackWidget('feedback-review');
   saveResultToStorage('review', result);
   window.va('event', { name: 'review_completed' });
   showScreen('resultReview');
@@ -1300,6 +1386,9 @@ document.getElementById('text-size-btn').addEventListener('click', () => {
 });
 
 applyTextSize(localStorage.getItem(TEXT_SIZE_KEY) || 'normal');
+
+setupFeedbackWidget('feedback', 'complaint');
+setupFeedbackWidget('feedback-review', 'review');
 
 if (!restoreConversation()) {
   checkSavedResult();
