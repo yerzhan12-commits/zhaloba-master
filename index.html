@@ -190,7 +190,7 @@
     body{background:#fff;color:#000;}
     .btn-primary, .btn-secondary, .mic-btn, .file-attach, .example-row,
     .progress-row, .privacy-note, .lang-row, header .subtitle, .text-size-btn,
-    .feedback-card{display:none !important;}
+    .feedback-card, .followup-card{display:none !important;}
     .card{background:#fff;border:1px solid #ccc;}
     .card h2{color:#000;}
     .result-card h2{color:#000;border-left-color:#000;}
@@ -376,6 +376,12 @@
       <div class="result-value" id="result-quality-check"></div>
     </div>
 
+    <div class="card followup-card">
+      <h2 data-i18n="followupTitle">Остались вопросы или хотите что-то дополнить?</h2>
+      <textarea id="followup-input" data-i18n-placeholder="followupPlaceholder" placeholder="Например: забыл упомянуть, что уже писал об этом раньше..."></textarea>
+      <button class="btn-primary" id="followup-submit-btn" data-i18n="followupSubmit">Отправить дополнение</button>
+    </div>
+
     <div class="card feedback-card">
       <h2 data-i18n="feedbackTitle">Это было полезно?</h2>
       <div id="feedback-form">
@@ -425,6 +431,12 @@
       <button class="btn-primary" id="draft-followup-btn" data-i18n="draftFollowupBtn">📝 Составить обращение по этим выводам</button>
     </div>
 
+    <div class="card followup-card">
+      <h2 data-i18n="followupTitle">Остались вопросы или хотите что-то дополнить?</h2>
+      <textarea id="followup-review-input" data-i18n-placeholder="followupPlaceholder" placeholder="Например: забыл упомянуть, что уже писал об этом раньше..."></textarea>
+      <button class="btn-primary" id="followup-review-submit-btn" data-i18n="followupSubmit">Отправить дополнение</button>
+    </div>
+
     <div class="card feedback-card">
       <h2 data-i18n="feedbackTitle">Это было полезно?</h2>
       <div id="feedback-review-form">
@@ -459,6 +471,9 @@ const STRINGS = {
     feedbackCommentPlaceholder: 'Что можно улучшить? (необязательно)',
     feedbackSubmit: 'Отправить отзыв',
     feedbackThanks: 'Спасибо за отзыв!',
+    followupTitle: 'Остались вопросы или хотите что-то дополнить?',
+    followupPlaceholder: 'Например: забыл упомянуть, что уже писал об этом раньше...',
+    followupSubmit: 'Отправить дополнение',
     draftFollowupBtn: '📝 Составить обращение по этим выводам',
     followupSeedIntro: 'Ранее я подавал(а) обращение и получил(а) на него ответ, но по результатам проверки он оказался неполным.',
     followupSeedVerdict: 'Вывод по полученному ответу',
@@ -549,6 +564,9 @@ const STRINGS = {
     feedbackCommentPlaceholder: 'Нені жақсартуға болады? (міндетті емес)',
     feedbackSubmit: 'Пікір жіберу',
     feedbackThanks: 'Пікіріңізге рахмет!',
+    followupTitle: 'Сұрақтарыңыз бар ма немесе бірдеңе толықтырғыңыз келе ме?',
+    followupPlaceholder: 'Мысалы: бұрын осы туралы жазғанымды айтуды ұмытып кеттім...',
+    followupSubmit: 'Толықтыру жіберу',
     draftFollowupBtn: '📝 Осы қорытынды бойынша өтініш құрастыру',
     followupSeedIntro: 'Мен бұрын өтініш бердім және оған жауап алдым, бірақ тексеру нәтижесі бойынша ол толық емес болып шықты.',
     followupSeedVerdict: 'Алынған жауап бойынша қорытынды',
@@ -1205,6 +1223,25 @@ function setupFeedbackWidget(prefix, mode){
   });
 }
 
+function setupFollowup(prefix){
+  const input = document.getElementById(prefix + '-input');
+  const btn = document.getElementById(prefix + '-submit-btn');
+  btn.addEventListener('click', () => {
+    const text = input.value.trim();
+    if (!text) return;
+    if (state.messages.length) {
+      state.messages.push({ role: 'assistant', content: 'Сформирован результат.' });
+    }
+    state.messages.push({ role: 'user', content: text });
+    saveConversation();
+    input.value = '';
+    addBubble('user', text);
+    updateProgress();
+    showScreen('chat');
+    callWizard();
+  });
+}
+
 function showResult(result){
   document.getElementById('result-category').textContent = result.category || '—';
   document.getElementById('result-addressee').textContent = result.addressee || '—';
@@ -1488,6 +1525,8 @@ applyTextSize(localStorage.getItem(TEXT_SIZE_KEY) || 'normal');
 
 setupFeedbackWidget('feedback', 'complaint');
 setupFeedbackWidget('feedback-review', 'review');
+setupFollowup('followup');
+setupFollowup('followup-review');
 
 if (!restoreConversation()) {
   checkSavedResult();
