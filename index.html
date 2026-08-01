@@ -579,12 +579,67 @@ const MAX_IMAGE_DIMENSION = 1600;
 
 const DRAFT_STORAGE_KEY = 'zhaloba_draft_v1';
 const RESULT_STORAGE_KEY = 'zhaloba_result_v1';
+const CONVERSATION_STORAGE_KEY = 'zhaloba_conversation_v1';
 let draftSaveTimer = null;
 
 function saveResultToStorage(mode, result){
   localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify({
     mode, result, lang: state.lang, ts: Date.now(),
   }));
+}
+
+// Мобильные браузеры могут выгружать фоновую вкладку из памяти (например, когда
+// пользователь переключается в другое приложение сделать скриншот) — при возврате
+// страница перезагружается с нуля. Сохраняем весь ход диалога, чтобы это не сбрасывало
+// прогресс уточняющих вопросов.
+function saveConversation(){
+  try {
+    localStorage.setItem(CONVERSATION_STORAGE_KEY, JSON.stringify({
+      mode: state.mode, lang: state.lang, messages: state.messages,
+      questionCount: state.questionCount, ts: Date.now(),
+    }));
+  } catch (e) {
+    console.error('conversation save error', e);
+  }
+}
+
+function messageText(content){
+  if (typeof content === 'string') return content;
+  const textBlock = Array.isArray(content) ? content.find((c) => c.type === 'text') : null;
+  return textBlock ? textBlock.text : '';
+}
+
+function restoreConversation(){
+  const raw = localStorage.getItem(CONVERSATION_STORAGE_KEY);
+  if (!raw) return false;
+  let saved;
+  try {
+    saved = JSON.parse(raw);
+  } catch {
+    localStorage.removeItem(CONVERSATION_STORAGE_KEY);
+    return false;
+  }
+  if (!saved.messages || !saved.messages.length) return false;
+
+  state.lang = saved.lang;
+  state.mode = saved.mode;
+  state.messages = saved.messages;
+  state.questionCount = saved.questionCount || 0;
+  applyLang(state.lang);
+  applyMode();
+  chatHistory.innerHTML = '';
+  saved.messages.forEach((m) => addBubble(m.role, messageText(m.content)));
+  updateProgress();
+  showScreen('chat');
+
+  const lastMsg = saved.messages[saved.messages.length - 1];
+  if (lastMsg.role === 'assistant') {
+    chatInputCard.style.display = 'block';
+    chatAnswer.value = '';
+  } else {
+    callWizard();
+  }
+  return true;
 }
 
 function checkSavedResult(){
@@ -887,6 +942,7 @@ async function callWizard(){
     if (data.status === 'need_more_info') {
       showScreen('chat');
       state.messages.push({ role: 'assistant', content: data.question });
+      saveConversation();
       addBubble('assistant', data.question);
       chatInputCard.style.display = 'block';
       chatAnswer.value = '';
@@ -894,6 +950,7 @@ async function callWizard(){
       state.questionCount = (state.questionCount || 0) + 1;
       updateProgress();
     } else if (data.status === 'done') {
+      localStorage.removeItem(CONVERSATION_STORAGE_KEY);
       state.questionCount = 4;
       updateProgress();
       if (state.mode === 'review') {
@@ -1054,6 +1111,7 @@ document.getElementById('intake-submit').addEventListener('click', () => {
   state.attachedFiles = [];
   renderFileList();
   localStorage.removeItem(DRAFT_STORAGE_KEY);
+  saveConversation();
   state.questionCount = 0;
   updateProgress();
   chatHistory.innerHTML = '';
@@ -1066,6 +1124,7 @@ document.getElementById('chat-submit').addEventListener('click', () => {
   const answer = chatAnswer.value.trim();
   if (!answer) return;
   state.messages.push({ role: 'user', content: answer });
+  saveConversation();
   addBubble('user', answer);
   callWizard();
 });
@@ -1089,6 +1148,7 @@ document.getElementById('confirm-override-submit').addEventListener('click', () 
   const selectedLabel = document.getElementById('confirm-select').selectedOptions[0].textContent;
   const correction = 'Категория определена неверно. Правильный вид обращения — ' + selected + '. Пересчитай addressee, draft и deadlines с учётом этого вида обращения.';
   state.messages.push({ role: 'user', content: correction });
+  saveConversation();
   showScreen('chat');
   addBubble('user', t('overrideBubblePrefix') + selectedLabel);
   callWizard();
@@ -1101,6 +1161,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   renderFileList();
   localStorage.removeItem(DRAFT_STORAGE_KEY);
   localStorage.removeItem(RESULT_STORAGE_KEY);
+  localStorage.removeItem(CONVERSATION_STORAGE_KEY);
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -1116,6 +1177,7 @@ document.getElementById('restart-review-btn').addEventListener('click', () => {
   renderFileList();
   localStorage.removeItem(DRAFT_STORAGE_KEY);
   localStorage.removeItem(RESULT_STORAGE_KEY);
+  localStorage.removeItem(CONVERSATION_STORAGE_KEY);
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -1239,7 +1301,9 @@ document.getElementById('text-size-btn').addEventListener('click', () => {
 
 applyTextSize(localStorage.getItem(TEXT_SIZE_KEY) || 'normal');
 
-checkSavedResult();
+if (!restoreConversation()) {
+  checkSavedResult();
+}
 </script>
 </body>
 </html>
