@@ -288,6 +288,7 @@
       <div class="dot"></div><div class="dot"></div><div class="dot"></div>
       <span data-i18n="chatThinking">Мастер думает...</span>
     </div>
+    <button class="btn-secondary" id="chat-cancel-btn" style="display:none;" data-i18n="chatCancelBtn">Отмена, хочу исправить</button>
   </div>
 
   <!-- Экран 3: подтверждение категории -->
@@ -501,6 +502,7 @@ const STRINGS = {
     chatAnswerPlaceholder: 'Ваш ответ...',
     chatSubmit: 'Ответить',
     chatBackBtn: '← Назад, хочу дополнить',
+    chatCancelBtn: 'Отмена, хочу исправить',
     chatThinking: 'Мастер думает...',
     confirmTitle: 'Мы определили это как:',
     confirmYes: 'Да, всё верно',
@@ -590,6 +592,7 @@ const STRINGS = {
     chatAnswerPlaceholder: 'Жауабыңыз...',
     chatSubmit: 'Жауап беру',
     chatBackBtn: '← Артқа, толықтырғым келеді',
+    chatCancelBtn: 'Болдырмау, түзеткім келеді',
     chatThinking: 'Шебер ойлануда...',
     confirmTitle: 'Біз мұны келесідей анықтадық:',
     confirmYes: 'Иә, дұрыс',
@@ -897,6 +900,7 @@ function showScreen(name){
 const chatHistory = document.getElementById('chat-history');
 const chatInputCard = document.getElementById('chat-input-card');
 const chatSpinner = document.getElementById('chat-spinner');
+const chatCancelBtn = document.getElementById('chat-cancel-btn');
 const chatAnswer = document.getElementById('chat-answer');
 
 // Голосовой ввод (Web Speech API) — работает надёжно только для русского в Chrome/Android.
@@ -968,6 +972,7 @@ function showError(text){
   chatHistory.appendChild(box);
   chatInputCard.style.display = 'none';
   chatSpinner.style.display = 'none';
+  chatCancelBtn.style.display = 'none';
 }
 
 function updateProgress(){
@@ -976,14 +981,58 @@ function updateProgress(){
   dots.forEach((dot, i) => dot.classList.toggle('done', i < filled));
 }
 
+// Откатывает последний обмен репликами, чтобы дать отредактировать/дополнить
+// предыдущий ответ — используется и кнопкой "Назад", и отменой во время "Мастер думает".
+function goBackOneStep(){
+  if (state.messages.length && state.messages[state.messages.length - 1].role === 'assistant') {
+    state.messages.pop();
+    if (chatHistory.lastElementChild) chatHistory.removeChild(chatHistory.lastElementChild);
+  }
+
+  if (!state.messages.length) {
+    showScreen('mode');
+    return;
+  }
+
+  const lastMsg = state.messages[state.messages.length - 1];
+  if (lastMsg.role === 'user' && state.messages.length === 1) {
+    const initialText = messageText(lastMsg.content);
+    state.messages = [];
+    state.questionCount = 0;
+    localStorage.removeItem(CONVERSATION_STORAGE_KEY);
+    document.getElementById('intake-text').value = initialText;
+    chatHistory.innerHTML = '';
+    updateProgress();
+    showScreen('intake');
+    return;
+  }
+
+  state.messages.pop();
+  if (chatHistory.lastElementChild) chatHistory.removeChild(chatHistory.lastElementChild);
+  state.questionCount = Math.max(0, (state.questionCount || 0) - 1);
+  updateProgress();
+  saveConversation();
+
+  chatAnswer.value = messageText(lastMsg.content);
+  chatSpinner.style.display = 'none';
+  chatCancelBtn.style.display = 'none';
+  chatInputCard.style.display = 'block';
+  chatAnswer.focus();
+}
+
+let currentWizardController = null;
+
 async function callWizard(){
   chatInputCard.style.display = 'none';
   chatSpinner.style.display = 'flex';
+  chatCancelBtn.style.display = 'block';
+  currentWizardController = new AbortController();
   try {
     const res = await fetch('/api/wizard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: state.messages, lang: state.lang, mode: state.mode }),
+      signal: currentWizardController.signal,
     });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
@@ -991,6 +1040,7 @@ async function callWizard(){
     }
     const data = await res.json();
     chatSpinner.style.display = 'none';
+    chatCancelBtn.style.display = 'none';
 
     if (data.status === 'need_more_info') {
       showScreen('chat');
@@ -1017,6 +1067,8 @@ async function callWizard(){
     }
   } catch (err) {
     chatSpinner.style.display = 'none';
+    chatCancelBtn.style.display = 'none';
+    if (err.name === 'AbortError') return; // пользователь сам отменил запрос кнопкой "Отмена"
     showScreen('chat');
     showError(t('errorConnection') + err.message + ')');
   }
@@ -1233,43 +1285,11 @@ chatAnswer.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('chat-submit').click();
 });
 
-document.getElementById('chat-back-btn').addEventListener('click', () => {
-  // Убираем последний заданный вопрос — он ещё не отвечен, просто ждём ответа сейчас.
-  if (state.messages.length && state.messages[state.messages.length - 1].role === 'assistant') {
-    state.messages.pop();
-    if (chatHistory.lastElementChild) chatHistory.removeChild(chatHistory.lastElementChild);
-  }
+document.getElementById('chat-back-btn').addEventListener('click', goBackOneStep);
 
-  if (!state.messages.length) {
-    showScreen('mode');
-    return;
-  }
-
-  const lastMsg = state.messages[state.messages.length - 1];
-  if (lastMsg.role === 'user' && state.messages.length === 1) {
-    // Это был самый первый ответ (исходное описание) — возвращаемся на экран ввода, чтобы дополнить его.
-    const initialText = messageText(lastMsg.content);
-    state.messages = [];
-    state.questionCount = 0;
-    localStorage.removeItem(CONVERSATION_STORAGE_KEY);
-    document.getElementById('intake-text').value = initialText;
-    chatHistory.innerHTML = '';
-    updateProgress();
-    showScreen('intake');
-    return;
-  }
-
-  // Убираем и предыдущий ответ пользователя — дадим дополнить именно его.
-  state.messages.pop();
-  if (chatHistory.lastElementChild) chatHistory.removeChild(chatHistory.lastElementChild);
-  state.questionCount = Math.max(0, (state.questionCount || 0) - 1);
-  updateProgress();
-  saveConversation();
-
-  chatAnswer.value = messageText(lastMsg.content);
-  chatSpinner.style.display = 'none';
-  chatInputCard.style.display = 'block';
-  chatAnswer.focus();
+document.getElementById('chat-cancel-btn').addEventListener('click', () => {
+  if (currentWizardController) currentWizardController.abort();
+  goBackOneStep();
 });
 
 document.getElementById('confirm-yes').addEventListener('click', () => {
