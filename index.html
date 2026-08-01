@@ -282,6 +282,7 @@
         <button type="button" class="mic-btn mic-btn-inline" id="chat-mic" style="display:none;" aria-label="Voice input">🎤</button>
       </div>
       <button class="btn-primary" id="chat-submit" data-i18n="chatSubmit">Ответить</button>
+      <button class="btn-secondary" id="chat-back-btn" data-i18n="chatBackBtn">← Назад, хочу дополнить</button>
     </div>
     <div class="spinner" id="chat-spinner" style="display:none;">
       <div class="dot"></div><div class="dot"></div><div class="dot"></div>
@@ -420,6 +421,7 @@
         <button class="btn-secondary" id="copy-review-btn" data-i18n="copyAnalysis">📋 Скопировать анализ</button>
       </div>
       <button class="btn-secondary" id="print-review-btn" data-i18n="printPdf">🖨️ Сохранить как PDF</button>
+      <button class="btn-primary" id="draft-followup-btn" data-i18n="draftFollowupBtn">📝 Составить обращение по этим выводам</button>
     </div>
 
     <div class="card feedback-card">
@@ -456,6 +458,11 @@ const STRINGS = {
     feedbackCommentPlaceholder: 'Что можно улучшить? (необязательно)',
     feedbackSubmit: 'Отправить отзыв',
     feedbackThanks: 'Спасибо за отзыв!',
+    draftFollowupBtn: '📝 Составить обращение по этим выводам',
+    followupSeedIntro: 'Ранее я подавал(а) обращение и получил(а) на него ответ, но по результатам проверки он оказался неполным.',
+    followupSeedVerdict: 'Вывод по полученному ответу',
+    followupSeedArguments: 'Не рассмотрены следующие доводы',
+    followupSeedNextSteps: 'Рекомендация по дальнейшим действиям',
     minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
     modeTitle: 'Что вы хотите сделать?',
     modeComplaint: 'Составить обращение',
@@ -493,6 +500,7 @@ const STRINGS = {
     intakeSubmit: 'Продолжить',
     chatAnswerPlaceholder: 'Ваш ответ...',
     chatSubmit: 'Ответить',
+    chatBackBtn: '← Назад, хочу дополнить',
     chatThinking: 'Мастер думает...',
     confirmTitle: 'Мы определили это как:',
     confirmYes: 'Да, всё верно',
@@ -539,6 +547,11 @@ const STRINGS = {
     feedbackCommentPlaceholder: 'Нені жақсартуға болады? (міндетті емес)',
     feedbackSubmit: 'Пікір жіберу',
     feedbackThanks: 'Пікіріңізге рахмет!',
+    draftFollowupBtn: '📝 Осы қорытынды бойынша өтініш құрастыру',
+    followupSeedIntro: 'Мен бұрын өтініш бердім және оған жауап алдым, бірақ тексеру нәтижесі бойынша ол толық емес болып шықты.',
+    followupSeedVerdict: 'Алынған жауап бойынша қорытынды',
+    followupSeedArguments: 'Мына дәлелдер қаралмаған',
+    followupSeedNextSteps: 'Әрі қарайғы әрекеттер бойынша ұсыныс',
     minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
     modeTitle: 'Нені жасағыңыз келеді?',
     modeComplaint: 'Өтініш құрастыру',
@@ -576,6 +589,7 @@ const STRINGS = {
     intakeSubmit: 'Жалғастыру',
     chatAnswerPlaceholder: 'Жауабыңыз...',
     chatSubmit: 'Жауап беру',
+    chatBackBtn: '← Артқа, толықтырғым келеді',
     chatThinking: 'Шебер ойлануда...',
     confirmTitle: 'Біз мұны келесідей анықтадық:',
     confirmYes: 'Иә, дұрыс',
@@ -1219,6 +1233,45 @@ chatAnswer.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('chat-submit').click();
 });
 
+document.getElementById('chat-back-btn').addEventListener('click', () => {
+  // Убираем последний заданный вопрос — он ещё не отвечен, просто ждём ответа сейчас.
+  if (state.messages.length && state.messages[state.messages.length - 1].role === 'assistant') {
+    state.messages.pop();
+    if (chatHistory.lastElementChild) chatHistory.removeChild(chatHistory.lastElementChild);
+  }
+
+  if (!state.messages.length) {
+    showScreen('mode');
+    return;
+  }
+
+  const lastMsg = state.messages[state.messages.length - 1];
+  if (lastMsg.role === 'user' && state.messages.length === 1) {
+    // Это был самый первый ответ (исходное описание) — возвращаемся на экран ввода, чтобы дополнить его.
+    const initialText = messageText(lastMsg.content);
+    state.messages = [];
+    state.questionCount = 0;
+    localStorage.removeItem(CONVERSATION_STORAGE_KEY);
+    document.getElementById('intake-text').value = initialText;
+    chatHistory.innerHTML = '';
+    updateProgress();
+    showScreen('intake');
+    return;
+  }
+
+  // Убираем и предыдущий ответ пользователя — дадим дополнить именно его.
+  state.messages.pop();
+  if (chatHistory.lastElementChild) chatHistory.removeChild(chatHistory.lastElementChild);
+  state.questionCount = Math.max(0, (state.questionCount || 0) - 1);
+  updateProgress();
+  saveConversation();
+
+  chatAnswer.value = messageText(lastMsg.content);
+  chatSpinner.style.display = 'none';
+  chatInputCard.style.display = 'block';
+  chatAnswer.focus();
+});
+
 document.getElementById('confirm-yes').addEventListener('click', () => {
   showResult(state.pendingResult);
 });
@@ -1283,6 +1336,32 @@ document.getElementById('copy-review-btn').addEventListener('click', async () =>
   } catch (e) {
     console.error('clipboard error', e);
   }
+});
+
+document.getElementById('draft-followup-btn').addEventListener('click', () => {
+  const result = state.pendingReviewResult;
+  if (!result) return;
+
+  const seedText = [
+    t('followupSeedIntro'),
+    t('followupSeedVerdict') + ': ' + (result.verdict || ''),
+    t('followupSeedArguments') + ': ' + (result.argumentsCoverage || ''),
+    t('followupSeedNextSteps') + ': ' + (result.nextSteps || ''),
+  ].join('\n');
+
+  state.mode = 'complaint';
+  state.messages = [{ role: 'user', content: seedText }];
+  state.attachedFiles = [];
+  state.pendingReviewResult = null;
+  state.questionCount = 0;
+  localStorage.removeItem(RESULT_STORAGE_KEY);
+  saveConversation();
+  applyMode();
+  chatHistory.innerHTML = '';
+  addBubble('user', seedText);
+  updateProgress();
+  showScreen('chat');
+  callWizard();
 });
 
 document.getElementById('lang-kk').addEventListener('click', () => {
