@@ -313,6 +313,31 @@
     </div>
   </div>
 
+  <!-- Экран 3.5: оплата (показывается только если бесплатная попытка уже использована) -->
+  <div class="screen" id="screen-paywall">
+    <div class="card">
+      <h2 data-i18n="paywallTitle">Ваше обращение готово!</h2>
+      <p class="muted" data-i18n="paywallDesc">Бесплатная попытка на этом устройстве уже использована. Оплатите, чтобы открыть:</p>
+      <ul style="margin:12px 0 4px 20px;font-size:14px;line-height:1.7;color:var(--ink2);">
+        <li data-i18n="paywallBullet1">Куда именно подавать обращение</li>
+        <li data-i18n="paywallBullet2">Готовый текст обращения</li>
+        <li data-i18n="paywallBullet3">Какие доказательства собрать</li>
+        <li data-i18n="paywallBullet4">Сроки рассмотрения и как подать</li>
+      </ul>
+      <button class="btn-primary" id="paywall-pay-btn"><span data-i18n="paywallPayBtn">Оплатить</span> <span id="paywall-price"></span></button>
+      <div class="error-box" id="paywall-error" style="display:none;margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-payment-wait">
+    <div class="card">
+      <h2 data-i18n="paymentWaitTitle">Проверяем оплату...</h2>
+      <div class="spinner" style="margin-top:10px;">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Экран 4: результат -->
   <div class="screen" id="screen-result">
     <div class="card result-card">
@@ -549,6 +574,17 @@ const STRINGS = {
     errorConnection: 'Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (',
     errorParse: 'Не удалось разобрать ответ мастера. Попробуйте ещё раз.',
     overrideBubblePrefix: 'Изменить категорию на: ',
+    paywallTitle: 'Ваше обращение готово!',
+    paywallDesc: 'Бесплатная попытка на этом устройстве уже использована. Оплатите, чтобы открыть:',
+    paywallBullet1: 'Куда именно подавать обращение',
+    paywallBullet2: 'Готовый текст обращения',
+    paywallBullet3: 'Какие доказательства собрать',
+    paywallBullet4: 'Сроки рассмотрения и как подать',
+    paywallPayBtn: 'Оплатить',
+    paywallError: 'Не удалось начать оплату: ',
+    paywallFailed: 'Оплата не прошла. Попробуйте ещё раз.',
+    paywallTimeout: 'Не удалось подтвердить оплату. Если деньги списались, напишите нам через отзыв — мы разберёмся.',
+    paymentWaitTitle: 'Проверяем оплату...',
   },
   kk: {
     appTitle: 'Шағым',
@@ -642,6 +678,17 @@ const STRINGS = {
     errorConnection: 'Серверге қосыла алмадық. Байланысты тексеріп, қайта көріңіз. (',
     errorParse: 'Шебердің жауабын түсіндіру мүмкін болмады. Қайта көріңіз.',
     overrideBubblePrefix: 'Санатты мынаған өзгерту: ',
+    paywallTitle: 'Өтінішіңіз дайын!',
+    paywallDesc: 'Бұл құрылғыда тегін мүмкіндік бұрын пайдаланылды. Мыналарды ашу үшін төлеңіз:',
+    paywallBullet1: 'Өтінішті нақты қайда беру керектігі',
+    paywallBullet2: 'Дайын өтініш мәтіні',
+    paywallBullet3: 'Қандай дәлелдер жинау керектігі',
+    paywallBullet4: 'Қарау мерзімдері және қалай беру керектігі',
+    paywallPayBtn: 'Төлеу',
+    paywallError: 'Төлемді бастау мүмкін болмады: ',
+    paywallFailed: 'Төлем өтпеді. Қайта көріңіз.',
+    paywallTimeout: 'Төлемді растау мүмкін болмады. Егер ақша есептен шығарылса, пікірде жазыңыз — біз тексереміз.',
+    paymentWaitTitle: 'Төлем тексерілуде...',
   },
 };
 
@@ -654,7 +701,21 @@ const MAX_IMAGE_DIMENSION = 1600;
 const DRAFT_STORAGE_KEY = 'zhaloba_draft_v1';
 const RESULT_STORAGE_KEY = 'zhaloba_result_v1';
 const CONVERSATION_STORAGE_KEY = 'zhaloba_conversation_v1';
+const DEVICE_ID_KEY = 'zhaloba_device_id';
+const PENDING_PAYMENT_KEY = 'zhaloba_pending_payment';
 let draftSaveTimer = null;
+
+// Анонимный идентификатор устройства — привязывает бесплатную попытку и
+// оплаченные результаты к браузеру. Не требует входа/SMS, но сбрасывается
+// при очистке localStorage или в другом браузере — осознанный компромисс v1.
+function getDeviceId(){
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(16) + Math.random().toString(16).slice(2));
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+}
 
 function saveResultToStorage(mode, result){
   localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify({
@@ -907,6 +968,8 @@ const screens = {
   intake: document.getElementById('screen-intake'),
   chat: document.getElementById('screen-chat'),
   confirm: document.getElementById('screen-confirm'),
+  paywall: document.getElementById('screen-paywall'),
+  paymentWait: document.getElementById('screen-payment-wait'),
   result: document.getElementById('screen-result'),
   resultReview: document.getElementById('screen-result-review'),
 };
@@ -1048,7 +1111,7 @@ async function callWizard(){
   try {
     const res = await fetch('/api/wizard', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Device-Id': getDeviceId() },
       body: JSON.stringify({ messages: state.messages, lang: state.lang, mode: state.mode }),
       signal: currentWizardController.signal,
     });
@@ -1077,6 +1140,9 @@ async function callWizard(){
       if (state.mode === 'review') {
         showReviewResult(data.result);
       } else {
+        data.result.resultId = data.resultId;
+        data.result.unlocked = data.unlocked;
+        data.result.priceKzt = data.priceKzt;
         showConfirmCategory(data.result);
       }
     } else {
@@ -1099,6 +1165,110 @@ function showConfirmCategory(result){
   document.getElementById('confirm-yes').style.display = 'block';
   document.getElementById('confirm-change').style.display = 'block';
   showScreen('confirm');
+}
+
+function showPaywall(result){
+  document.getElementById('paywall-price').textContent = (result.priceKzt || '') + ' ₸';
+  const errorEl = document.getElementById('paywall-error');
+  errorEl.style.display = 'none';
+  const btn = document.getElementById('paywall-pay-btn');
+  btn.disabled = false;
+  showScreen('paywall');
+}
+
+// Банк требует, чтобы запрос на оплату (TRTYPE=1) уходил именно со страницы
+// браузера пользователя, а не через редирект/прокси нашим сервером — поэтому
+// собираем скрытую форму и сабмитим её напрямую на платёжный шлюз БЦК.
+function submitPaymentForm(actionUrl, fields){
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = actionUrl;
+  form.style.display = 'none';
+  Object.keys(fields).forEach((key) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = fields[key];
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
+async function startPayment(){
+  const errorEl = document.getElementById('paywall-error');
+  const btn = document.getElementById('paywall-pay-btn');
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/payment/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Device-Id': getDeviceId() },
+      body: JSON.stringify({ resultId: state.pendingResult && state.pendingResult.resultId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    localStorage.setItem(PENDING_PAYMENT_KEY, JSON.stringify({
+      orderId: data.orderId, resultId: state.pendingResult.resultId,
+    }));
+    submitPaymentForm(data.actionUrl, data.fields);
+  } catch (err) {
+    btn.disabled = false;
+    errorEl.textContent = t('paywallError') + err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+async function pollPaymentStatus(orderId, attempt){
+  attempt = attempt || 0;
+  try {
+    const res = await fetch('/api/payment/status?order=' + encodeURIComponent(orderId), {
+      headers: { 'X-Device-Id': getDeviceId() },
+    });
+    const data = await res.json();
+    if (res.ok && data.status === 'paid' && data.result) {
+      localStorage.removeItem(PENDING_PAYMENT_KEY);
+      state.mode = 'complaint';
+      state.pendingResult = data.result;
+      showResult(data.result);
+      return;
+    }
+    if (res.ok && data.status === 'failed') {
+      localStorage.removeItem(PENDING_PAYMENT_KEY);
+      showScreen('paywall');
+      const errorEl = document.getElementById('paywall-error');
+      errorEl.textContent = t('paywallFailed');
+      errorEl.style.display = 'block';
+      return;
+    }
+  } catch (err) {
+    console.error('payment status error', err);
+  }
+  if (attempt < 20) {
+    setTimeout(() => pollPaymentStatus(orderId, attempt + 1), 3000);
+  } else {
+    showScreen('paywall');
+    const errorEl = document.getElementById('paywall-error');
+    errorEl.textContent = t('paywallTimeout');
+    errorEl.style.display = 'block';
+  }
+}
+
+function handlePaymentReturn(){
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('payment') !== 'return') return false;
+  const orderId = params.get('order');
+  history.replaceState(null, '', window.location.pathname);
+  if (!orderId) return false;
+
+  let pending = null;
+  try { pending = JSON.parse(localStorage.getItem(PENDING_PAYMENT_KEY) || 'null'); } catch {}
+  state.mode = 'complaint';
+  state.pendingResult = { resultId: pending ? pending.resultId : null, unlocked: false };
+
+  showScreen('paymentWait');
+  pollPaymentStatus(orderId);
+  return true;
 }
 
 function buildFullDocText(result){
@@ -1330,8 +1500,14 @@ document.getElementById('chat-cancel-btn').addEventListener('click', () => {
 });
 
 document.getElementById('confirm-yes').addEventListener('click', () => {
-  showResult(state.pendingResult);
+  if (state.pendingResult && state.pendingResult.unlocked === false) {
+    showPaywall(state.pendingResult);
+  } else {
+    showResult(state.pendingResult);
+  }
 });
+
+document.getElementById('paywall-pay-btn').addEventListener('click', startPayment);
 
 document.getElementById('confirm-change').addEventListener('click', () => {
   document.getElementById('confirm-override').style.display = 'block';
@@ -1528,8 +1704,10 @@ setupFeedbackWidget('feedback-review', 'review');
 setupFollowup('followup');
 setupFollowup('followup-review');
 
-if (!restoreConversation()) {
-  checkSavedResult();
+if (!handlePaymentReturn()) {
+  if (!restoreConversation()) {
+    checkSavedResult();
+  }
 }
 </script>
 </body>

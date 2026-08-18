@@ -1,5 +1,6 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { kv } = require('@vercel/kv');
+const { tryConsumeFreeOrLock, PRICE_KZT } = require('./_lib/payments');
 
 const SYSTEM_PROMPT = `Ты — помощник, который на основе практики работы отдела по работе с обращениями органов прокуратуры Республики Казахстан помогает обычным гражданам (не юристам) правильно оформить жалобу или обращение в государственный орган.
 
@@ -318,6 +319,43 @@ const REVIEW_RESULT_SCHEMA = {
   additionalProperties: false,
 };
 
+// Заглушка для локального/тестового прогона без реальных вызовов Claude API
+// (включается переменной окружения MOCK_WIZARD=1 — НЕ ставить в проде,
+// иначе реальные пользователи будут получать фиктивный текст обращения).
+function buildMockParsed(messages, isReview) {
+  if (!isReview && messages.length < 2) {
+    return { status: 'need_more_info', question: '[MOCK] Уточните, пожалуйста, когда это произошло?' };
+  }
+  if (isReview) {
+    return {
+      status: 'done',
+      result: {
+        motivationAssessment: '[MOCK] Мотивировка присутствует, но неполная.',
+        deadlineAssessment: '[MOCK] Срок ответа соблюдён.',
+        argumentsCoverage: '[MOCK] Не все доводы рассмотрены.',
+        verdict: '[MOCK] Ответ частично соответствует требованиям.',
+        nextSteps: '[MOCK] Рекомендуется обратиться в вышестоящий орган.',
+      },
+    };
+  }
+  return {
+    status: 'done',
+    result: {
+      category: 'Жалоба',
+      addressee: '[MOCK] Акимат района',
+      addresseeReasoning: '[MOCK] Причина выбора адресата',
+      hierarchyProcedure: '[MOCK] Порядок обращения по АППК',
+      responseRequirements: '[MOCK] Требования к ответу',
+      ifRedirected: '[MOCK] Если вас отфутболят',
+      draft: '[MOCK] Текст черновика обращения для проверки вёрстки и UI...',
+      evidenceGuide: [{ item: '[MOCK] Фото', whereToGet: '[MOCK] Сделать самостоятельно' }],
+      draftQualityCheck: '[MOCK] Проверка полноты черновика',
+      deadlines: '[MOCK] 15 рабочих дней',
+      howToSubmit: '[MOCK] Через eOtinish.kz',
+    },
+  };
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -330,6 +368,12 @@ module.exports = async (req, res) => {
     return;
   }
 
+  const deviceId = req.headers['x-device-id'];
+  if (typeof deviceId !== 'string' || !deviceId.trim()) {
+    res.status(400).json({ error: 'X-Device-Id header is required' });
+    return;
+  }
+
   const isReview = mode === 'review';
   const systemPrompt = isReview ? REVIEW_SYSTEM_PROMPT : SYSTEM_PROMPT;
   const langInstructions = isReview ? REVIEW_LANG_INSTRUCTIONS : LANG_INSTRUCTIONS;
@@ -337,40 +381,45 @@ module.exports = async (req, res) => {
   const langInstruction = langInstructions[lang] || langInstructions.ru;
 
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-    const response = await client.messages.create({
-      model: 'claude-sonnet-5',
-      max_tokens: 8192,
-      thinking: { type: 'disabled' },
-      system: [
-        {
-          type: 'text',
-          text: systemPrompt + '\n\n' + langInstruction,
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      output_config: { format: { type: 'json_schema', schema: resultSchema } },
-      messages,
-    });
-
-    const textBlock = response.content.find((b) => b.type === 'text');
-    if (!textBlock) {
-      res.status(502).json({ error: 'Модель не вернула текстовый ответ' });
-      return;
-    }
-
     let parsed;
-    try {
-      parsed = JSON.parse(textBlock.text);
-    } catch (parseErr) {
-      console.error('wizard parse error:', parseErr, 'stop_reason:', response.stop_reason);
-      res.status(502).json({
-        error: response.stop_reason === 'max_tokens'
-          ? 'Ответ получился слишком длинным и был обрезан. Попробуйте описать ситуацию покороче или повторите запрос.'
-          : 'Не удалось разобрать ответ модели. Попробуйте ещё раз.',
+
+    if (process.env.MOCK_WIZARD === '1') {
+      parsed = buildMockParsed(messages, isReview);
+    } else {
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+      const response = await client.messages.create({
+        model: 'claude-sonnet-5',
+        max_tokens: 8192,
+        thinking: { type: 'disabled' },
+        system: [
+          {
+            type: 'text',
+            text: systemPrompt + '\n\n' + langInstruction,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        output_config: { format: { type: 'json_schema', schema: resultSchema } },
+        messages,
       });
-      return;
+
+      const textBlock = response.content.find((b) => b.type === 'text');
+      if (!textBlock) {
+        res.status(502).json({ error: 'Модель не вернула текстовый ответ' });
+        return;
+      }
+
+      try {
+        parsed = JSON.parse(textBlock.text);
+      } catch (parseErr) {
+        console.error('wizard parse error:', parseErr, 'stop_reason:', response.stop_reason);
+        res.status(502).json({
+          error: response.stop_reason === 'max_tokens'
+            ? 'Ответ получился слишком длинным и был обрезан. Попробуйте описать ситуацию покороче или повторите запрос.'
+            : 'Не удалось разобрать ответ модели. Попробуйте ещё раз.',
+        });
+        return;
+      }
     }
 
     if (parsed.status === 'done' && parsed.result) {
@@ -407,6 +456,28 @@ module.exports = async (req, res) => {
         await kv.lpush('wizard_log', JSON.stringify(logEntry));
       } catch (logErr) {
         console.error('wizard log error:', logErr);
+      }
+
+      if (!isReview) {
+        try {
+          const { resultId, unlocked } = await tryConsumeFreeOrLock({
+            deviceId,
+            lang: lang === 'kk' ? 'kk' : 'ru',
+            result: parsed.result,
+          });
+          parsed.resultId = resultId;
+          parsed.unlocked = unlocked;
+          if (!unlocked) {
+            // Одно бесплатное обращение на устройство уже использовано —
+            // отдаём только категорию, остальное открывается после оплаты.
+            parsed.result = { category: parsed.result.category };
+            parsed.priceKzt = PRICE_KZT;
+          }
+        } catch (gateErr) {
+          console.error('payment gate error:', gateErr);
+          res.status(500).json({ error: 'Не удалось обработать результат. Попробуйте ещё раз.' });
+          return;
+        }
       }
     }
 
