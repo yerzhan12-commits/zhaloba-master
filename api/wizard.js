@@ -385,6 +385,10 @@ module.exports = async (req, res) => {
     res.status(400).json({ error: 'X-Device-Id header is required' });
     return;
   }
+  // Первый IP в x-forwarded-for — реальный клиент за прокси Vercel.
+  // Используется только для мягкого лимита бесплатных попыток (см. _lib/payments.js).
+  const forwardedFor = req.headers['x-forwarded-for'];
+  const clientIp = (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0] : '').trim() || null;
 
   const isReview = mode === 'review';
   const systemPrompt = isReview ? REVIEW_SYSTEM_PROMPT : SYSTEM_PROMPT;
@@ -474,6 +478,7 @@ module.exports = async (req, res) => {
         try {
           const { resultId, unlocked } = await tryConsumeFreeOrLock({
             deviceId,
+            ip: clientIp,
             lang: lang === 'kk' ? 'kk' : 'ru',
             result: parsed.result,
           });
