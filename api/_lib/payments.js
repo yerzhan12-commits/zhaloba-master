@@ -3,7 +3,8 @@ const { randomUUID } = require('crypto');
 
 const PRICE_KZT = 1500;
 const FREE_LIMIT_KEY_VALUE = '1'; // просто маркер "бесплатная попытка уже использована"
-const RESULT_TTL_SECONDS = 60 * 60 * 24 * 14; // 14 дней
+const RESULT_TTL_SECONDS = 60 * 60 * 24 * 5; // 5 дней — пользователь должен быть предупреждён об этом в интерфейсе
+const HISTORY_MAX_ITEMS = 30; // максимум записей "Моих обращений" на устройство
 
 // Мягкая защита от обхода бесплатной попытки через очистку localStorage —
 // не блокирует полностью (общие IP семей/офисов не должны страдать), но
@@ -24,6 +25,9 @@ function resultKey(resultId) {
 }
 function orderKey(orderId) {
   return `order:${orderId}`;
+}
+function historyKey(deviceId) {
+  return `device:${deviceId}:history`;
 }
 
 async function consumeIpFreeQuota(ip) {
@@ -70,6 +74,7 @@ async function tryConsumeFreeOrLock({ deviceId, ip, lang, result }) {
     createdAt: new Date().toISOString(),
   };
   await kv.set(resultKey(resultId), JSON.stringify(stored), { ex: RESULT_TTL_SECONDS });
+  await addToDeviceHistory(deviceId, resultId);
 
   return { resultId, unlocked };
 }
@@ -81,6 +86,32 @@ async function getResult(resultId) {
 
 async function saveResult(resultId, data) {
   await kv.set(resultKey(resultId), JSON.stringify(data), { ex: RESULT_TTL_SECONDS });
+}
+
+// Список resultId по устройству — чтобы пользователь при повторном входе видел
+// историю своих обращений ("Мои обращения"), а не только последний результат
+// из localStorage. Список живёт не дольше самих результатов (см. RESULT_TTL_SECONDS)
+// — записи из истории, у которых сам результат уже истёк, просто отфильтровываются.
+async function addToDeviceHistory(deviceId, resultId) {
+  const key = historyKey(deviceId);
+  await kv.lpush(key, resultId);
+  await kv.ltrim(key, 0, HISTORY_MAX_ITEMS - 1);
+  await kv.expire(key, RESULT_TTL_SECONDS);
+}
+
+async function getDeviceHistory(deviceId) {
+  const ids = await kv.lrange(historyKey(deviceId), 0, -1);
+  const items = await Promise.all(ids.map(async (resultId) => {
+    const stored = await getResult(resultId);
+    if (!stored) return null; // запись протухла или ещё не встречалась (защита от подделки id)
+    return {
+      resultId,
+      createdAt: stored.createdAt,
+      unlocked: stored.unlocked,
+      category: (stored.result && stored.result.category) || null,
+    };
+  }));
+  return items.filter(Boolean);
 }
 
 async function createOrder({ orderId, resultId, deviceId, amountKzt }) {
@@ -128,9 +159,11 @@ async function markOrderFailed(orderId) {
 
 module.exports = {
   PRICE_KZT,
+  RESULT_TTL_SECONDS,
   tryConsumeFreeOrLock,
   getResult,
   saveResult,
+  getDeviceHistory,
   createOrder,
   getOrder,
   markOrderPaid,

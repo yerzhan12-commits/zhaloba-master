@@ -37,6 +37,23 @@
     background:var(--surface);color:var(--ink2);font-size:12px;cursor:pointer;
   }
   .text-size-btn:hover{border-color:var(--blue);color:var(--blue);}
+  .text-size-btn + .text-size-btn{margin-left:8px;}
+
+  .history-item{
+    display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;color:var(--ink);font-family:inherit;
+  }
+  .history-item:hover{border-color:var(--blue);}
+  .history-item .history-item-cat{font-size:15px;font-weight:600;margin-bottom:4px;}
+  .history-item .history-item-meta{font-size:12px;color:var(--muted);}
+  .history-item .history-item-badge{
+    display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px;
+    background:rgba(230,103,103,0.15);color:var(--red);
+  }
+  .retention-note{
+    background:rgba(230,103,103,0.08);border:1px solid rgba(230,103,103,0.3);
+    border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.5;color:#f0a8a8;margin-bottom:14px;
+  }
 
   body.text-lg .result-value, body.text-lg .card p, body.text-lg .muted, body.text-lg .bubble,
   body.text-lg .evidence-name, body.text-lg .evidence-where, body.text-lg textarea,
@@ -190,7 +207,7 @@
     body{background:#fff;color:#000;}
     .btn-primary, .btn-secondary, .mic-btn, .file-attach, .example-row,
     .progress-row, .privacy-note, .lang-row, header .subtitle, .text-size-btn,
-    .feedback-card, .followup-card{display:none !important;}
+    .feedback-card, .followup-card, .retention-note{display:none !important;}
     .card{background:#fff;border:1px solid #ccc;}
     .card h2{color:#000;}
     .result-card h2{color:#000;border-left-color:#000;}
@@ -206,6 +223,7 @@
     <h1 data-i18n="appTitle">Жалоба</h1>
     <div class="subtitle" data-i18n="appSubtitle">Мастер составления жалоб и обращений</div>
     <button type="button" id="text-size-btn" class="text-size-btn" data-i18n="textSizeBtn">Aa Размер текста</button>
+    <button type="button" id="history-open-btn" class="text-size-btn" data-i18n="historyBtn">📁 Мои обращения</button>
   </header>
 
   <!-- Экран 0: выбор языка -->
@@ -228,6 +246,17 @@
         <button class="lang-btn" id="lang-ru">Русский</button>
       </div>
     </div>
+  </div>
+
+  <!-- Экран: история обращений на этом устройстве -->
+  <div class="screen" id="screen-history">
+    <div class="card">
+      <h2 data-i18n="historyTitle">Мои обращения</h2>
+      <div class="retention-note" data-i18n="historyRetentionWarning">Результаты хранятся на сервере только 5 дней после создания, потом автоматически удаляются. Сохраните важный текст себе (кнопка «Скачать как .doc»).</div>
+    </div>
+    <div id="history-list"></div>
+    <div class="muted" id="history-empty" style="display:none;" data-i18n="historyEmpty">Пока пусто — здесь появятся ваши прошлые обращения.</div>
+    <button class="btn-secondary" id="history-back-btn" data-i18n="historyBack">← Назад</button>
   </div>
 
   <!-- Экран 0.5: выбор режима -->
@@ -324,6 +353,7 @@
         <li data-i18n="paywallBullet3">Какие доказательства собрать</li>
         <li data-i18n="paywallBullet4">Сроки рассмотрения и как подать</li>
       </ul>
+      <div class="retention-note" data-i18n="resultRetentionWarning">Результат хранится на сервере только 5 дней, потом удаляется. После оплаты сразу скачайте текст к себе.</div>
       <button class="btn-primary" id="paywall-pay-btn"><span data-i18n="paywallPayBtn">Оплатить</span> <span id="paywall-price"></span></button>
       <div class="error-box" id="paywall-error" style="display:none;margin-top:10px;"></div>
     </div>
@@ -340,6 +370,7 @@
 
   <!-- Экран 4: результат -->
   <div class="screen" id="screen-result">
+    <div class="retention-note" data-i18n="resultRetentionWarning">Результат хранится на сервере только 5 дней, потом удаляется. После оплаты сразу скачайте текст к себе.</div>
     <div class="card result-card">
       <h2 data-i18n="resultCategory">Тип обращения</h2>
       <div class="result-value" id="result-category"></div>
@@ -585,6 +616,15 @@ const STRINGS = {
     paywallFailed: 'Оплата не прошла. Попробуйте ещё раз.',
     paywallTimeout: 'Не удалось подтвердить оплату. Если деньги списались, напишите нам через отзыв — мы разберёмся.',
     paymentWaitTitle: 'Проверяем оплату...',
+    historyBtn: '📁 Мои обращения',
+    historyTitle: 'Мои обращения',
+    historyRetentionWarning: 'Результаты хранятся на сервере только 5 дней после создания, потом автоматически удаляются. Сохраните важный текст себе (кнопка «Скачать как .doc»).',
+    historyEmpty: 'Пока пусто — здесь появятся ваши прошлые обращения.',
+    historyBack: '← Назад',
+    historyLockedBadge: 'не оплачено',
+    historyLoadError: 'Не удалось загрузить историю. Проверьте соединение и попробуйте снова.',
+    historyItemError: 'Не удалось открыть это обращение — возможно, оно уже удалено (прошло больше 5 дней).',
+    resultRetentionWarning: 'Результат хранится на сервере только 5 дней, потом удаляется. После оплаты сразу скачайте текст к себе.',
   },
   kk: {
     appTitle: 'Шағым',
@@ -689,6 +729,15 @@ const STRINGS = {
     paywallFailed: 'Төлем өтпеді. Қайта көріңіз.',
     paywallTimeout: 'Төлемді растау мүмкін болмады. Егер ақша есептен шығарылса, пікірде жазыңыз — біз тексереміз.',
     paymentWaitTitle: 'Төлем тексерілуде...',
+    historyBtn: '📁 Менің өтініштерім',
+    historyTitle: 'Менің өтініштерім',
+    historyRetentionWarning: 'Нәтижелер серверде жасалғаннан кейін тек 5 күн сақталады, содан соң автоматты түрде жойылады. Маңызды мәтінді өзіңізге сақтап алыңыз («.doc түрінде жүктеу» батырмасы).',
+    historyEmpty: 'Әзірге бос — мұнда бұрынғы өтініштеріңіз көрінеді.',
+    historyBack: '← Артқа',
+    historyLockedBadge: 'төленбеген',
+    historyLoadError: 'Тарихты жүктеу мүмкін болмады. Байланысты тексеріп, қайта көріңіз.',
+    historyItemError: 'Бұл өтінішті ашу мүмкін болмады — мүмкін, ол қазірдің өзінде жойылған (5 күннен астам уақыт өтті).',
+    resultRetentionWarning: 'Нәтиже серверде тек 5 күн сақталады, содан соң жойылады. Төлегеннен кейін мәтінді бірден өзіңізге жүктеп алыңыз.',
   },
 };
 
@@ -964,6 +1013,7 @@ function renderExampleChips(){
 
 const screens = {
   language: document.getElementById('screen-language'),
+  history: document.getElementById('screen-history'),
   mode: document.getElementById('screen-mode'),
   intake: document.getElementById('screen-intake'),
   chat: document.getElementById('screen-chat'),
@@ -1442,6 +1492,99 @@ function showReviewResult(result){
   window.va('event', { name: 'review_completed' });
   showScreen('resultReview');
 }
+
+let historyReturnScreen = 'mode';
+
+async function loadHistory(){
+  const listEl = document.getElementById('history-list');
+  const emptyEl = document.getElementById('history-empty');
+  listEl.innerHTML = '<div class="spinner"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  emptyEl.style.display = 'none';
+  try {
+    const res = await fetch('/api/history', { headers: { 'X-Device-Id': getDeviceId() } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    renderHistoryList(data.history || []);
+  } catch (err) {
+    console.error('history load error', err);
+    listEl.innerHTML = '';
+    emptyEl.textContent = t('historyLoadError');
+    emptyEl.style.display = 'block';
+  }
+}
+
+function renderHistoryList(items){
+  const listEl = document.getElementById('history-list');
+  const emptyEl = document.getElementById('history-empty');
+  listEl.innerHTML = '';
+  if (!items.length) {
+    emptyEl.textContent = t('historyEmpty');
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  items.forEach((item) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'history-item';
+
+    const cat = document.createElement('div');
+    cat.className = 'history-item-cat';
+    cat.textContent = item.category || '—';
+    if (!item.unlocked) {
+      const badge = document.createElement('span');
+      badge.className = 'history-item-badge';
+      badge.textContent = t('historyLockedBadge');
+      cat.appendChild(badge);
+    }
+
+    const meta = document.createElement('div');
+    meta.className = 'history-item-meta';
+    meta.textContent = new Date(item.createdAt).toLocaleString(state.lang === 'kk' ? 'kk-KZ' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+
+    btn.appendChild(cat);
+    btn.appendChild(meta);
+    btn.addEventListener('click', () => openHistoryItem(item.resultId));
+    listEl.appendChild(btn);
+  });
+}
+
+async function openHistoryItem(resultId){
+  const emptyEl = document.getElementById('history-empty');
+  try {
+    const res = await fetch('/api/history-item?resultId=' + encodeURIComponent(resultId), {
+      headers: { 'X-Device-Id': getDeviceId() },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    const result = data.result || {};
+    result.resultId = data.resultId;
+    result.unlocked = data.unlocked;
+    result.priceKzt = data.priceKzt;
+    state.mode = 'complaint';
+    state.pendingResult = result;
+    if (data.unlocked) {
+      showResult(result);
+    } else {
+      showPaywall(result);
+    }
+  } catch (err) {
+    console.error('history item open error', err);
+    emptyEl.textContent = t('historyItemError');
+    emptyEl.style.display = 'block';
+  }
+}
+
+document.getElementById('history-open-btn').addEventListener('click', () => {
+  const current = Object.keys(screens).find((key) => screens[key].classList.contains('active'));
+  if (current && current !== 'history') historyReturnScreen = current;
+  loadHistory();
+  showScreen('history');
+});
+
+document.getElementById('history-back-btn').addEventListener('click', () => {
+  showScreen(historyReturnScreen);
+});
 
 document.getElementById('intake-submit').addEventListener('click', () => {
   const text = document.getElementById('intake-text').value.trim();
