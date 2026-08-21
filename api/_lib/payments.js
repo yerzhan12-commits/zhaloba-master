@@ -64,6 +64,11 @@ async function tryConsumeFreeOrLock({ deviceId, ip, lang, result }) {
 
   if (unlocked) {
     await kv.set(freeUsedKey(deviceId), FREE_LIMIT_KEY_VALUE);
+    // Бесплатная попытка целиком уходит клиенту прямо сейчас и оседает только
+    // в его localStorage — на сервере её сознательно не храним и не заносим
+    // в историю устройства, хранить/показывать в "Мои обращения" нечего,
+    // это не оплаченный результат.
+    return { resultId, unlocked };
   }
 
   const stored = {
