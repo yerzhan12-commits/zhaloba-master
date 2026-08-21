@@ -1,4 +1,5 @@
 const { kv } = require('@vercel/kv');
+const { verifySession } = require('./_lib/auth');
 
 function escapeHtml(str) {
   return String(str || '').replace(/[&<>"']/g, (c) => ({
@@ -12,9 +13,9 @@ function formatEvidenceGuide(evidenceGuide) {
 }
 
 module.exports = async (req, res) => {
-  const password = (req.query && req.query.password) || '';
-  if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
-    res.status(401).send('Доступ запрещён. Добавьте ?password=... в адрес.');
+  if (!verifySession(req)) {
+    res.writeHead(302, { Location: '/admin/login.html' });
+    res.end();
     return;
   }
 
@@ -135,8 +136,11 @@ module.exports = async (req, res) => {
   details{margin-top:6px;font-size:13px;}
   summary{cursor:pointer;color:#3987e5;}
   pre{white-space:pre-wrap;font-family:inherit;margin-top:6px;color:#c3c2b7;}
+  .logout-btn{float:right;background:none;border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+    color:#c3c2b7;font-size:12px;padding:6px 12px;cursor:pointer;}
 </style></head>
 <body>
+  <button type="button" class="logout-btn" id="logout-btn">Выйти</button>
   <h1>Лог обращений — Жалоба</h1>
   <div class="count">Всего записей: ${entries.length} (новые сверху)</div>
   ${rows || '<p>Пока пусто.</p>'}
@@ -144,6 +148,12 @@ module.exports = async (req, res) => {
   <h1 style="margin-top:24px;">Отзывы пользователей</h1>
   <div class="count">Всего отзывов: ${feedbackEntries.length} (новые сверху)</div>
   ${feedbackRows || '<p>Пока пусто.</p>'}
+<script>
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/admin/login.html';
+});
+</script>
 </body></html>`);
   } catch (err) {
     console.error('admin error:', err);

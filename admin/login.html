@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Вход — админка Жалоба</title>
+<style>
+  body{font-family:-apple-system,sans-serif;background:#0d0d0d;color:#fff;padding:16px;max-width:360px;margin:80px auto 0;}
+  h1{font-size:18px;color:#3987e5;margin-bottom:16px;}
+  input{width:100%;padding:12px 14px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;
+    font-size:15px;background:#1a1a19;color:#fff;margin-bottom:12px;box-sizing:border-box;}
+  button{width:100%;padding:13px;border:none;border-radius:10px;background:#3987e5;color:#fff;
+    font-size:15px;font-weight:600;cursor:pointer;}
+  button:disabled{opacity:0.5;}
+  .error{color:#e66767;font-size:13px;margin-top:10px;display:none;}
+</style>
+</head>
+<body>
+  <h1>Вход в админку</h1>
+  <input type="password" id="password" placeholder="Пароль" autofocus>
+  <button type="button" id="submit-btn">Войти</button>
+  <div class="error" id="error"></div>
+
+<script>
+const passwordEl = document.getElementById('password');
+const btn = document.getElementById('submit-btn');
+const errorEl = document.getElementById('error');
+
+async function submit(){
+  const password = passwordEl.value;
+  if (!password) return;
+  btn.disabled = true;
+  errorEl.style.display = 'none';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) throw new Error('Неверный пароль');
+    window.location.href = '/api/admin';
+  } catch (err) {
+    btn.disabled = false;
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+btn.addEventListener('click', submit);
+passwordEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+</script>
+</body>
+</html>
