@@ -50,6 +50,7 @@
     display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px;
     background:rgba(230,103,103,0.15);color:var(--red);
   }
+  .history-item .history-item-expiry.urgent{color:var(--red);font-weight:600;}
   .retention-note{
     background:rgba(230,103,103,0.08);border:1px solid rgba(230,103,103,0.3);
     border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.5;color:#f0a8a8;margin-bottom:14px;
@@ -628,6 +629,10 @@ const STRINGS = {
     historyLockedBadge: 'не оплачено',
     historyLoadError: 'Не удалось загрузить историю. Проверьте соединение и попробуйте снова.',
     historyItemError: 'Не удалось открыть это обращение — возможно, оно уже удалено (прошло больше 5 дней).',
+    historyExpiresToday: 'исчезнет сегодня',
+    historyExpiresTomorrow: 'исчезнет завтра',
+    historyExpiresInPrefix: 'исчезнет через ',
+    historyExpiresInSuffix: ' дн.',
     resultRetentionWarning: 'Результат хранится на сервере только 5 дней, потом удаляется. После оплаты сразу скачайте текст к себе.',
   },
   kk: {
@@ -741,6 +746,10 @@ const STRINGS = {
     historyLockedBadge: 'төленбеген',
     historyLoadError: 'Тарихты жүктеу мүмкін болмады. Байланысты тексеріп, қайта көріңіз.',
     historyItemError: 'Бұл өтінішті ашу мүмкін болмады — мүмкін, ол қазірдің өзінде жойылған (5 күннен астам уақыт өтті).',
+    historyExpiresToday: 'бүгін жойылады',
+    historyExpiresTomorrow: 'ертең жойылады',
+    historyExpiresInPrefix: '',
+    historyExpiresInSuffix: ' күннен кейін жойылады',
     resultRetentionWarning: 'Нәтиже серверде тек 5 күн сақталады, содан соң жойылады. Төлегеннен кейін мәтінді бірден өзіңізге жүктеп алыңыз.',
   },
 };
@@ -1517,6 +1526,17 @@ async function loadHistory(){
   }
 }
 
+const HISTORY_RETENTION_DAYS = 5;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function formatExpiryNote(createdAt){
+  const expiresAt = new Date(createdAt).getTime() + HISTORY_RETENTION_DAYS * DAY_MS;
+  const daysLeft = Math.ceil((expiresAt - Date.now()) / DAY_MS);
+  if (daysLeft <= 0) return { text: t('historyExpiresToday'), urgent: true };
+  if (daysLeft === 1) return { text: t('historyExpiresTomorrow'), urgent: true };
+  return { text: t('historyExpiresInPrefix') + daysLeft + t('historyExpiresInSuffix'), urgent: false };
+}
+
 function renderHistoryList(items){
   const listEl = document.getElementById('history-list');
   const emptyEl = document.getElementById('history-empty');
@@ -1544,7 +1564,13 @@ function renderHistoryList(items){
 
     const meta = document.createElement('div');
     meta.className = 'history-item-meta';
-    meta.textContent = new Date(item.createdAt).toLocaleString(state.lang === 'kk' ? 'kk-KZ' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+    const dateStr = new Date(item.createdAt).toLocaleString(state.lang === 'kk' ? 'kk-KZ' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+    const expiry = formatExpiryNote(item.createdAt);
+    meta.textContent = dateStr + ' · ';
+    const expirySpan = document.createElement('span');
+    expirySpan.className = 'history-item-expiry' + (expiry.urgent ? ' urgent' : '');
+    expirySpan.textContent = expiry.text;
+    meta.appendChild(expirySpan);
 
     btn.appendChild(cat);
     btn.appendChild(meta);
