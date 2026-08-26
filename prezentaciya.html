@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Жалоба — мастер составления обращений</title>
+<meta name="description" content="ИИ-помощник для составления официальных обращений и жалоб в госорганы РК по правилам АППК.">
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --bg:#0d0d0f;
+    --panel:#16161890;
+    --card:#1a1a1d;
+    --line:#2a2a2e;
+    --line-soft:#232326;
+    --ink:#f3f1ec;
+    --ink2:#b3b0a8;
+    --ink3:#7c7972;
+    --blue:#3987e5;
+    --blue-soft:rgba(57,135,229,.12);
+    --red:#e66767;
+    --radius-card:16px;
+    --radius-btn:13px;
+    --radius-pill:999px;
+    --mono:ui-monospace,"SFMono-Regular","Cascadia Code","Consolas","Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.6;
+  }
+  img,svg{max-width:100%;display:block;}
+  a{color:inherit;}
+  ::selection{background:var(--blue);color:#fff;}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px;}
+
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px;}
+  .measure{max-width:62ch;}
+
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--blue);font-variant-numeric:tabular-nums;
+  }
+  .tag{
+    display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);
+    border:1px solid var(--line);border-radius:var(--radius-pill);padding:5px 11px;
+  }
+  .tag .dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--blue);}
+
+  h1,h2,h3{font-weight:800;letter-spacing:-.01em;text-wrap:balance;margin:0;}
+
+  .nav{
+    position:sticky;top:0;z-index:20;background:rgba(13,13,15,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{max-width:900px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px;}
+  .brand{font-weight:800;font-size:15px;letter-spacing:-.01em;white-space:nowrap;color:var(--blue);}
+  .nav-links{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;}
+  .nav-links::-webkit-scrollbar{display:none;}
+  .nav-link{
+    display:inline-flex;align-items:center;white-space:nowrap;font-size:13px;color:var(--ink2);
+    text-decoration:none;padding:8px 12px;border-radius:var(--radius-pill);border:1px solid transparent;
+  }
+  .nav-link:hover{color:var(--ink);border-color:var(--line);}
+  .nav-cta{
+    flex:none;font-size:13px;font-weight:700;color:var(--bg);background:var(--ink);
+    padding:9px 16px;border-radius:var(--radius-pill);text-decoration:none;white-space:nowrap;
+  }
+  .nav-cta:hover{background:var(--blue);color:#fff;}
+
+  .hero{padding:88px 0 60px;}
+  .hero h1{font-size:clamp(2.2rem,5vw + .8rem,3.6rem);line-height:1.05;margin:18px 0 22px;}
+  .hero h1 em{color:var(--blue);font-style:normal;}
+  .hero .lede{font-size:clamp(1.02rem,.4vw + .95rem,1.2rem);color:var(--ink2);max-width:58ch;}
+  .hero-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px;}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px;align-items:center;}
+
+  .const-quote{
+    border-left:3px solid var(--blue);border-radius:0 var(--radius-card) var(--radius-card) 0;
+    background:var(--blue-soft);padding:18px 22px;margin:22px 0 26px;max-width:58ch;
+  }
+  .const-quote p{font-size:15px;color:var(--ink);font-style:italic;line-height:1.55;}
+  .const-quote cite{
+    display:block;margin-top:10px;font-family:var(--mono);font-style:normal;font-size:11.5px;
+    color:var(--blue);letter-spacing:.04em;text-transform:uppercase;
+  }
+
+  section{padding:64px 0;border-top:1px solid var(--line-soft);}
+  .section-head{margin-bottom:36px;max-width:62ch;}
+  .section-head h2{font-size:clamp(1.5rem,1.6vw + 1rem,2.1rem);margin-top:10px;}
+  .section-head p{color:var(--ink2);margin-top:12px;font-size:15.5px;}
+
+  .pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}
+  .pain-card{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);padding:22px;}
+  .pain-num{font-family:var(--mono);font-size:12px;color:var(--red);letter-spacing:.05em;}
+  .pain-card h3{font-size:16.5px;margin-top:10px;}
+  .pain-card p{color:var(--ink2);font-size:14px;margin-top:8px;}
+
+  .steps{display:grid;gap:0;margin-top:8px;}
+  .step{display:flex;gap:20px;padding:22px 0;border-bottom:1px solid var(--line-soft);}
+  .step:last-child{border-bottom:none;}
+  .step-num{
+    font-family:var(--mono);font-size:13px;color:var(--blue);min-width:32px;flex:none;
+    padding-top:2px;font-variant-numeric:tabular-nums;font-weight:700;
+  }
+  .step-txt h4{margin:0 0 5px;font-size:16px;font-weight:700;}
+  .step-txt p{margin:0;color:var(--ink2);font-size:14.5px;max-width:56ch;}
+
+  .chip-cloud{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .chip{
+    font-size:13px;color:var(--ink2);border:1px solid var(--line);border-radius:var(--radius-pill);
+    padding:7px 13px;background:var(--card);
+  }
+
+  .price-card{
+    border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);
+    padding:26px 24px;display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center;
+  }
+  .price-row{display:flex;flex-direction:column;gap:4px;}
+  .price-row .label{font-family:var(--mono);font-size:11.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em;}
+  .price-row .value{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .price-row .value.free{color:var(--blue);}
+
+  .disclaimer{
+    margin-top:26px;padding:14px 16px;border-radius:12px;
+    background:rgba(230,103,103,.07);border:1px solid rgba(230,103,103,.28);
+    font-size:12.5px;line-height:1.55;color:#e6b3ac;
+  }
+
+  .cta-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;
+    padding:14px 22px;border-radius:var(--radius-btn);text-decoration:none;border:1px solid transparent;
+    cursor:pointer;font-family:inherit;transition:transform .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn-solid{background:var(--blue);color:#fff;}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+
+  footer{padding:56px 0 40px;border-top:1px solid var(--line-soft);}
+  .footer-cta{
+    display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:center;
+    padding-bottom:32px;border-bottom:1px solid var(--line-soft);margin-bottom:24px;
+  }
+  .footer-note{font-size:12.5px;color:var(--ink3);}
+
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease, transform .5s ease;}
+  .reveal.in-view{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
+
+  @media (max-width:600px){
+    .hero{padding:64px 0 40px;}
+    section{padding:48px 0;}
+    .price-card{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <span class="brand">Жалоба</span>
+    <div class="nav-links">
+      <a class="nav-link" href="#problem">Проблема</a>
+      <a class="nav-link" href="#how">Как работает</a>
+      <a class="nav-link" href="#price">Цена</a>
+    </div>
+    <a class="nav-cta" href="/" target="_blank" rel="noopener">Открыть →</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">ИИ-помощник · обращения в госорганы РК</span>
+    <h1>Обращаться в госорганы — <em>ваше конституционное право</em></h1>
+    <div class="const-quote">
+      <p>«Граждане Республики Казахстан имеют право... обращаться лично, а также направлять индивидуальные и коллективные обращения в государственные органы и органы местного самоуправления»</p>
+      <cite>Статья 35, часть 1 Конституции Республики Казахстан</cite>
+    </div>
+    <p class="lede">Опишите ситуацию своими словами — Жалоба определит вид обращения, найдёт нужный адресат по АППК и соберёт готовый черновик с правовым обоснованием. Без юридических терминов, без похода к юристу за 15 000 ₸.</p>
+    <div class="hero-strip">
+      <span class="tag"><span class="dot"></span>Казакша / Русский</span>
+      <span class="tag"><span class="dot"></span>Работает в браузере</span>
+      <span class="tag"><span class="dot"></span>Первая попытка бесплатно</span>
+    </div>
+    <div class="hero-cta">
+      <a class="btn btn-solid" href="/" target="_blank" rel="noopener">Составить обращение →</a>
+      <span style="font-size:13px;color:var(--ink3);">Ничего не устанавливается, ФИО и ИИН не нужны</span>
+    </div>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Почему это вообще нужно</span>
+      <h2>Обращение легко отклонить формально — если оно составлено неправильно</h2>
+      <p>АППК устанавливает строгие требования: правильный вид обращения, правильный адресат, обоснование со ссылкой на закон, соблюдение иерархии. Одна ошибка — и вместо ответа по существу приходит отписка.</p>
+    </div>
+    <div class="pain-grid reveal">
+      <div class="pain-card">
+        <div class="pain-num">01</div>
+        <h3>Не туда написали</h3>
+        <p>Жалоба ушла не в тот орган — пересылают неделями, а срок на обжалование тем временем идёт.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-num">02</div>
+        <h3>Формальная отписка</h3>
+        <p>Ответ без ссылок на закон и без разбора доводов — а человек не знает, что это уже нарушение и повод жаловаться дальше.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-num">03</div>
+        <h3>Юрист — дорого</h3>
+        <p>Разовая консультация стоит от 10 000 ₸ — для одной жалобы на акимат это несоразмерно.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Как это устроено</span>
+      <h2>От свободного рассказа до готового документа</h2>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-txt"><h4>Опишите ситуацию своими словами</h4><p>Голосом или текстом — что произошло, кто причастен, чего вы хотите добиться. Можно приложить фото или PDF как доказательства.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-txt"><h4>Мастер задаёт уточняющие вопросы</h4><p>Не больше 4, по одному за раз — как переписка с толковым другом, а не анкета. Никогда не спрашивает ФИО, ИИН, адрес или телефон.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-txt"><h4>Получаете разбор и черновик</h4><p>Вид обращения, точный адресат и почему именно он, порядок иерархии обжалования, какие доказательства собрать, сроки рассмотрения — и сам текст, готовый к подаче.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-txt"><h4>Подаёте и, если нужно, проверяете ответ</h4><p>Скачайте как .doc или сохраните как PDF. Когда придёт ответ от органа — отдельный бесплатный режим проверит, не отписка ли это, и подскажет следующий шаг.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="depth">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Под капотом</span>
+      <h2>Юридическая база собрана практиком, не выдумана моделью</h2>
+      <p>Каждая норма в базе сверена с действующим текстом на adilet.zan.kz — включая нумерацию статей новой Конституции РК 2026 года, которую большинство источников в интернете ещё не учитывает. База пополняется по мере поступления новых, уже отработанных на практике случаев.</p>
+    </div>
+    <div class="chip-cloud reveal">
+      <span class="chip">Бездействие акимата</span>
+      <span class="chip">Отказ в АСП</span>
+      <span class="chip">Задержка зарплаты</span>
+      <span class="chip">Незаконное увольнение</span>
+      <span class="chip">Бытовое насилие</span>
+      <span class="chip">Алименты</span>
+      <span class="chip">ПДД и КоАП</span>
+      <span class="chip">Госзакупки</span>
+      <span class="chip">Банкротство граждан</span>
+      <span class="chip">Ошибки налоговых органов</span>
+      <span class="chip">Военная служба</span>
+      <span class="chip">Права потребителей</span>
+      <span class="chip">Дошкольное образование</span>
+      <span class="chip">и ещё десятки тем</span>
+    </div>
+  </div>
+</section>
+
+<section id="price">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Стоимость</span>
+      <h2>Прозрачно, без подписки</h2>
+    </div>
+    <div class="price-card reveal">
+      <div class="price-row">
+        <span class="label">Первое обращение</span>
+        <span class="value free">Бесплатно</span>
+      </div>
+      <div class="price-row">
+        <span class="label">Каждое следующее</span>
+        <span class="value">1 500 ₸</span>
+      </div>
+      <div class="price-row">
+        <span class="label">Проверка ответа</span>
+        <span class="value free">Всегда бесплатно</span>
+      </div>
+    </div>
+    <div class="disclaimer reveal">
+      Жалоба не заменяет юридическую консультацию и не является официальной позицией госоргана. Черновик формируется искусственным интеллектом на основе введённых данных — для сложных и спорных ситуаций финальное решение остаётся за юристом.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-cta">
+      <div>
+        <h2 style="font-size:1.6rem;">Попробуйте на своей ситуации</h2>
+        <p style="color:var(--ink2);margin-top:8px;max-width:44ch;">Первое обращение — бесплатно. Занимает несколько минут.</p>
+      </div>
+      <div class="cta-row">
+        <a class="btn btn-solid" href="/" target="_blank" rel="noopener">Открыть Жалобу →</a>
+      </div>
+    </div>
+    <div class="footer-note">© 2026 · Жалоба — мастер составления обращений</div>
+  </div>
+</footer>
+
+<script>
+  if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add("in-view"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in-view"); });
+  }
+</script>
+</body>
+</html>
