@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Жалоба, Адвокат, Банкрот-мастер, ТІЗЕ и Взрывная скорость</title>
+<meta name="description" content="ИИ-инструменты для обращений в госорганы, приёма клиентов адвокатом и дел о банкротстве — и программы восстановления колена и скорости, по дням, без воды.">
+<style>
+  :root{
+    /* dark-first — deliberate single identity, matches every product's own UI (#0e0e10 ground) */
+    --bg:#0d0d0f;
+    --panel:#16161890;
+    --card:#1a1a1d;
+    --line:#2a2a2e;
+    --line-soft:#232326;
+    --ink:#f3f1ec;
+    --ink2:#b3b0a8;
+    --ink3:#7c7972;
+    --blue:#3987e5;
+    --orange:#e05c1a;
+    --cyan:#1ad1e0;
+    --green:#2fae6b;
+    --gold:#d9a441;
+    --radius-card:16px;
+    --radius-btn:13px;
+    --radius-pill:999px;
+    --measure:64ch;
+    --mono:ui-monospace,"SFMono-Regular","Cascadia Code","Consolas","Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+  }
+  img,svg{max-width:100%;display:block;}
+  a{color:inherit;}
+  ::selection{background:var(--blue);color:#fff;}
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:4px;}
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px;}
+  .measure{max-width:var(--measure);}
+
+  /* ---------- eyebrow / mono labels ---------- */
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink3);font-variant-numeric:tabular-nums;
+  }
+  .tag{
+    display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);
+    border:1px solid var(--line);border-radius:var(--radius-pill);padding:5px 11px;
+  }
+  .tag .dot{width:7px;height:7px;border-radius:50%;flex:none;}
+
+  h1,h2,h3{font-weight:800;letter-spacing:-.01em;text-wrap:balance;margin:0;}
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:sticky;top:0;z-index:20;
+    background:rgba(13,13,15,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    max-width:920px;margin:0 auto;padding:14px 20px;
+    display:flex;align-items:center;gap:18px;
+  }
+  .brand{font-weight:800;font-size:15px;letter-spacing:-.01em;white-space:nowrap;}
+  .nav-links{
+    display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;
+  }
+  .nav-links::-webkit-scrollbar{display:none;}
+  .nav-link{
+    display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+    font-size:13px;color:var(--ink2);text-decoration:none;
+    padding:8px 12px;border-radius:var(--radius-pill);border:1px solid transparent;
+  }
+  .nav-link:hover{color:var(--ink);border-color:var(--line);}
+  .nav-link .dot{width:6px;height:6px;border-radius:50%;flex:none;}
+  .nav-cta{
+    flex:none;font-size:13px;font-weight:700;color:var(--bg);background:var(--ink);
+    padding:9px 16px;border-radius:var(--radius-pill);text-decoration:none;white-space:nowrap;
+  }
+  .nav-cta:hover{background:var(--cyan);}
+
+  /* ---------- hero ---------- */
+  .hero{padding:76px 0 56px;}
+  .hero h1{font-size:clamp(2.1rem,4.6vw + .9rem,3.3rem);line-height:1.06;margin:16px 0 20px;}
+  .hero .lede{font-size:clamp(1rem,.4vw + .95rem,1.15rem);color:var(--ink2);max-width:56ch;}
+  .hero-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px;}
+
+  /* ---------- section shell ---------- */
+  section{padding:64px 0;border-top:1px solid var(--line-soft);}
+  .section-head{margin-bottom:36px;max-width:60ch;}
+  .section-head h2{font-size:clamp(1.5rem,1.6vw + 1rem,2rem);margin-top:10px;}
+  .section-head p{color:var(--ink2);margin-top:12px;font-size:15px;}
+
+  /* ---------- product card ---------- */
+  .product{
+    border:1px solid var(--line);border-radius:var(--radius-card);
+    background:var(--card);overflow:hidden;
+  }
+  .product + .product{margin-top:20px;}
+  .product-top{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+    padding:20px 24px;border-bottom:1px solid var(--line);
+  }
+  .product-meta{display:flex;flex-wrap:wrap;gap:8px;}
+  .meta-item{
+    font-family:var(--mono);font-size:11.5px;color:var(--ink3);letter-spacing:.03em;
+    display:flex;align-items:center;gap:6px;
+  }
+  .meta-item b{color:var(--ink2);font-weight:600;}
+  .product-body{padding:26px 24px 24px;}
+  .product-body h3{font-size:1.55rem;}
+  .product-sub{color:var(--ink2);font-size:13.5px;margin-top:6px;font-family:var(--mono);letter-spacing:.02em;}
+  .product-desc{margin-top:16px;color:var(--ink2);font-size:15px;max-width:58ch;}
+  .product-desc b{color:var(--ink);}
+
+  .feature-list{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:10px;}
+  .feature-list li{display:flex;gap:10px;font-size:14.5px;color:var(--ink2);line-height:1.5;}
+  .feature-list li::before{content:"—";flex:none;color:var(--acc,var(--blue));font-weight:700;}
+
+  /* ---------- phase timeline (echoes the real app's phase-row UI) ---------- */
+  .phases{margin-top:22px;border-top:1px solid var(--line-soft);}
+  .phase-row{
+    display:flex;gap:16px;padding:13px 0;border-bottom:1px solid var(--line-soft);
+    align-items:baseline;
+  }
+  .phase-num{
+    font-family:var(--mono);font-size:12px;color:var(--acc,var(--blue));font-weight:700;
+    min-width:84px;flex:none;letter-spacing:.02em;
+  }
+  .phase-txt{font-size:13.5px;color:var(--ink2);line-height:1.5;}
+  .phase-txt b{color:var(--ink);}
+
+  /* ---------- CTA row ---------- */
+  .cta-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:24px;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;
+    padding:13px 20px;border-radius:var(--radius-btn);text-decoration:none;border:1px solid transparent;
+    cursor:pointer;font-family:inherit;transition:transform .15s ease, opacity .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:active{transform:translateY(0);}
+  .btn-solid{background:var(--acc,var(--blue));color:#0d0d0f;}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--acc,var(--blue));color:var(--acc,var(--blue));}
+  .cta-note{font-size:12.5px;color:var(--ink3);}
+
+  .price-badge{
+    font-family:var(--mono);font-weight:700;font-size:14px;color:var(--ink);
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-pill);
+    padding:7px 13px;font-variant-numeric:tabular-nums;
+  }
+
+  /* accent scoping */
+  .acc-blue{--acc:var(--blue);}
+  .acc-orange{--acc:var(--orange);}
+  .acc-cyan{--acc:var(--cyan);}
+  .acc-green{--acc:var(--green);}
+  .acc-gold{--acc:var(--gold);}
+
+  /* ---------- comparison table ---------- */
+  .table-scroll{overflow-x:auto;margin-top:22px;border:1px solid var(--line);border-radius:var(--radius-card);}
+  table{border-collapse:collapse;width:100%;min-width:560px;font-size:13.5px;}
+  th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top;}
+  thead th{
+    font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--ink3);background:var(--panel);font-weight:600;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody th{color:var(--orange);font-weight:700;white-space:nowrap;}
+  td{color:var(--ink2);}
+
+  /* ---------- how it works ---------- */
+  .steps{display:grid;gap:0;margin-top:8px;}
+  .step{display:flex;gap:18px;padding:18px 0;border-bottom:1px solid var(--line-soft);}
+  .step:last-child{border-bottom:none;}
+  .step-num{
+    font-family:var(--mono);font-size:13px;color:var(--ink3);min-width:28px;flex:none;
+    padding-top:2px;font-variant-numeric:tabular-nums;
+  }
+  .step-txt h4{margin:0 0 4px;font-size:15px;font-weight:700;}
+  .step-txt p{margin:0;color:var(--ink2);font-size:14px;}
+
+  /* ---------- faq ---------- */
+  .faq-item{border-bottom:1px solid var(--line-soft);}
+  .faq-item:first-child{border-top:1px solid var(--line-soft);}
+  .faq-item summary{
+    list-style:none;cursor:pointer;padding:18px 2px;font-weight:600;font-size:15px;
+    display:flex;justify-content:space-between;gap:16px;align-items:center;
+  }
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:"+";font-family:var(--mono);color:var(--ink3);font-size:18px;flex:none;}
+  .faq-item[open] summary::after{content:"–";}
+  .faq-item p{margin:0 0 18px;color:var(--ink2);font-size:14.5px;max-width:60ch;}
+
+  /* ---------- disclaimer ---------- */
+  .disclaimer{
+    margin-top:22px;padding:14px 16px;border-radius:12px;
+    background:rgba(230,103,103,.07);border:1px solid rgba(230,103,103,.28);
+    font-size:12.5px;line-height:1.55;color:#e6b3ac;
+  }
+
+  /* ---------- footer ---------- */
+  footer{padding:56px 0 40px;border-top:1px solid var(--line-soft);}
+  .footer-cta{
+    display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;align-items:center;
+    padding-bottom:32px;border-bottom:1px solid var(--line-soft);margin-bottom:24px;
+  }
+  .footer-note{font-size:12.5px;color:var(--ink3);display:flex;flex-wrap:wrap;gap:8px 18px;}
+
+  /* ---------- reveal ---------- */
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease, transform .5s ease;}
+  .reveal.in-view{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+    .btn{transition:none;}
+  }
+
+  @media (max-width:600px){
+    .hero{padding:56px 0 40px;}
+    section{padding:48px 0;}
+    .product-top{padding:16px 18px;}
+    .product-body{padding:20px 18px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <span class="brand">Ержан · приложения</span>
+    <div class="nav-links">
+      <a class="nav-link" href="#zhaloba"><span class="dot" style="background:var(--blue)"></span>Жалоба-мастер</a>
+      <a class="nav-link" href="#advokat"><span class="dot" style="background:var(--green)"></span>Адвокат-мастер</a>
+      <a class="nav-link" href="#bankrot"><span class="dot" style="background:var(--gold)"></span>Банкрот-мастер</a>
+      <a class="nav-link" href="#tize"><span class="dot" style="background:var(--orange)"></span>ТІЗЕ</a>
+      <a class="nav-link" href="#speed"><span class="dot" style="background:var(--cyan)"></span>Скорость</a>
+      <a class="nav-link" href="#faq">Вопросы</a>
+    </div>
+    <a class="nav-cta" href="#contact">Связаться</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">6 продуктов · 3 направления</span>
+    <h1>Понятный протокол вместо хаоса —<br>для документов и для тела</h1>
+    <p class="lede">Три ИИ-инструмента доводят обращение, дело о банкротстве или приём клиента адвокатом до готового результата по правилам закона. Ещё три — по дням выводят колено или скорость на новый уровень. Никакой воды: только шаги, которые нужно сделать сегодня.</p>
+    <div class="hero-strip">
+      <span class="tag"><span class="dot" style="background:var(--blue)"></span>Жалоба-мастер · ИИ-помощник</span>
+      <span class="tag"><span class="dot" style="background:var(--green)"></span>Адвокат-мастер · для юристов</span>
+      <span class="tag"><span class="dot" style="background:var(--gold)"></span>Банкрот-мастер · для юристов</span>
+      <span class="tag"><span class="dot" style="background:var(--orange)"></span>ТІЗЕ · колено, 3 варианта</span>
+      <span class="tag"><span class="dot" style="background:var(--cyan)"></span>Взрывная скорость · футбол</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= ЖАЛОБА-МАСТЕР ================= -->
+<section id="zhaloba">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Юридический ИИ-помощник</span>
+      <h2>Жалоба-мастер</h2>
+      <p>Составляет официальные обращения и жалобы в госорганы РК по правилам АППК — и подсказывает, куда именно и в какой последовательности их подавать.</p>
+    </div>
+
+    <div class="product acc-blue reveal">
+      <div class="product-top">
+        <div class="product-meta">
+          <span class="meta-item">Формат: <b>браузер, без установки</b></span>
+          <span class="meta-item">Язык: <b>қазақша / русский</b></span>
+        </div>
+        <span class="price-badge">Оплата за обращение</span>
+      </div>
+      <div class="product-body">
+        <h3>От ситуации до готового документа</h3>
+        <div class="product-sub">свободное описание → уточняющие вопросы → готовое обращение</div>
+        <p class="product-desc">
+          Опишите ситуацию своими словами — голосом или текстом. Мастер задаёт уточняющие вопросы, если фактов не хватает, определяет <b>нужного адресата</b> и формирует текст обращения с учётом <b>всей цепочки обжалования</b>: госорган → вышестоящий орган → прокуратура → суд. К обращению можно приложить фото и PDF как доказательства.
+        </p>
+        <ul class="feature-list">
+          <li>Показывает порядок обращения по АППК — куда жаловаться дальше, если ответа нет или он формальный</li>
+          <li>Отдельный режим «Проверить полученный ответ» — оценивает, не является ли ответ госоргана отпиской</li>
+          <li>Голосовой ввод и вложение фото/PDF прямо из телефона</li>
+          <li>Готовый документ — скачать как .doc или сохранить как PDF для печати</li>
+          <li>Не требует ФИО, ИИН и других личных данных для черновика</li>
+        </ul>
+        <div class="cta-row">
+          <a class="btn btn-solid" id="cta-zhaloba" href="#" target="_blank" rel="noopener">Открыть Жалоба-мастер →</a>
+          <span class="cta-note">Работает в браузере на любом устройстве</span>
+        </div>
+        <div class="disclaimer">
+          Это не официальная юридическая консультация. Черновик формируется искусственным интеллектом на основе введённых данных и не заменяет юриста в сложных или спорных случаях.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= АДВОКАТ-МАСТЕР ================= -->
+<section id="advokat">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Цифровой параюрист для адвоката</span>
+      <h2>Адвокат-мастер</h2>
+      <p>Автоматизирует первичный приём клиента: собирает данные, задаёт уточняющие вопросы и готовит на стол адвокату дело с анализом и документами — вместо сырой переписки в WhatsApp.</p>
+    </div>
+
+    <div class="product acc-green reveal">
+      <div class="product-top">
+        <div class="product-meta">
+          <span class="meta-item">Для кого: <b>практикующие адвокаты РК</b></span>
+          <span class="meta-item">Экономия времени: <b>3-5 часов → ~20 минут</b></span>
+        </div>
+        <span class="price-badge">от 40 000 ₸ + 10 000 ₸/мес</span>
+      </div>
+      <div class="product-body">
+        <h3>Готовое дело вместо сырой переписки</h3>
+        <div class="product-sub">клиент проходит анкету → ИИ анализирует → адвокат получает готовое дело</div>
+        <p class="product-desc">
+          «Цифровой параюрист, который проводит первичный приём клиента вместо вас — и оставляет на вашем столе готовое дело, а не сырую переписку». Себестоимость обработки одного клиента — примерно в <b>18 раз ниже</b>, чем вручную.
+        </p>
+        <ul class="feature-list">
+          <li>Юридический анализ ситуации клиента — категория дела, применимые нормы, перспективы</li>
+          <li>Автоматическое составление пакета документов по делу</li>
+          <li>Расчёт государственной пошлины по актуальному МРП</li>
+          <li>Список недостающих доказательств, которые нужно донести клиенту</li>
+          <li>Для уголовных дел — процессуальный статус, смягчающие/отягчающие обстоятельства</li>
+          <li>Полная конфиденциальность данных клиента</li>
+        </ul>
+        <div class="cta-row">
+          <a class="btn btn-solid" href="https://advokat-master.vercel.app/" target="_blank" rel="noopener">Открыть Адвокат-мастер →</a>
+          <a class="btn btn-ghost" href="https://advokat-master.vercel.app/presentation.html" target="_blank" rel="noopener">Подробная презентация</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= БАНКРОТ-МАСТЕР ================= -->
+<section id="bankrot">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Интейк-система для дел о банкротстве</span>
+      <h2>Банкрот-мастер</h2>
+      <p>Клиент заполняет анкету и грузит документы по ссылке — адвокат сразу видит дело в закрытом кабинете с уже готовым ИИ-черновиком заявления, без ручного сбора документов по WhatsApp.</p>
+    </div>
+
+    <div class="product acc-gold reveal">
+      <div class="product-top">
+        <div class="product-meta">
+          <span class="meta-item">Для кого: <b>адвокаты по банкротству физлиц</b></span>
+          <span class="meta-item">Формат: <b>анкета клиента + кабинет адвоката</b></span>
+        </div>
+        <span class="price-badge">К-Банкротство</span>
+      </div>
+      <div class="product-body">
+        <h3>Интервью клиента — не юридическая работа. А стоит как юридическая</h3>
+        <div class="product-sub">от звонка до готового черновика — четыре шага</div>
+        <p class="product-desc">
+          Документы грузятся прямо в анкете и сразу попадают в дело клиента — не теряются и не дублируются, как при пересылке в WhatsApp. Процедура (внесудебная/судебная) определяется по критериям закона автоматически, а черновик заявления уже готов ИИ к моменту, когда адвокат открывает дело.
+        </p>
+        <ul class="feature-list">
+          <li>Клиент проходит анкету и прикладывает документы сам, без звонков и пересылки файлов</li>
+          <li>Автоматический выбор процедуры банкротства по критериям закона (сумма долга, наличие имущества)</li>
+          <li>Проверка суммы долга по каждому кредитору</li>
+          <li>Готовый черновик заявления — не пишется с нуля после интервью</li>
+          <li>Не готовый SaaS "для всех" — рабочий инструмент, обкатанный на реальной практике</li>
+        </ul>
+        <div class="cta-row">
+          <a class="btn btn-solid" href="https://bankrot-master.vercel.app/" target="_blank" rel="noopener">Открыть Банкрот-мастер →</a>
+          <a class="btn btn-ghost" href="https://bankrot-master.vercel.app/presentation" target="_blank" rel="noopener">Подробная презентация</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ТІЗЕ ================= -->
+<section id="tize">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Программа для колена · 4 недели · нейро-ОФП</span>
+      <h2>ТІЗЕ</h2>
+      <p><i>каз. «колено»</i> — прогрессивная программа укрепления и восстановления коленных суставов на принципах нейро-ОФП. Не одна программа для всех, а три — под конкретный возраст и уровень нагрузки.</p>
+    </div>
+
+    <div class="pain-card reveal" style="margin-top:0;margin-bottom:22px;border-radius:var(--radius-card);border:1px solid var(--line);background:var(--card);padding:20px 22px;">
+      <div class="eyebrow" style="margin-bottom:8px;">Что такое нейро-ОФП</div>
+      <p style="color:var(--ink2);font-size:14.5px;line-height:1.6;">
+        Обычная ОФП (общая физическая подготовка) тренирует силу и выносливость мышц. <b style="color:var(--ink);">Нейро-ОФП добавляет к этому работу над нервной системой</b> — координацией, балансом, точностью приземления и контролем движения в суставе, а не только его "накачкой". Колено держит не только мышца, а связка мышца-сустав-мозг: если нервная система плохо считывает положение сустава в пространстве (проприоцепция), даже сильная мышца не спасёт от травмы. Поэтому в ТІЗЕ упражнения устроены по нарастающей — от простых паттернов движения к контролю сложных элементов (приземления, смена направления), а не просто "больше повторений".
+      </p>
+    </div>
+
+    <div class="table-scroll reveal">
+      <table>
+        <thead>
+          <tr><th>Вариант</th><th>Кому подходит</th><th>Ударная нагрузка</th><th>Неделя 1</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>ТІЗЕ</th>
+            <td>Активным, без возрастных ограничений</td>
+            <td>Есть — лёгкие прыжки, растёт до координации приземлений</td>
+            <td>Базовые паттерны, изометрия выпада</td>
+          </tr>
+          <tr>
+            <th>ТІЗЕ 50+</th>
+            <td>Людям старше 50</td>
+            <td>Нет — без прыжков и ударных нагрузок</td>
+            <td>Подвижность, мягкая сила, баланс</td>
+          </tr>
+          <tr>
+            <th>ТІЗЕ 60+</th>
+            <td>Людям старше 60, начальный уровень</td>
+            <td>Нет — всё с опорой, без риска</td>
+            <td>Движения сидя и с опорой</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="product acc-orange reveal" style="margin-top:22px;">
+      <div class="product-top">
+        <div class="product-meta">
+          <span class="meta-item">Длительность: <b>4 недели</b></span>
+          <span class="meta-item">Формат: <b>устанавливается на экран, офлайн</b></span>
+        </div>
+        <span class="price-badge">9 990 ₸</span>
+      </div>
+      <div class="product-body">
+        <h3>Как устроена программа</h3>
+        <p class="product-desc">
+          Нагрузка нарастает по неделям — от базовых паттернов движения до контроля сложных элементов. Каждый день — конкретные упражнения, поле для заметок и напоминание, если день пропущен. Экран статистики показывает прогресс, а «протокол успеха» — что делать, если что-то заболело.
+        </p>
+        <div class="phases">
+          <div class="phase-row"><div class="phase-num">НЕДЕЛЯ 1</div><div class="phase-txt"><b>База</b> — основные паттерны, изометрия выпада, лёгкие прыжки</div></div>
+          <div class="phase-row"><div class="phase-num">НЕДЕЛЯ 2</div><div class="phase-txt"><b>Объём</b> — тот же набор, увеличенная нагрузка</div></div>
+          <div class="phase-row"><div class="phase-num">НЕДЕЛЯ 3</div><div class="phase-txt"><b>Продвинутый</b> — выпад на платформе, латеральные приземления</div></div>
+          <div class="phase-row"><div class="phase-num">НЕДЕЛЯ 4</div><div class="phase-txt"><b>Пик</b> — максимальная сложность, полный контроль движения</div></div>
+        </div>
+        <ul class="feature-list" style="margin-top:24px;">
+          <li>Три варианта нагрузки — обычная, 50+ и максимально щадящая 60+</li>
+          <li>Устанавливается на экран телефона одним нажатием, как обычное приложение</li>
+          <li>После первого захода работает без интернета</li>
+          <li>Экран статистики и заметки к каждому дню тренировок</li>
+        </ul>
+        <div class="cta-row">
+          <a class="btn btn-solid" id="cta-tize" href="#" target="_blank" rel="noopener">Написать в WhatsApp — ТІЗЕ</a>
+          <a class="btn btn-ghost" id="cta-tize50" href="#" target="_blank" rel="noopener">ТІЗЕ 50+</a>
+          <a class="btn btn-ghost" id="cta-tize60" href="#" target="_blank" rel="noopener">ТІЗЕ 60+</a>
+        </div>
+        <div class="cta-note" style="margin-top:12px;">Разовая оплата 9 990 ₸ за один вариант программы. После оплаты в WhatsApp приходит персональный код доступа.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ВЗРЫВНАЯ СКОРОСТЬ ================= -->
+<section id="speed">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Программа для футболиста · 8 недель</span>
+      <h2>Взрывная скорость</h2>
+      <p>Развитие стартовой и дистанционной скорости: 3 тренировки в неделю, минимум 48 часов между занятиями, с контрольными замерами в конце.</p>
+    </div>
+
+    <div class="product acc-cyan reveal">
+      <div class="product-top">
+        <div class="product-meta">
+          <span class="meta-item">Длительность: <b>8 недель</b></span>
+          <span class="meta-item">Тренировок: <b>3 в неделю</b></span>
+        </div>
+        <span class="price-badge">9 990 ₸</span>
+      </div>
+      <div class="product-body">
+        <h3>От адаптации до игровой скорости</h3>
+        <p class="product-desc">
+          Нагрузка нарастает от нервно-мышечной адаптации до пиковой игровой скорости. В программе — гайд по циклу тренировок, раздел «⚡ Питание и добавки» и контрольные тесты на 10 и 30 метров, чтобы видеть реальный результат.
+        </p>
+        <div class="phases">
+          <div class="phase-row"><div class="phase-num">НЕД. 1–2</div><div class="phase-txt"><b>Адаптация</b> — координация старта, реакция, техника отталкивания</div></div>
+          <div class="phase-row"><div class="phase-num">НЕД. 3–4</div><div class="phase-txt"><b>Наращивание объёма</b> — растёт мощность отталкивания, старты резче</div></div>
+          <div class="phase-row"><div class="phase-num">НЕД. 5–6</div><div class="phase-txt"><b>Интенсификация</b> — плиометрика и сила дают суммарный эффект</div></div>
+          <div class="phase-row"><div class="phase-num">НЕД. 7–8</div><div class="phase-txt"><b>Пик и тест</b> — резкость воспроизводится в игре, замеры 10 и 30 м</div></div>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-solid" id="cta-speed" href="#" target="_blank" rel="noopener">Написать в WhatsApp — 9 990 ₸</a>
+          <span class="cta-note">Код доступа приходит в WhatsApp после оплаты</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= КАК ЭТО РАБОТАЕТ ================= -->
+<section id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Порядок действий</span>
+      <h2>Как получить доступ</h2>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-txt"><h4>Выбираете продукт</h4><p>Жалоба-мастер открывается сразу в браузере. Адвокат-мастер и Банкрот-мастер — для практикующих адвокатов, подключение по заявке. Для ТІЗЕ и Взрывной скорости — напишите в WhatsApp, какой вариант нужен.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-txt"><h4>Оплата</h4><p>Жалоба-мастер — оплата за каждое сформированное обращение. Адвокат-мастер и Банкрот-мастер — подписка для адвоката. Программы ТІЗЕ и Взрывная скорость — разовая оплата 9 990 ₸.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-txt"><h4>Код доступа</h4><p>Для ТІЗЕ и Взрывной скорости в WhatsApp приходит персональный код — вводите его при первом открытии программы.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-txt"><h4>Начинаете</h4><p>ТІЗЕ можно установить на экран телефона как приложение — дальше оно работает без интернета.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Вопросы</span>
+      <h2>Частые вопросы</h2>
+    </div>
+    <div class="reveal">
+      <details class="faq-item">
+        <summary>Нужно ли устанавливать приложение из App Store или Google Play?</summary>
+        <p>Нет. Всё открывается прямо в браузере. Программы ТІЗЕ дополнительно можно установить на экран одним нажатием — иконка появится как у обычного приложения.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Можно открыть на другом телефоне?</summary>
+        <p>Да, код доступа привязан к вам, а не к устройству — введите его на любом телефоне или компьютере.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Нужен ли интернет постоянно?</summary>
+        <p>Для программ ТІЗЕ — нет, после первого захода они работают офлайн. Жалоба-мастер и Взрывная скорость используют онлайн-сервис, интернет нужен.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Жалоба-мастер — это официальная юридическая консультация?</summary>
+        <p>Нет. Это вспомогательный инструмент: черновик формируется искусственным интеллектом на основе введённых вами данных. В сложных или спорных случаях обратитесь к юристу.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Как я получу код доступа после оплаты?</summary>
+        <p>Код придёт в WhatsApp сразу после подтверждения оплаты.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="wrap">
+    <div class="footer-cta">
+      <div>
+        <h2 style="font-size:1.5rem;">Остались вопросы?</h2>
+        <p style="color:var(--ink2);margin-top:8px;max-width:44ch;">Напишите в WhatsApp — подскажем, какая программа подходит, и оформим доступ.</p>
+      </div>
+      <a class="btn btn-solid acc-cyan" id="cta-footer" href="#" target="_blank" rel="noopener">Написать в WhatsApp</a>
+    </div>
+    <div class="footer-note">
+      <span>© 2026 · Ержан</span>
+      <span>Жалоба-мастер · Адвокат-мастер · Банкрот-мастер · ТІЗЕ · ТІЗЕ 50+ · ТІЗЕ 60+ · Взрывная скорость</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  var CONFIG = {
+    whatsapp: "77020252932",
+    zhalobaUrl: "https://zhaloba-master.vercel.app/"
+  };
+
+  function waLink(message){
+    return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(message);
+  }
+
+  document.getElementById("cta-zhaloba").href = CONFIG.zhalobaUrl;
+  document.getElementById("cta-tize").href   = waLink("Здравствуйте! Хочу купить программу ТІЗЕ (базовая версия).");
+  document.getElementById("cta-tize50").href = waLink("Здравствуйте! Хочу купить программу ТІЗЕ 50+.");
+  document.getElementById("cta-tize60").href = waLink("Здравствуйте! Хочу купить программу ТІЗЕ 60+.");
+  document.getElementById("cta-speed").href  = waLink("Здравствуйте! Хочу купить программу «Взрывная скорость».");
+  document.getElementById("cta-footer").href = waLink("Здравствуйте! Есть вопрос по вашим программам.");
+
+  // reveal-on-scroll
+  if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add("in-view"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in-view"); });
+  }
+</script>
+</body>
+</html>
