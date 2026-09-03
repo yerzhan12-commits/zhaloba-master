@@ -1,6 +1,16 @@
-const { randomUUID } = require('crypto');
+const { randomInt } = require('crypto');
 const { getResult, createOrder, PRICE_KZT } = require('../_lib/payments');
 const { preparePurchase } = require('../_lib/bcc');
+
+// Банк требует, чтобы ORDER было ЧИСТО ЦИФРОВЫМ и уникальным (не UUID с
+// буквами/дефисами, как было раньше — вероятная причина ошибки -2 в
+// тестах). 13 цифр timestamp + 3 случайные цифры = 16 цифр, тот же формат
+// подходит и для MERCH_RN_ID (банк требует ровно 16 алфавитно-цифровых
+// символов — см. bcc.js).
+function generateNumericOrderId() {
+  const suffix = String(randomInt(0, 1000)).padStart(3, '0');
+  return `${Date.now()}${suffix}`;
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -31,7 +41,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const orderId = randomUUID();
+    const orderId = generateNumericOrderId();
     await createOrder({ orderId, resultId, deviceId, amountKzt: PRICE_KZT });
 
     const proto = req.headers['x-forwarded-proto'] || 'https';
