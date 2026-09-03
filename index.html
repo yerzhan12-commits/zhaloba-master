@@ -609,6 +609,7 @@ const STRINGS = {
     restart: 'Начать заново',
     errorServer: 'Сервер вернул ошибку: ',
     errorConnection: 'Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (',
+    errorTimeout: 'Ответ не пришёл вовремя — возможно, вкладка была в фоне слишком долго. Попробуйте отправить ещё раз.',
     errorParse: 'Не удалось разобрать ответ мастера. Попробуйте ещё раз.',
     overrideBubblePrefix: 'Изменить категорию на: ',
     paywallTitle: 'Ваше обращение готово!',
@@ -726,6 +727,7 @@ const STRINGS = {
     restart: 'Қайта бастау',
     errorServer: 'Сервер қате қайтарды: ',
     errorConnection: 'Серверге қосыла алмадық. Байланысты тексеріп, қайта көріңіз. (',
+    errorTimeout: 'Жауап уақтылы келмеді — бет ұзақ уақыт фонда болған болуы мүмкін. Қайта жіберіп көріңіз.',
     errorParse: 'Шебердің жауабын түсіндіру мүмкін болмады. Қайта көріңіз.',
     overrideBubblePrefix: 'Санатты мынаған өзгерту: ',
     paywallTitle: 'Өтінішіңіз дайын!',
@@ -1172,6 +1174,15 @@ async function callWizard(){
   chatSpinner.style.display = 'flex';
   chatCancelBtn.style.display = 'block';
   currentWizardController = new AbortController();
+  // На мобильных браузерах вкладка в фоне (например, после переключения в
+  // другое приложение и возврата) может "заморозить" зависший fetch без
+  // ошибки — спиннер крутится бесконечно. Ставим разумный тайм-аут, чтобы
+  // вместо вечного ожидания показать понятную ошибку с возможностью повтора.
+  let wizardTimedOut = false;
+  const wizardTimeoutId = setTimeout(() => {
+    wizardTimedOut = true;
+    currentWizardController.abort();
+  }, 60000);
   try {
     const res = await fetch('/api/wizard', {
       method: 'POST',
@@ -1179,6 +1190,7 @@ async function callWizard(){
       body: JSON.stringify({ messages: state.messages, lang: state.lang, mode: state.mode }),
       signal: currentWizardController.signal,
     });
+    clearTimeout(wizardTimeoutId);
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
       throw new Error(t('errorServer') + res.status + (errText ? ' — ' + errText : ''));
@@ -1214,11 +1226,17 @@ async function callWizard(){
       showError(t('errorParse'));
     }
   } catch (err) {
+    clearTimeout(wizardTimeoutId);
     chatSpinner.style.display = 'none';
     chatCancelBtn.style.display = 'none';
-    if (err.name === 'AbortError') return; // пользователь сам отменил запрос кнопкой "Отмена"
+    if (err.name === 'AbortError' && !wizardTimedOut) return; // пользователь сам отменил запрос кнопкой "Отмена"
     showScreen('chat');
-    showError(t('errorConnection') + err.message + ')');
+    chatInputCard.style.display = 'block';
+    if (err.name === 'AbortError' && wizardTimedOut) {
+      showError(t('errorTimeout'));
+    } else {
+      showError(t('errorConnection') + err.message + ')');
+    }
   }
 }
 
