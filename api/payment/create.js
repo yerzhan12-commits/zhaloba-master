@@ -46,7 +46,10 @@ module.exports = async (req, res) => {
 
     const proto = req.headers['x-forwarded-proto'] || 'https';
     const origin = `${proto}://${req.headers.host}`;
-    const backrefUrl = `${origin}/?payment=return&order=${orderId}`;
+    // Ведёт на api/payment/return.js, а не сразу на статическую страницу —
+    // банк может вернуть пользователя запросом POST, а статика отдаёт 405
+    // на POST. return.js принимает любой метод и сам делает редирект.
+    const backrefUrl = `${origin}/api/payment/return?order=${orderId}`;
     const notifyUrl = `${origin}/api/payment/callback`;
 
     // Банк требует CLIENT_IP как обязательное поле для TRTYPE=1 (3DS-операции).
