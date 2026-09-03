@@ -39,12 +39,21 @@ module.exports = async (req, res) => {
     const backrefUrl = `${origin}/?payment=return&order=${orderId}`;
     const notifyUrl = `${origin}/api/payment/callback`;
 
+    // Банк требует CLIENT_IP как обязательное поле для TRTYPE=1 (3DS-операции).
+    // На Vercel реальный IP клиента приходит в x-forwarded-for (первый адрес
+    // в списке — сам клиент, остальные — прокси между ним и нами).
+    const forwardedFor = req.headers['x-forwarded-for'];
+    const clientIp = (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0].trim() : null)
+      || req.socket?.remoteAddress
+      || '0.0.0.0';
+
     const { actionUrl, fields } = preparePurchase({
       orderId,
       amountKzt: PRICE_KZT,
       description: `Оплата обращения ${resultId.slice(0, 8)}`,
       backrefUrl,
       notifyUrl,
+      clientIp,
     });
 
     // actionUrl/fields — банк требует, чтобы это POST-ился со страницы

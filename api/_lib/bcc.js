@@ -93,7 +93,7 @@ function randomNonce() {
 // Готовит поля формы для TRTYPE=1 (покупка). ВАЖНО: результат нужно
 // отправлять POST-ом со стороны браузера пользователя на actionUrl —
 // не проксировать через наш сервер (так требует банк).
-function preparePurchase({ orderId, amountKzt, description, backrefUrl, notifyUrl }) {
+function preparePurchase({ orderId, amountKzt, description, backrefUrl, notifyUrl, clientIp, lang }) {
   const config = getConfig();
   if (!config) {
     const err = new Error('BCC acquiring is not configured (нужны BCC_TERMINAL/BCC_MERCHANT/BCC_MERCH_NAME/BCC_MAC_KEY/BCC_GATEWAY_URL)');
@@ -129,7 +129,12 @@ function preparePurchase({ orderId, amountKzt, description, backrefUrl, notifyUr
     MERCH_GMT: config.merchGmt,
     TIMESTAMP: timestamp,
     TRTYPE: trtype,
+    LANG: lang || 'ru',
     NONCE: nonce,
+    // Обязательное поле банка для 3DS-операций (TRTYPE=1) — не участвует в
+    // MAC (подтверждено по документации), но без него банк может отклонять
+    // запрос на этапе валидации, до создания собственного ID операции.
+    CLIENT_IP: clientIp || '0.0.0.0',
     BACKREF: backrefUrl,
     NOTIFY_URL: notifyUrl,
     P_SIGN: pSign,
