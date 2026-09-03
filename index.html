@@ -768,6 +768,7 @@ const RESULT_STORAGE_KEY = 'zhaloba_result_v1';
 const CONVERSATION_STORAGE_KEY = 'zhaloba_conversation_v1';
 const DEVICE_ID_KEY = 'zhaloba_device_id';
 const PENDING_PAYMENT_KEY = 'zhaloba_pending_payment';
+const PENDING_RESULT_KEY = 'zhaloba_pending_result';
 let draftSaveTimer = null;
 
 // Анонимный идентификатор устройства — привязывает бесплатную попытку и
@@ -1256,6 +1257,36 @@ function showPaywall(result){
   const btn = document.getElementById('paywall-pay-btn');
   btn.disabled = false;
   showScreen('paywall');
+  // Черновик уже готов и сохранён на сервере (resultId) — сохраняем и здесь,
+  // на устройстве, чтобы при обрыве оплаты (например, ошибка на странице
+  // банка и обновление страницы) не заставлять человека проходить весь
+  // диалог заново, а сразу вернуть его на этот же экран оплаты.
+  try {
+    localStorage.setItem(PENDING_RESULT_KEY, JSON.stringify({ result, ts: Date.now() }));
+  } catch {}
+}
+
+function clearPendingPaywall(){
+  localStorage.removeItem(PENDING_RESULT_KEY);
+}
+
+// Восстанавливает экран оплаты после потери состояния (например, банк не
+// вернул пользователя на BACKREF и пришлось обновить страницу вручную).
+// Актуально максимум 5 дней — столько же, сколько хранится сам результат
+// на сервере (см. RESULT_TTL_SECONDS в api/_lib/payments.js).
+function restorePendingPaywall(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(PENDING_RESULT_KEY) || 'null'); } catch {}
+  if (!saved || !saved.result || !saved.result.resultId) return false;
+  const ageMs = Date.now() - (saved.ts || 0);
+  if (ageMs > 5 * 24 * 60 * 60 * 1000) {
+    clearPendingPaywall();
+    return false;
+  }
+  state.mode = 'complaint';
+  state.pendingResult = saved.result;
+  showPaywall(saved.result);
+  return true;
 }
 
 // Банк требует, чтобы запрос на оплату (TRTYPE=1) уходил именно со страницы
@@ -1310,6 +1341,7 @@ async function pollPaymentStatus(orderId, attempt){
     const data = await res.json();
     if (res.ok && data.status === 'paid' && data.result) {
       localStorage.removeItem(PENDING_PAYMENT_KEY);
+      clearPendingPaywall();
       state.mode = 'complaint';
       state.pendingResult = data.result;
       showResult(data.result);
@@ -1726,6 +1758,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   localStorage.removeItem(DRAFT_STORAGE_KEY);
   localStorage.removeItem(RESULT_STORAGE_KEY);
   localStorage.removeItem(CONVERSATION_STORAGE_KEY);
+  clearPendingPaywall();
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -1742,6 +1775,7 @@ document.getElementById('restart-review-btn').addEventListener('click', () => {
   localStorage.removeItem(DRAFT_STORAGE_KEY);
   localStorage.removeItem(RESULT_STORAGE_KEY);
   localStorage.removeItem(CONVERSATION_STORAGE_KEY);
+  clearPendingPaywall();
   state.questionCount = 0;
   updateProgress();
   document.getElementById('intake-text').value = '';
@@ -1898,7 +1932,9 @@ setupFollowup('followup-review');
 
 if (!handlePaymentReturn()) {
   if (!restoreConversation()) {
-    checkSavedResult();
+    if (!restorePendingPaywall()) {
+      checkSavedResult();
+    }
   }
 }
 </script>
