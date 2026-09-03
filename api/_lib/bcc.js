@@ -165,10 +165,15 @@ async function checkOrderStatus(orderId) {
   );
 
   const body = new URLSearchParams({
-    ORDER: orderId,
     TERMINAL: config.terminal,
-    TIMESTAMP: timestamp,
     TRTYPE: trtype,
+    // Обязательное поле, которого не было — тип ИСХОДНОЙ операции, статус
+    // которой проверяем (у нас это всегда покупка, TRTYPE=1). Без него банк
+    // отвечал RC=-2 "Bad CGI request".
+    TRAN_TRTYPE: '1',
+    ORDER: orderId,
+    TIMESTAMP: timestamp,
+    MERCH_GMT: config.merchGmt,
     NONCE: nonce,
     P_SIGN: pSign,
   });
@@ -179,7 +184,20 @@ async function checkOrderStatus(orderId) {
     body: body.toString(),
   });
   const text = await response.text();
-  const parsed = Object.fromEntries(new URLSearchParams(text));
+  // Банк возвращает HTML-страницу (со скрытыми полями формы вида
+  // <input type="hidden" name="RC" value="...">), а не простой key=value
+  // текст, даже на серверный запрос статуса — разбираем оба варианта.
+  let parsed;
+  if (text.trim().startsWith('<')) {
+    parsed = {};
+    const inputRegex = /<input[^>]*name="([^"]+)"[^>]*value="([^"]*)"[^>]*>/g;
+    let match;
+    while ((match = inputRegex.exec(text)) !== null) {
+      parsed[match[1]] = match[2];
+    }
+  } else {
+    parsed = Object.fromEntries(new URLSearchParams(text));
+  }
 
   // RC="00" — универсальный код "успешно" в этом семействе шлюзов (ISO 8583).
   // Любой другой RC (или его отсутствие) считаем неуспехом/незавершённостью.
