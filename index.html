@@ -360,6 +360,7 @@
       </ul>
       <div class="retention-note" data-i18n="resultRetentionWarning">Результат хранится на сервере только 5 дней, потом удаляется. После оплаты сразу скачайте текст к себе.</div>
       <button class="btn-primary" id="paywall-pay-btn"><span data-i18n="paywallPayBtn">Оплатить</span> <span id="paywall-price"></span></button>
+      <button class="btn-secondary" id="paywall-recheck-btn" style="display:none;margin-top:8px;" data-i18n="paywallRecheckBtn">Проверить оплату ещё раз</button>
       <p style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;">Оплачивая, вы соглашаетесь с <a href="oferta.html" target="_blank" style="color:var(--muted);text-decoration:underline;">условиями оплаты и возврата</a> и <a href="privacy.html" target="_blank" style="color:var(--muted);text-decoration:underline;">политикой конфиденциальности</a>.</p>
       <div class="error-box" id="paywall-error" style="display:none;margin-top:10px;"></div>
     </div>
@@ -610,6 +611,7 @@ const STRINGS = {
     errorServer: 'Сервер вернул ошибку: ',
     errorConnection: 'Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (',
     errorTimeout: 'Ответ не пришёл вовремя — возможно, вкладка была в фоне слишком долго. Попробуйте отправить ещё раз.',
+    paywallRecheckBtn: 'Проверить оплату ещё раз',
     errorParse: 'Не удалось разобрать ответ мастера. Попробуйте ещё раз.',
     overrideBubblePrefix: 'Изменить категорию на: ',
     paywallTitle: 'Ваше обращение готово!',
@@ -728,6 +730,7 @@ const STRINGS = {
     errorServer: 'Сервер қате қайтарды: ',
     errorConnection: 'Серверге қосыла алмадық. Байланысты тексеріп, қайта көріңіз. (',
     errorTimeout: 'Жауап уақтылы келмеді — бет ұзақ уақыт фонда болған болуы мүмкін. Қайта жіберіп көріңіз.',
+    paywallRecheckBtn: 'Төлемді қайта тексеру',
     errorParse: 'Шебердің жауабын түсіндіру мүмкін болмады. Қайта көріңіз.',
     overrideBubblePrefix: 'Санатты мынаған өзгерту: ',
     paywallTitle: 'Өтінішіңіз дайын!',
@@ -1257,6 +1260,14 @@ function showPaywall(result){
   const btn = document.getElementById('paywall-pay-btn');
   btn.disabled = false;
   showScreen('paywall');
+
+  // Если есть незавершённая (не подтверждённая) оплата этого же результата —
+  // показываем кнопку повторной проверки вместо того, чтобы заставлять
+  // платить заново (деньги вполне могли уже списаться).
+  let pendingPayment = null;
+  try { pendingPayment = JSON.parse(localStorage.getItem(PENDING_PAYMENT_KEY) || 'null'); } catch {}
+  const recheckBtn = document.getElementById('paywall-recheck-btn');
+  recheckBtn.style.display = (pendingPayment && pendingPayment.resultId === result.resultId) ? 'block' : 'none';
   // Черновик уже готов и сохранён на сервере (resultId) — сохраняем и здесь,
   // на устройстве, чтобы при обрыве оплаты (например, ошибка на странице
   // банка и обновление страницы) не заставлять человека проходить весь
@@ -1358,10 +1369,14 @@ async function pollPaymentStatus(orderId, attempt){
   } catch (err) {
     console.error('payment status error', err);
   }
-  if (attempt < 20) {
-    setTimeout(() => pollPaymentStatus(orderId, attempt + 1), 3000);
+  // Банк не всегда успевает подтвердить платёж за 60 секунд (сам платёж уже
+  // мог пройти) — увеличенное окно (30 попыток по 4 сек = 120 сек), а если и
+  // этого не хватило, оставляем возможность проверить ещё раз вручную одной
+  // кнопкой, не заставляя платить заново (см. PENDING_PAYMENT_KEY).
+  if (attempt < 30) {
+    setTimeout(() => pollPaymentStatus(orderId, attempt + 1), 4000);
   } else {
-    showScreen('paywall');
+    showPaywall(state.pendingResult || {});
     const errorEl = document.getElementById('paywall-error');
     errorEl.textContent = t('paywallTimeout');
     errorEl.style.display = 'block';
@@ -1732,6 +1747,14 @@ document.getElementById('confirm-yes').addEventListener('click', () => {
 });
 
 document.getElementById('paywall-pay-btn').addEventListener('click', startPayment);
+
+document.getElementById('paywall-recheck-btn').addEventListener('click', () => {
+  let pendingPayment = null;
+  try { pendingPayment = JSON.parse(localStorage.getItem(PENDING_PAYMENT_KEY) || 'null'); } catch {}
+  if (!pendingPayment || !pendingPayment.orderId) return;
+  showScreen('paymentWait');
+  pollPaymentStatus(pendingPayment.orderId);
+});
 
 document.getElementById('confirm-change').addEventListener('click', () => {
   document.getElementById('confirm-override').style.display = 'block';
