@@ -281,6 +281,7 @@
 
   <!-- Экран 1: свободное описание -->
   <div class="screen" id="screen-intake">
+    <button class="btn-secondary" id="intake-back-btn" style="margin-bottom:10px;" data-i18n="intakeBackBtn">← Назад</button>
     <div class="privacy-note" data-i18n="privacyNote">Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.</div>
     <div class="card">
       <h2 id="intake-title-el" data-i18n="intakeTitle">Опишите вашу ситуацию своими словами</h2>
@@ -614,6 +615,7 @@ const STRINGS = {
     errorTimeout: 'Ответ не пришёл вовремя — возможно, вкладка была в фоне слишком долго. Попробуйте отправить ещё раз.',
     paywallRecheckBtn: 'Проверить оплату ещё раз',
     paywallHomeBtn: 'На главную',
+    intakeBackBtn: '← Назад',
     errorParse: 'Не удалось разобрать ответ мастера. Попробуйте ещё раз.',
     overrideBubblePrefix: 'Изменить категорию на: ',
     paywallTitle: 'Ваше обращение готово!',
@@ -734,6 +736,7 @@ const STRINGS = {
     errorTimeout: 'Жауап уақтылы келмеді — бет ұзақ уақыт фонда болған болуы мүмкін. Қайта жіберіп көріңіз.',
     paywallRecheckBtn: 'Төлемді қайта тексеру',
     paywallHomeBtn: 'Басты бетке',
+    intakeBackBtn: '← Артқа',
     errorParse: 'Шебердің жауабын түсіндіру мүмкін болмады. Қайта көріңіз.',
     overrideBubblePrefix: 'Санатты мынаған өзгерту: ',
     paywallTitle: 'Өтінішіңіз дайын!',
@@ -1863,6 +1866,10 @@ document.getElementById('draft-followup-btn').addEventListener('click', () => {
 
 document.getElementById('lang-kk').addEventListener('click', () => {
   applyLang('kk');
+  showScreen('mode');
+});
+
+document.getElementById('intake-back-btn').addEventListener('click', () => {
   showScreen('mode');
 });
 
