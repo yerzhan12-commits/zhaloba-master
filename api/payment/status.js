@@ -20,7 +20,12 @@ module.exports = async (req, res) => {
   try {
     let order = await getOrder(orderId);
     if (!order || order.deviceId !== deviceId) {
-      res.status(404).json({ error: 'order not found' });
+      // Временная диагностика: видно, что именно не совпало — заказ вообще
+      // не нашёлся в KV, или deviceId разный.
+      res.status(404).json({
+        error: 'order not found',
+        debug: { found: !!order, orderDeviceId: order ? order.deviceId : null, requestDeviceId: deviceId },
+      });
       return;
     }
 
@@ -50,6 +55,6 @@ module.exports = async (req, res) => {
     res.status(200).json({ status: 'paid', result: stored ? stored.result : null });
   } catch (err) {
     console.error('payment status error:', err);
-    res.status(500).json({ error: err.message || 'internal error' });
+    res.status(500).json({ error: err.message || 'internal error', debug: { stack: err.stack } });
   }
 };
