@@ -24,20 +24,25 @@ module.exports = async (req, res) => {
       return;
     }
 
+    let debugInfo = null;
     if (order.status === 'pending') {
       try {
-        const { approved } = await checkOrderStatus(orderId);
+        const { approved, raw } = await checkOrderStatus(orderId);
         order = approved ? await markOrderPaid(orderId) : order;
         // Осознанно НЕ помечаем как failed по одному неуспешному опросу —
         // платёж мог быть ещё не завершён на стороне банка в этот момент;
         // фронтенд просто продолжит поллинг. failed выставляет только вебхук.
+        debugInfo = { checked: true, approved, rc: raw && raw.RC, rcText: raw && raw.RC_TEXT };
       } catch (checkErr) {
         console.error('payment status fallback check error:', checkErr);
+        debugInfo = { checked: false, error: checkErr.message };
       }
     }
 
     if (order.status !== 'paid') {
-      res.status(200).json({ status: order.status });
+      // debug временно возвращаем всегда (не только при ошибке) — чтобы
+      // разобраться, почему подтверждение зависает; уберём после диагностики.
+      res.status(200).json({ status: order.status, debug: debugInfo });
       return;
     }
 

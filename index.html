@@ -1343,6 +1343,8 @@ async function startPayment(){
   }
 }
 
+let lastPaymentDebug = null;
+
 async function pollPaymentStatus(orderId, attempt){
   attempt = attempt || 0;
   try {
@@ -1350,6 +1352,7 @@ async function pollPaymentStatus(orderId, attempt){
       headers: { 'X-Device-Id': getDeviceId() },
     });
     const data = await res.json();
+    if (data.debug) { lastPaymentDebug = data.debug; console.log('payment debug:', data.debug); }
     if (res.ok && data.status === 'paid' && data.result) {
       localStorage.removeItem(PENDING_PAYMENT_KEY);
       clearPendingPaywall();
@@ -1378,7 +1381,13 @@ async function pollPaymentStatus(orderId, attempt){
   } else {
     showPaywall(state.pendingResult || {});
     const errorEl = document.getElementById('paywall-error');
-    errorEl.textContent = t('paywallTimeout');
+    // Временно показываем техническую причину прямо на экране (без консоли
+    // разработчика) — уберём после того, как разберёмся, почему подтверждение
+    // зависает.
+    const debugText = lastPaymentDebug
+      ? ' [debug: ' + JSON.stringify(lastPaymentDebug) + ']'
+      : '';
+    errorEl.textContent = t('paywallTimeout') + debugText;
     errorEl.style.display = 'block';
   }
 }
