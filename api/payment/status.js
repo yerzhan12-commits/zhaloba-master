@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
         // Осознанно НЕ помечаем как failed по одному неуспешному опросу —
         // платёж мог быть ещё не завершён на стороне банка в этот момент;
         // фронтенд просто продолжит поллинг. failed выставляет только вебхук.
-        debugInfo = { checked: true, approved, rc: raw && raw.RC, rcText: raw && raw.RC_TEXT };
+        debugInfo = { checked: true, approved, raw };
       } catch (checkErr) {
         console.error('payment status fallback check error:', checkErr);
         debugInfo = { checked: false, error: checkErr.message };
