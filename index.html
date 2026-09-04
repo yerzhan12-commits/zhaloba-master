@@ -262,6 +262,7 @@
     <div id="history-list"></div>
     <div class="muted" id="history-empty" style="display:none;" data-i18n="historyEmpty">Пока пусто — здесь появятся ваши прошлые обращения.</div>
     <button class="btn-secondary" id="history-back-btn" data-i18n="historyBack">← Назад</button>
+    <button class="btn-secondary" id="history-home-btn" style="margin-top:8px;" data-i18n="paywallHomeBtn">На главную</button>
   </div>
 
   <!-- Экран 0.5: выбор режима -->
@@ -1695,6 +1696,10 @@ document.getElementById('history-open-btn').addEventListener('click', () => {
 
 document.getElementById('history-back-btn').addEventListener('click', () => {
   showScreen(historyReturnScreen);
+});
+
+document.getElementById('history-home-btn').addEventListener('click', () => {
+  showScreen('mode');
 });
 
 document.getElementById('intake-submit').addEventListener('click', () => {
