@@ -10,6 +10,12 @@ module.exports = async (req, res) => {
     return;
   }
 
+  // Каждый опрос идёт на один и тот же URL (тот же order в query) — без
+  // явного запрета кэширования CDN/браузер может отдавать старый ответ
+  // вместо реального обращения к банку, из-за чего подтверждение
+  // "зависает" даже когда платёж уже прошёл.
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+
   const deviceId = req.headers['x-device-id'];
   const orderId = req.query && req.query.order;
   if (typeof deviceId !== 'string' || !deviceId.trim() || typeof orderId !== 'string' || !orderId.trim()) {

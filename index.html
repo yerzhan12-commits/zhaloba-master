@@ -1357,6 +1357,7 @@ async function pollPaymentStatus(orderId, attempt){
   try {
     const res = await fetch('/api/payment/status?order=' + encodeURIComponent(orderId), {
       headers: { 'X-Device-Id': getDeviceId() },
+      cache: 'no-store',
     });
     const data = await res.json();
     if (data.debug) { lastPaymentDebug = data.debug; console.log('payment debug:', data.debug); }

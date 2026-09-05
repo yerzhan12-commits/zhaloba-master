@@ -182,6 +182,7 @@ async function checkOrderStatus(orderId) {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString(),
+    cache: 'no-store',
   });
   const text = await response.text();
   // Банк возвращает HTML-страницу (со скрытыми полями формы вида
