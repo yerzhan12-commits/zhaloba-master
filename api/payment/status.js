@@ -36,12 +36,13 @@ module.exports = async (req, res) => {
         // Подстраховка: если approved почему-то не совпал с RC="00" в raw
         // (наблюдали расхождение один раз, причина не до конца ясна) —
         // всё равно считаем оплаченным, если RC прямо говорит "00".
-        const reallyApproved = approved || (raw && String(raw.RC || '').trim() === '00');
+        const reallyApproved = approved || (raw && String(raw.RC || '').normalize('NFKC').trim() === '00');
         order = reallyApproved ? await markOrderPaid(orderId) : order;
         // Осознанно НЕ помечаем как failed по одному неуспешному опросу —
         // платёж мог быть ещё не завершён на стороне банка в этот момент;
         // фронтенд просто продолжит поллинг. failed выставляет только вебхук.
-        debugInfo = { checked: true, approved, reallyApproved, raw };
+        const rcCharCodes = raw && raw.RC ? Array.from(String(raw.RC)).map((c) => c.charCodeAt(0)) : null;
+        debugInfo = { checked: true, approved, reallyApproved, rcCharCodes, raw };
       } catch (checkErr) {
         console.error('payment status fallback check error:', checkErr);
         debugInfo = { checked: false, error: checkErr.message };
