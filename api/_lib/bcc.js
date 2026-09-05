@@ -185,18 +185,32 @@ async function checkOrderStatus(orderId) {
     cache: 'no-store',
   });
   const text = await response.text();
-  // Банк возвращает HTML-страницу (со скрытыми полями формы вида
-  // <input type="hidden" name="RC" value="...">), а не простой key=value
-  // текст, даже на серверный запрос статуса — разбираем оба варианта.
-  let parsed;
-  if (text.trim().startsWith('<')) {
+  // Банк по TRTYPE=90 отвечает в разных форматах в зависимости от случая:
+  // иногда чистым JSON-текстом, иногда HTML-страницей со скрытыми полями
+  // формы (<input type="hidden" name="RC" value="...">), иногда простым
+  // key=value текстом. Разбираем все варианты, JSON — первым: если этого
+  // не сделать, JSON-ответ уходит в URLSearchParams-ветку и rc.RC там
+  // всегда undefined (сырой JSON-текст целиком становится одним "ключом"),
+  // из-за чего успешный платёж (RC="00" внутри JSON) выглядел как
+  // неуспешный — сам JSON был виден в debug-выводе как строка, а не объект.
+  const trimmed = text.trim();
+  let parsed = null;
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      parsed = null;
+    }
+  }
+  if (!parsed && trimmed.startsWith('<')) {
     parsed = {};
     const inputRegex = /<input[^>]*name="([^"]+)"[^>]*value="([^"]*)"[^>]*>/g;
     let match;
     while ((match = inputRegex.exec(text)) !== null) {
       parsed[match[1]] = match[2];
     }
-  } else {
+  }
+  if (!parsed) {
     parsed = Object.fromEntries(new URLSearchParams(text));
   }
 
