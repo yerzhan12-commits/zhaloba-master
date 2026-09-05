@@ -327,28 +327,35 @@ const RESULT_SCHEMA = {
     result: {
       type: 'object',
       properties: {
-        category: { type: 'string' },
-        addressee: { type: 'string' },
-        addresseeReasoning: { type: 'string' },
-        hierarchyProcedure: { type: 'string' },
-        responseRequirements: { type: 'string' },
-        ifRedirected: { type: 'string' },
-        draft: { type: 'string' },
+        // minLength не даёт модели "закрыть" JSON пустыми строками, если она
+        // не дописала ответ до конца (например, не хватило max_tokens на
+        // казахском — тот же контент в казахском выходит длиннее по токенам,
+        // чем в русском) — без этого ограничения такой обрезанный ответ всё
+        // равно проходил валидацию схемы и уходил клиенту с пустыми полями,
+        // вместо явной ошибки "ответ обрезан, попробуйте ещё раз".
+        category: { type: 'string', minLength: 1 },
+        addressee: { type: 'string', minLength: 1 },
+        addresseeReasoning: { type: 'string', minLength: 1 },
+        hierarchyProcedure: { type: 'string', minLength: 1 },
+        responseRequirements: { type: 'string', minLength: 1 },
+        ifRedirected: { type: 'string', minLength: 1 },
+        draft: { type: 'string', minLength: 1 },
         evidenceGuide: {
           type: 'array',
+          minItems: 1,
           items: {
             type: 'object',
             properties: {
-              item: { type: 'string' },
-              whereToGet: { type: 'string' },
+              item: { type: 'string', minLength: 1 },
+              whereToGet: { type: 'string', minLength: 1 },
             },
             required: ['item', 'whereToGet'],
             additionalProperties: false,
           },
         },
-        draftQualityCheck: { type: 'string' },
-        deadlines: { type: 'string' },
-        howToSubmit: { type: 'string' },
+        draftQualityCheck: { type: 'string', minLength: 1 },
+        deadlines: { type: 'string', minLength: 1 },
+        howToSubmit: { type: 'string', minLength: 1 },
       },
       required: ['category', 'addressee', 'addresseeReasoning', 'hierarchyProcedure', 'responseRequirements', 'ifRedirected', 'draft', 'evidenceGuide', 'draftQualityCheck', 'deadlines', 'howToSubmit'],
       additionalProperties: false,
@@ -400,11 +407,11 @@ const REVIEW_RESULT_SCHEMA = {
     result: {
       type: 'object',
       properties: {
-        motivationAssessment: { type: 'string' },
-        deadlineAssessment: { type: 'string' },
-        argumentsCoverage: { type: 'string' },
-        verdict: { type: 'string' },
-        nextSteps: { type: 'string' },
+        motivationAssessment: { type: 'string', minLength: 1 },
+        deadlineAssessment: { type: 'string', minLength: 1 },
+        argumentsCoverage: { type: 'string', minLength: 1 },
+        verdict: { type: 'string', minLength: 1 },
+        nextSteps: { type: 'string', minLength: 1 },
       },
       required: ['motivationAssessment', 'deadlineAssessment', 'argumentsCoverage', 'verdict', 'nextSteps'],
       additionalProperties: false,
@@ -496,7 +503,10 @@ module.exports = async (req, res) => {
 
       const response = await client.messages.create({
         model: 'claude-sonnet-5',
-        max_tokens: 8192,
+        // Казахский текст на тот же смысл обычно выходит длиннее в токенах,
+        // чем русский — 8192 иногда не хватало на объёмный черновик,
+        // из-за чего ответ обрывался (см. minLength в схеме выше).
+        max_tokens: 16000,
         thinking: { type: 'disabled' },
         system: [
           {
