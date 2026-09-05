@@ -375,6 +375,7 @@
       <div class="spinner" style="margin-top:10px;">
         <div class="dot"></div><div class="dot"></div><div class="dot"></div>
       </div>
+      <p id="payment-wait-order" style="font-size:12px;color:var(--muted);margin-top:14px;"></p>
     </div>
   </div>
 
@@ -1352,6 +1353,8 @@ async function startPayment(){
 
 async function pollPaymentStatus(orderId, attempt){
   attempt = attempt || 0;
+  const orderEl = document.getElementById('payment-wait-order');
+  if (orderEl) orderEl.textContent = 'Номер заказа: ' + orderId;
   try {
     const res = await fetch('/api/payment/status?order=' + encodeURIComponent(orderId), {
       headers: { 'X-Device-Id': getDeviceId() },
