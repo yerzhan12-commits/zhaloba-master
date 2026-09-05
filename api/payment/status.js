@@ -36,7 +36,8 @@ module.exports = async (req, res) => {
         // Подстраховка: если approved почему-то не совпал с RC="00" в raw
         // (наблюдали расхождение один раз, причина не до конца ясна) —
         // всё равно считаем оплаченным, если RC прямо говорит "00".
-        const reallyApproved = approved || (raw && String(raw.RC || '').normalize('NFKC').trim() === '00');
+        const rcLoose = raw ? String(raw.RC == null ? '' : raw.RC).normalize('NFKC') : '';
+        const reallyApproved = approved || (rcLoose.includes('00') && !rcLoose.includes('-'));
         order = reallyApproved ? await markOrderPaid(orderId) : order;
         // Осознанно НЕ помечаем как failed по одному неуспешному опросу —
         // платёж мог быть ещё не завершён на стороне банка в этот момент;
