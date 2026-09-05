@@ -90,6 +90,14 @@ function randomNonce() {
   return crypto.randomBytes(16).toString('hex').toUpperCase(); // 32 hex-символа
 }
 
+// Банк потребовал (переписка, сентябрь 2026): MERCH_RN_ID должен быть ровно
+// 16 алфавитно-цифровых символов и НЕ должен совпадать с ORDER — раньше мы
+// брали для него те же цифры, что и ORDER, что банк не пропустил. Генерируем
+// отдельное случайное значение.
+function randomMerchRnId() {
+  return crypto.randomBytes(12).toString('hex').toUpperCase().slice(0, 16); // 16 алфавитно-цифровых символов
+}
+
 // Готовит поля формы для TRTYPE=1 (покупка). ВАЖНО: результат нужно
 // отправлять POST-ом со стороны браузера пользователя на actionUrl —
 // не проксировать через наш сервер (так требует банк).
@@ -118,9 +126,10 @@ function preparePurchase({ orderId, amountKzt, description, backrefUrl, notifyUr
     AMOUNT: amount,
     CURRENCY: CURRENCY_KZT,
     ORDER: orderId,
-    // Банк требует уникальный алфавитно-цифровой идентификатор (до 16 симв.),
-    // формируемый торговцем — используем часть ORDER, этого достаточно.
-    MERCH_RN_ID: String(orderId).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16),
+    // Ровно 16 алфавитно-цифровых символов, ОБЯЗАТЕЛЬНО отдельное от ORDER
+    // значение (см. randomMerchRnId выше) — банк явно отклонил вариант, где
+    // это поле совпадало с ORDER.
+    MERCH_RN_ID: randomMerchRnId(),
     DESC: (description || 'Оплата обращения').slice(0, 125),
     MERCHANT: config.merchant,
     MERCH_NAME: config.merchName.toUpperCase(),

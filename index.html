@@ -1311,16 +1311,28 @@ function restorePendingPaywall(){
 // Банк требует, чтобы запрос на оплату (TRTYPE=1) уходил именно со страницы
 // браузера пользователя, а не через редирект/прокси нашим сервером — поэтому
 // собираем скрытую форму и сабмитим её напрямую на платёжный шлюз БЦК.
+// Банк требует поле M_INFO (данные 3DS v2 о браузере держателя карты) —
+// формируется на стороне браузера клиента (реальные размеры экрана), не на
+// сервере, и не участвует в подписи P_SIGN (не входит в список полей MAC
+// для TRTYPE=1 по документации банка).
+function buildMInfo(){
+  return btoa(JSON.stringify({
+    browserScreenHeight: String(window.screen.height),
+    browserScreenWidth: String(window.screen.width),
+  }));
+}
+
 function submitPaymentForm(actionUrl, fields){
+  const allFields = Object.assign({}, fields, { M_INFO: buildMInfo() });
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = actionUrl;
   form.style.display = 'none';
-  Object.keys(fields).forEach((key) => {
+  Object.keys(allFields).forEach((key) => {
     const input = document.createElement('input');
     input.type = 'hidden';
     input.name = key;
-    input.value = fields[key];
+    input.value = allFields[key];
     form.appendChild(input);
   });
   document.body.appendChild(form);
