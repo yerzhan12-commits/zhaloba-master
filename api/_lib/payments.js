@@ -2,24 +2,9 @@ const { kv } = require('@vercel/kv');
 const { randomUUID } = require('crypto');
 
 const PRICE_KZT = 1500;
-const FREE_LIMIT_KEY_VALUE = '1'; // просто маркер "бесплатная попытка уже использована"
 const RESULT_TTL_SECONDS = 60 * 60 * 24 * 5; // 5 дней — пользователь должен быть предупреждён об этом в интерфейсе
 const HISTORY_MAX_ITEMS = 30; // максимум записей "Моих обращений" на устройство
 
-// Мягкая защита от обхода бесплатной попытки через очистку localStorage —
-// не блокирует полностью (общие IP семей/офисов не должны страдать), но
-// ограничивает масштаб: не больше IP_FREE_LIMIT бесплатных разблокировок с
-// одного IP за IP_FREE_WINDOW_SECONDS. Проверяется только когда deviceId
-// выглядит "свежим" — если по deviceId уже использовано, IP не трогаем.
-const IP_FREE_LIMIT = 2;
-const IP_FREE_WINDOW_SECONDS = 60 * 60 * 24; // 24 часа
-
-function freeUsedKey(deviceId) {
-  return `device:${deviceId}:freeUsed`;
-}
-function ipFreeCountKey(ip) {
-  return `ip:${ip}:freeCount`;
-}
 function resultKey(resultId) {
   return `result:${resultId}`;
 }
@@ -28,14 +13,6 @@ function orderKey(orderId) {
 }
 function historyKey(deviceId) {
   return `device:${deviceId}:history`;
-}
-
-async function consumeIpFreeQuota(ip) {
-  const count = await kv.incr(ipFreeCountKey(ip));
-  if (count === 1) {
-    await kv.expire(ipFreeCountKey(ip), IP_FREE_WINDOW_SECONDS);
-  }
-  return count <= IP_FREE_LIMIT;
 }
 
 // @vercel/kv в разных версиях может вернуть как готовый объект, так и сырую
@@ -52,36 +29,22 @@ function parseMaybeJson(raw) {
   return raw;
 }
 
-async function tryConsumeFreeOrLock({ deviceId, ip, lang, result }) {
+// Составление обращения всегда платное (бесплатная первая попытка убрана —
+// проверка полученного ответа от госоргана остаётся бесплатной отдельно,
+// см. isReview в wizard.js, туда эта функция вообще не вызывается).
+async function lockResultForPayment({ deviceId, lang, result }) {
   const resultId = randomUUID();
-  const freeUsedByDevice = await kv.get(freeUsedKey(deviceId));
-  let unlocked = !freeUsedByDevice;
-
-  if (unlocked && ip) {
-    const ipOk = await consumeIpFreeQuota(ip);
-    if (!ipOk) unlocked = false; // IP уже выбрал свою квоту бесплатных за окно
-  }
-
-  if (unlocked) {
-    await kv.set(freeUsedKey(deviceId), FREE_LIMIT_KEY_VALUE);
-    // Бесплатная попытка целиком уходит клиенту прямо сейчас и оседает только
-    // в его localStorage — на сервере её сознательно не храним и не заносим
-    // в историю устройства, хранить/показывать в "Мои обращения" нечего,
-    // это не оплаченный результат.
-    return { resultId, unlocked };
-  }
-
   const stored = {
     deviceId,
     lang,
     result,
-    unlocked,
+    unlocked: false,
     createdAt: new Date().toISOString(),
   };
   await kv.set(resultKey(resultId), JSON.stringify(stored), { ex: RESULT_TTL_SECONDS });
   await addToDeviceHistory(deviceId, resultId);
 
-  return { resultId, unlocked };
+  return { resultId, unlocked: false };
 }
 
 async function getResult(resultId) {
@@ -165,7 +128,7 @@ async function markOrderFailed(orderId) {
 module.exports = {
   PRICE_KZT,
   RESULT_TTL_SECONDS,
-  tryConsumeFreeOrLock,
+  lockResultForPayment,
   getResult,
   saveResult,
   getDeviceHistory,

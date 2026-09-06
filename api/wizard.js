@@ -1,6 +1,6 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { kv } = require('@vercel/kv');
-const { tryConsumeFreeOrLock, PRICE_KZT } = require('./_lib/payments');
+const { lockResultForPayment, PRICE_KZT } = require('./_lib/payments');
 const { getBankruptcyThresholdText, getSpousalLoanConsentThresholdText } = require('./_lib/thresholds');
 
 const SYSTEM_PROMPT = `Ты — помощник, который на основе практики работы отдела по работе с обращениями органов прокуратуры Республики Казахстан помогает обычным гражданам (не юристам) правильно оформить жалобу или обращение в государственный орган.
@@ -475,11 +475,6 @@ module.exports = async (req, res) => {
     res.status(400).json({ error: 'X-Device-Id header is required' });
     return;
   }
-  // Первый IP в x-forwarded-for — реальный клиент за прокси Vercel.
-  // Используется только для мягкого лимита бесплатных попыток (см. _lib/payments.js).
-  const forwardedFor = req.headers['x-forwarded-for'];
-  const clientIp = (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0] : '').trim() || null;
-
   const isReview = mode === 'review';
   const rawSystemPrompt = isReview ? REVIEW_SYSTEM_PROMPT : SYSTEM_PROMPT;
   // Пороги по МРП (банкротство, согласие супруга на заём) считаются кодом от
@@ -576,20 +571,17 @@ module.exports = async (req, res) => {
 
       if (!isReview) {
         try {
-          const { resultId, unlocked } = await tryConsumeFreeOrLock({
+          const { resultId } = await lockResultForPayment({
             deviceId,
-            ip: clientIp,
             lang: lang === 'kk' ? 'kk' : 'ru',
             result: parsed.result,
           });
           parsed.resultId = resultId;
-          parsed.unlocked = unlocked;
-          if (!unlocked) {
-            // Одно бесплатное обращение на устройство уже использовано —
-            // отдаём только категорию, остальное открывается после оплаты.
-            parsed.result = { category: parsed.result.category };
-            parsed.priceKzt = PRICE_KZT;
-          }
+          parsed.unlocked = false;
+          // Составление обращения всегда платное — отдаём только категорию,
+          // остальное открывается после оплаты.
+          parsed.result = { category: parsed.result.category };
+          parsed.priceKzt = PRICE_KZT;
         } catch (gateErr) {
           console.error('payment gate error:', gateErr);
           res.status(500).json({ error: 'Не удалось обработать результат. Попробуйте ещё раз.' });
