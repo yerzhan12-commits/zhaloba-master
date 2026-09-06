@@ -50,7 +50,10 @@ module.exports = async (req, res) => {
     // банк может вернуть пользователя запросом POST, а статика отдаёт 405
     // на POST. return.js принимает любой метод и сам делает редирект.
     const backrefUrl = `${origin}/api/payment/return?order=${orderId}`;
-    const notifyUrl = `${origin}/api/payment/callback`;
+    // Банк попросил (переписка, сентябрь 2026) явно указывать порт в
+    // NOTIFY_URL, иначе коллбэк не доходит — для HTTPS это стандартный 443,
+    // но Vercel не добавляет его в Host автоматически, добавляем сами.
+    const notifyUrl = `${origin}:443/api/payment/callback`;
 
     // Банк требует CLIENT_IP как обязательное поле для TRTYPE=1 (3DS-операции).
     // На Vercel реальный IP клиента приходит в x-forwarded-for (первый адрес
