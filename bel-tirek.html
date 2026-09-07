@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>БЕЛ-ТІРЕК — программа ЛФК для поясницы</title>
+<meta name="description" content="4-недельная программа ЛФК и нейро-ОФП для поясницы на русском и казахском языках.">
+<style>
+  :root{
+    --bg:#0d0d0f;
+    --card:#18181b;
+    --card2:#1f1f23;
+    --line:#2a2a2e;
+    --line-soft:#232326;
+    --ink:#f3f1ec;
+    --ink2:#b3b0a8;
+    --ink3:#7c7972;
+    --accent:#7fc7b4;
+    --accent-ink:#0d0d0f;
+    --accent-tint:rgba(127,199,180,.12);
+    --warn:#e2984f;
+    --warn-tint:rgba(226,152,79,.1);
+    --warn-line:rgba(226,152,79,.32);
+    --ok:#8bb35e;
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* language gate */
+  .gate{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:28px;
+    padding:24px;
+    text-align:center;
+  }
+  .gate-mark{
+    font-family:var(--serif);
+    font-size:34px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  .gate-sub{color:var(--ink3); font-size:13.5px; letter-spacing:.03em;}
+  .gate-choices{display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
+  .gate-btn{
+    font-family:var(--sans);
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px 30px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .gate-btn:hover, .gate-btn:focus-visible{
+    border-color:var(--accent);
+    color:var(--accent);
+    outline:none;
+  }
+  .gate-btn .native{display:block; font-size:17px; margin-bottom:2px;}
+  .gate-btn .other{display:block; font-size:11.5px; color:var(--ink3); font-weight:500;}
+
+  .page{
+    max-width:800px;
+    margin:0 auto;
+    padding:20px 24px 100px;
+    display:none;
+  }
+  .page.is-active{display:block;}
+
+  .lang-switch{
+    display:flex;
+    justify-content:flex-end;
+    gap:6px;
+    margin-bottom:28px;
+  }
+  .lang-switch button{
+    font-family:var(--sans);
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink3);
+    background:transparent;
+    border:1px solid var(--line);
+    border-radius:99px;
+    padding:6px 12px;
+    cursor:pointer;
+  }
+  .lang-switch button.is-current{color:var(--accent-ink); background:var(--accent); border-color:var(--accent);}
+  .lang-switch button:not(.is-current):hover{color:var(--ink); border-color:var(--ink3);}
+
+  h1,h2,h3{
+    font-family:var(--serif);
+    font-weight:700;
+    text-wrap:balance;
+    color:var(--ink);
+    margin:0;
+  }
+  .eyebrow{
+    display:inline-block;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:14px;
+  }
+  header.hero{
+    border-bottom:1px solid var(--line);
+    padding-bottom:36px;
+    margin-bottom:40px;
+  }
+  h1{font-size:44px; letter-spacing:-0.01em;}
+  .subtitle{
+    font-size:16.5px;
+    color:var(--ink2);
+    margin-top:14px;
+    max-width:62ch;
+  }
+  .subtitle i{color:var(--ink3); font-style:italic;}
+  .meta-row{
+    margin-top:20px;
+    font-size:14px;
+    color:var(--ink2);
+    max-width:64ch;
+  }
+  .meta-row b{color:var(--ink); font-weight:600;}
+
+  section{margin-bottom:48px;}
+  section:target, .ex-card:target{
+    outline:1px solid var(--accent);
+    outline-offset:6px;
+    border-radius:16px;
+  }
+  .section-label{
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink3);
+    margin-bottom:10px;
+  }
+  h2{font-size:24px; margin-bottom:14px;}
+  p{color:var(--ink2); font-size:15px; margin:0 0 12px;}
+  p:last-child{margin-bottom:0;}
+  a{color:var(--accent);}
+
+  .callout{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px 24px;
+  }
+  .callout p{color:var(--ink2);}
+  .callout b{color:var(--ink);}
+
+  /* severity triage */
+  .triage{display:flex; flex-direction:column; gap:10px;}
+  .triage-row{
+    display:grid;
+    grid-template-columns:150px 1fr;
+    gap:16px;
+    align-items:start;
+    padding:16px 18px;
+    border-radius:12px;
+    background:var(--card);
+    border:1px solid var(--line);
+  }
+  .triage-tag{
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    padding:5px 10px;
+    border-radius:99px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+    width:fit-content;
+  }
+  .dot{width:7px; height:7px; border-radius:50%; flex:none;}
+  .triage-tag.ok{color:var(--ok); background:rgba(139,179,94,.12);}
+  .triage-tag.ok .dot{background:var(--ok);}
+  .triage-tag.mid{color:var(--accent); background:var(--accent-tint);}
+  .triage-tag.mid .dot{background:var(--accent);}
+  .triage-tag.low{color:var(--warn); background:var(--warn-tint);}
+  .triage-tag.low .dot{background:var(--warn);}
+  .triage-tag.stop{color:#e2694f; background:rgba(226,105,79,.12);}
+  .triage-tag.stop .dot{background:#e2694f;}
+  .triage-txt{font-size:14.5px; color:var(--ink2);}
+  .triage-txt b{color:var(--ink);}
+  .triage-txt a{font-size:13px;}
+
+  .warn{
+    background:var(--warn-tint);
+    border:1px solid var(--warn-line);
+    border-radius:14px;
+    padding:22px 24px;
+  }
+  .warn .section-label{color:var(--warn);}
+  .warn ul{margin:10px 0 12px; padding-left:20px; color:var(--ink2); font-size:14.5px;}
+  .warn li{margin-bottom:5px;}
+  .warn p{font-size:14px;}
+
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  .table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:14px;}
+  th,td{text-align:left; padding:12px 16px; border-bottom:1px solid var(--line); vertical-align:top;}
+  thead th{
+    background:var(--card2);
+    color:var(--ink3);
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody th{color:var(--accent); font-family:var(--serif); font-size:15px; white-space:nowrap;}
+  td b{color:var(--ink);}
+  td{color:var(--ink2);}
+
+  /* weekly schedule */
+  .week-block{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px 24px;
+    margin-bottom:14px;
+  }
+  .week-block:last-child{margin-bottom:0;}
+  .week-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+  .week-top .w{font-family:var(--serif); font-size:19px; font-weight:700; color:var(--ink);}
+  .week-top .freq{font-size:12px; color:var(--ink3); font-variant-numeric:tabular-nums;}
+  .week-goal{font-size:14px; color:var(--ink2); margin-bottom:16px; max-width:60ch;}
+  .week-list{display:flex; flex-direction:column; gap:0; border-top:1px solid var(--line-soft);}
+  .week-item{
+    display:grid;
+    grid-template-columns:22px 1fr auto;
+    gap:12px;
+    align-items:baseline;
+    padding:10px 0;
+    border-bottom:1px solid var(--line-soft);
+    font-size:14px;
+  }
+  .week-item:last-child{border-bottom:none;}
+  .week-item .n{color:var(--ink3); font-variant-numeric:tabular-nums;}
+  .week-item a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line);}
+  .week-item a:hover{color:var(--accent); border-color:var(--accent);}
+  .week-item .dose{color:var(--ink3); font-size:12.5px; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+
+  .ex-grid{display:flex; flex-direction:column; gap:16px;}
+  .ex-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px 24px;
+    scroll-margin-top:20px;
+  }
+  .ex-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+  .ex-name{font-family:var(--serif); font-size:19px; font-weight:700; color:var(--ink);}
+  .ex-dose{
+    font-size:12px;
+    color:var(--ink3);
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  .ex-block{margin-top:14px;}
+  .ex-block .k{
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:4px;
+    display:block;
+  }
+  .ex-block p{font-size:14px; margin-bottom:0;}
+  .ex-video{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:14px;
+    font-size:13px;
+    color:var(--accent);
+    text-decoration:none;
+    border-bottom:1px solid transparent;
+  }
+  .ex-video:hover{border-bottom-color:var(--accent);}
+  .ex-video::before{content:"▶"; font-size:10px;}
+
+  .variant-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+  }
+  @media (max-width:640px){ .variant-grid{grid-template-columns:1fr;} .triage-row{grid-template-columns:1fr;} .week-item{grid-template-columns:18px 1fr; } .week-item .dose{grid-column:2; text-align:left; padding-top:2px;} }
+  .variant-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 20px;
+  }
+  .variant-card h3{font-size:16px; color:var(--accent); margin-bottom:8px; font-family:var(--serif);}
+  .variant-card p{font-size:13.5px;}
+
+  .protocol{display:flex; flex-direction:column; gap:0;}
+  .protocol-row{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    gap:18px;
+    padding:16px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .protocol-row:last-child{border-bottom:none;}
+  @media (max-width:640px){ .protocol-row{grid-template-columns:1fr; gap:4px;} }
+  .protocol-if{font-size:14px; color:var(--ink); font-weight:600;}
+  .protocol-then{font-size:14px; color:var(--ink2);}
+
+  footer{
+    margin-top:56px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    font-size:12.5px;
+    color:var(--ink3);
+  }
+</style>
+</head>
+<body>
+<div class="gate" id="gate">
+  <div>
+    <div class="gate-mark">БЕЛ-ТІРЕК</div>
+    <div class="gate-sub">Тілді таңдаңыз · Выберите язык</div>
+  </div>
+  <div class="gate-choices">
+    <button class="gate-btn" data-lang="kz" type="button"><span class="native">Қазақша</span><span class="other">Kazakh</span></button>
+    <button class="gate-btn" data-lang="ru" type="button"><span class="native">Русский</span><span class="other">Russian</span></button>
+  </div>
+</div>
+
+<div class="page" data-lang="ru">
+  <div class="lang-switch"><button data-lang="ru" class="is-current" type="button">RU</button><button data-lang="kz" type="button">KZ</button></div>
+
+  <header class="hero">
+    <span class="eyebrow">Программа для поясницы · 4 недели · нейро-ОФП</span>
+    <h1>БЕЛ-ТІРЕК</h1>
+    <p class="subtitle"><i>каз. «бел» — поясница, «тірек» — опора: опора для поясницы</i> — программа снятия и профилактики боли в пояснице на принципах нейро-ОФП: не «накачать спину», а вернуть ей контроль. Та же логика, что легла в основу ТІЗЕ: от простого паттерна — к контролю движения.</p>
+    <p class="meta-row"><b>Что такое нейро-ОФП для спины:</b> позвоночник держит не мышца сама по себе, а связка мышца–сустав–мозг. Боль в пояснице почти всегда связана не с «слабой спиной», а с потерей контроля над нейтральным положением позвоночника под нагрузкой. Программа учит сначала находить это положение, затем удерживать его в статике, и только потом — под движением.</p>
+  </header>
+
+  <section id="triage">
+    <div class="section-label">С чего начать</div>
+    <h2>Какая у вас боль — и что делать</h2>
+    <div class="triage">
+      <div class="triage-row">
+        <span class="triage-tag ok"><span class="dot"></span>Нет боли / лёгкая</span>
+        <div class="triage-txt">Профилактика или боль почти не мешает жить. <b>Вариант — БЕЛ-ТІРЕК</b>, полная программа с недели 1.</div>
+      </div>
+      <div class="triage-row">
+        <span class="triage-tag mid"><span class="dot"></span>Умеренная</span>
+        <div class="triage-txt">Боль мешает наклоняться и долго сидеть, но не мешает ходить и спать. <b>Вариант — БЕЛ-ТІРЕК 50+</b> вне зависимости от возраста, если чувствуете скованность.</div>
+      </div>
+      <div class="triage-row">
+        <span class="triage-tag low"><span class="dot"></span>Сильная, но без красных флагов</span>
+        <div class="triage-txt">Больно вставать с кровати, трудно наклониться, ночью просыпаетесь от неудобной позы — но нет ни одного признака из списка справа. Это <b>не повод отказаться от ЛФК</b>, а повод начать с максимально щадящей нагрузки. <b>Вариант — БЕЛ-ТІРЕК щадящая</b>, с постели и стула.</div>
+      </div>
+      <div class="triage-row">
+        <span class="triage-tag stop"><span class="dot"></span>Красный флаг</span>
+        <div class="triage-txt">Онемение в паху, нарушение мочеиспускания, нарастающая слабость в ноге, боль после травмы, необъяснимая потеря веса. <b>Программу не начинать</b> — сначала очно к врачу. <a href="#flags">Полный список →</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flags">
+    <div class="warn">
+      <div class="section-label">Красные флаги — когда программа не подходит</div>
+      <p>Отложите программу и обратитесь к врачу, если есть хотя бы один пункт:</p>
+      <ul>
+        <li>Онемение в паху/промежности, нарушение мочеиспускания или дефекации</li>
+        <li>Нарастающая слабость или онемение в ноге</li>
+        <li>Боль после серьёзной травмы (падение, авария)</li>
+        <li>Немотивированная потеря веса, лихорадка, онкологический анамнез</li>
+        <li>Боль, которая усиливается ночью и не проходит в покое ни в одном положении</li>
+      </ul>
+      <p>Во всех остальных случаях, включая сильную боль — ЛФК даёт около 50% успеха в лечении боли в пояснице, это подтверждено и клинически, и мнением травматолога-ортопеда.</p>
+    </div>
+  </section>
+
+  <section id="variants">
+    <div class="section-label">Три варианта нагрузки</div>
+    <h2>Кому что подходит</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Вариант</th><th>Кому подходит</th><th>Положения</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>БЕЛ-ТІРЕК</th>
+            <td>Нет боли или лёгкая, активным</td>
+            <td>Пол, все переходы лёжа/на четвереньках</td>
+          </tr>
+          <tr>
+            <th>БЕЛ-ТІРЕК 50+</th>
+            <td>Умеренная боль или скованность, любой возраст</td>
+            <td>Пол с опорой на стул при подъёме</td>
+          </tr>
+          <tr>
+            <th>БЕЛ-ТІРЕК щадящая</th>
+            <td>Сильная боль без красных флагов, острый период, 60+</td>
+            <td>Кровать, стул — минимум переходов на пол</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="schedule">
+    <div class="section-label">Расписание, вариант БЕЛ-ТІРЕК</div>
+    <h2>По неделям, с точными подходами</h2>
+
+    <div class="week-block">
+      <div class="week-top"><span class="w">Неделя 1 — найти нейтраль</span><span class="freq">5 дней в неделю</span></div>
+      <p class="week-goal">Учимся находить нейтральное положение поясницы и удерживать его без движения.</p>
+      <div class="week-list">
+        <div class="week-item"><span class="n">1</span><a href="#ex-1">Диафрагмальное дыхание</a><span class="dose">3×8–10 вдохов</span></div>
+        <div class="week-item"><span class="n">2</span><a href="#ex-2">Кошка-корова</a><span class="dose">2×8–10 циклов</span></div>
+        <div class="week-item"><span class="n">3</span><a href="#ex-3">Ягодичный мостик</a><span class="dose">3×10, держать 2 сек</span></div>
+        <div class="week-item"><span class="n">4</span><a href="#ex-4">Мёртвый жук</a><span class="dose">статика, 5×5 сек</span></div>
+        <div class="week-item"><span class="n">5</span><a href="#ex-5">Бёрд-дог</a><span class="dose">держать 8–10 сек, 5 на сторону</span></div>
+        <div class="week-item"><span class="n">6</span><a href="#ex-9">Ходьба</a><span class="dose">20–30 минут</span></div>
+      </div>
+    </div>
+
+    <div class="week-block">
+      <div class="week-top"><span class="w">Неделя 2 — удержание</span><span class="freq">5 дней в неделю</span></div>
+      <p class="week-goal">Тот же набор держим дольше и повторяем больше, добавляем выносливость мышц-стабилизаторов.</p>
+      <div class="week-list">
+        <div class="week-item"><span class="n">1</span><a href="#ex-1">Диафрагмальное дыхание</a><span class="dose">3×10 вдохов</span></div>
+        <div class="week-item"><span class="n">2</span><a href="#ex-2">Кошка-корова</a><span class="dose">2×10 циклов</span></div>
+        <div class="week-item"><span class="n">3</span><a href="#ex-3">Ягодичный мостик</a><span class="dose">3×12, держать 3 сек</span></div>
+        <div class="week-item"><span class="n">4</span><a href="#ex-4">Мёртвый жук</a><span class="dose">статика, 5×8 сек</span></div>
+        <div class="week-item"><span class="n">5</span><a href="#ex-5">Бёрд-дог</a><span class="dose">держать 10 сек, 6 на сторону</span></div>
+        <div class="week-item"><span class="n">6</span><a href="#ex-6">Кёрл-ап Макгилла</a><span class="dose">3×8, держать 6 сек</span></div>
+        <div class="week-item"><span class="n">7</span><a href="#ex-7">Боковая планка</a><span class="dose">с колен, 3×15–20 сек</span></div>
+        <div class="week-item"><span class="n">8</span><a href="#ex-9">Ходьба</a><span class="dose">25–30 минут</span></div>
+      </div>
+    </div>
+
+    <div class="week-block">
+      <div class="week-top"><span class="w">Неделя 3 — контроль в движении</span><span class="freq">5 дней в неделю</span></div>
+      <p class="week-goal">Учимся не терять нейтраль позвоночника, когда добавляется движение конечностями.</p>
+      <div class="week-list">
+        <div class="week-item"><span class="n">1</span><a href="#ex-2">Кошка-корова</a><span class="dose">2×10 циклов, разминка</span></div>
+        <div class="week-item"><span class="n">2</span><a href="#ex-3">Ягодичный мостик</a><span class="dose">3×15, держать 4 сек</span></div>
+        <div class="week-item"><span class="n">3</span><a href="#ex-4">Мёртвый жук</a><span class="dose">в движении, 3×8 на сторону</span></div>
+        <div class="week-item"><span class="n">4</span><a href="#ex-5">Бёрд-дог</a><span class="dose">с вылетом, 3×8 на сторону</span></div>
+        <div class="week-item"><span class="n">5</span><a href="#ex-6">Кёрл-ап Макгилла</a><span class="dose">3×10, держать 8 сек</span></div>
+        <div class="week-item"><span class="n">6</span><a href="#ex-7">Боковая планка</a><span class="dose">с прямых ног, 3×20 сек</span></div>
+        <div class="week-item"><span class="n">7</span><a href="#ex-8">Hip hinge</a><span class="dose">обучение, 3×10 без веса</span></div>
+        <div class="week-item"><span class="n">8</span><a href="#ex-9">Ходьба</a><span class="dose">30 минут</span></div>
+      </div>
+    </div>
+
+    <div class="week-block">
+      <div class="week-top"><span class="w">Неделя 4 — интеграция</span><span class="freq">5 дней в неделю</span></div>
+      <p class="week-goal">Собираем всё в связку и переносим контроль в бытовые движения: наклоны, подъём тяжестей, долгое сидение.</p>
+      <div class="week-list">
+        <div class="week-item"><span class="n">1</span><a href="#ex-2">Кошка-корова</a><span class="dose">2×10 циклов, разминка</span></div>
+        <div class="week-item"><span class="n">2</span><a href="#ex-3">Ягодичный мостик</a><span class="dose">3×15, держать 5 сек</span></div>
+        <div class="week-item"><span class="n">3</span><a href="#ex-5">Бёрд-дог</a><span class="dose">3×10 на сторону, задержка 3 сек</span></div>
+        <div class="week-item"><span class="n">4</span><a href="#ex-6">Кёрл-ап Макгилла</a><span class="dose">3×10, держать 8 сек</span></div>
+        <div class="week-item"><span class="n">5</span><a href="#ex-7">Боковая планка</a><span class="dose">с прямых ног, 3×25–30 сек</span></div>
+        <div class="week-item"><span class="n">6</span><a href="#ex-8">Hip hinge</a><span class="dose">3×10, с лёгким грузом в руках</span></div>
+        <div class="week-item"><span class="n">7</span><a href="#ex-9">Ходьба</a><span class="dose">30–40 минут</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modifiers">
+    <div class="section-label">Если острая боль, 60+ или вариант «щадящая»</div>
+    <h2>Как меняется то же расписание</h2>
+    <div class="variant-grid">
+      <div class="variant-card">
+        <h3>Меньше пола</h3>
+        <p>Дыхание, мёртвый жук и кёрл-ап — лёжа на кровати. Кошка-корова и бёрд-дог — с опорой руками на сиденье стула, а не на пол.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Меньше диапазона</h3>
+        <p>Ягодичный мостик и боковая планка — в половину амплитуды и без задержки в нижней точке. Hip hinge — только у опоры (спинка стула), без наклона глубже комфортного.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Больше отдыха</h3>
+        <p>Между подходами — до 60–90 секунд вместо 30–45. Каждое упражнение через день, а не ежедневно, если появляется усталость мышц. Переход к следующей неделе — не по календарю, а когда текущая нагрузка ощущается легко.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="library">
+    <div class="section-label">Библиотека упражнений</div>
+    <h2>9 упражнений программы</h2>
+    <div class="ex-grid">
+
+      <div class="ex-card" id="ex-1">
+        <div class="ex-head"><span class="ex-name">1. Диафрагмальное дыхание</span><span class="ex-dose">ежедневно</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>Лёжа на спине, колени согнуты. Одна рука на груди, другая на животе. Вдох носом — расширяется живот и нижние рёбра в стороны, рука на груди почти неподвижна. Выдох — медленный, через слегка сомкнутые губы, живот опускается.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>Диафрагма — не только дыхательная мышца, но и часть «внутреннего корсета» вместе с поперечной мышцей живота, мышцами тазового дна и многораздельными мышцами спины. При боли этот корсет часто работает разлаженно: человек дышит грудью и сжимает поясницу. Упражнение восстанавливает базовое давление в животе, которое разгружает поясничные диски ещё до любого движения.</p></div>
+      </div>
+
+      <div class="ex-card" id="ex-2">
+        <div class="ex-head"><span class="ex-name">2. Кошка-корова</span><span class="ex-dose">2–3 подхода</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>Стоя на четвереньках, кисти под плечами, колени под тазом. На вдохе прогнуть поясницу вниз, поднять голову (корова); на выдохе округлить спину, подбородок к груди (кошка). Движение медленное, идёт волной от таза к шее.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>Это не силовое, а «разведывательное» упражнение: оно даёт мозгу почувствовать весь диапазон сгибания-разгибания позвоночника в безопасном, ненагруженном положении, улучшает питание межпозвонковых дисков движением жидкости и снимает мышечную защитную скованность перед основной работой.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=nmFiSxtGUt8" target="_blank" rel="noopener">Видео с техникой</a>
+      </div>
+
+      <div class="ex-card" id="ex-3">
+        <div class="ex-head"><span class="ex-name">3. Ягодичный мостик</span><span class="ex-dose">3 подхода</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>Лёжа на спине, колени согнуты, стопы на ширине таза. Напрячь ягодицы и поднять таз до прямой линии «колено–бедро–плечо», не прогибаясь в пояснице. Задержать, опустить подконтрольно.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>Ягодичные мышцы — главный разгибатель бедра. Когда они «спят» (частая ситуация при сидячем образе жизни), их работу на себя забирает поясница — отсюда перегрузка и боль. Мостик заново учит таз двигаться за счёт ягодиц, а не за счёт прогиба в пояснице.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=zaAPhWavnT4" target="_blank" rel="noopener">Видео с техникой</a>
+      </div>
+
+      <div class="ex-card" id="ex-4">
+        <div class="ex-head"><span class="ex-name">4. Мёртвый жук</span><span class="ex-dose">3–5 подходов</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>Лёжа на спине, руки подняты вверх, бёдра и колени согнуты под 90°. Поясница мягко прижата к полу («три точки опоры»: затылок, рёбра, крестец). Неделя 1 — просто удержать это положение. Позже — на выдохе медленно опустить противоположные руку и ногу, не отрывая поясницу от пола, вернуть на вдохе.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>Тренирует переднюю стенку живота удерживать позвоночник неподвижным, пока руки и ноги двигаются — именно это нужно в быту (нести сумку, тянуться за предметом), и именно этого не хватает при боли в пояснице.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=bsNm4Q0HUhY" target="_blank" rel="noopener">Видео с техникой</a>
+      </div>
+
+      <div class="ex-card" id="ex-5">
+        <div class="ex-head"><span class="ex-name">5. Птица-собака (бёрд-дог)</span><span class="ex-dose">5–10 на сторону</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>На четвереньках, спина в нейтральном положении. Одновременно вытянуть противоположные руку вперёд и ногу назад в одну линию, не разворачивая таз и плечи. Задержать, вернуть подконтрольно, поменять сторону.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>Одно из самых изученных упражнений для поясницы (входит в «тройку Макгилла»): включает многораздельные мышцы спины и ягодичные без сжатия дисков, а противоположная работа руки и ноги дополнительно тренирует координацию между полушариями и баланс таза — это и есть неврологическая часть контроля спины.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=9VzecpaSUGU" target="_blank" rel="noopener">Видео с техникой</a>
+      </div>
+
+      <div class="ex-card" id="ex-6">
+        <div class="ex-head"><span class="ex-name">6. Модифицированный кёрл-ап Макгилла</span><span class="ex-dose">с недели 2</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>Лёжа на спине, одна нога прямая, другая согнута. Руки — ладонями под поясничный изгиб (сохраняя его). Слегка оторвать голову и плечи от пола, как единый жёсткий блок, не сгибая поясницу. Задержать, опустить.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>В отличие от обычного скручивания на пресс, здесь поясница не сгибается — а именно многократное сгибание поясницы под нагрузкой считается одним из основных механизмов повреждения диска. Упражнение укрепляет прямую мышцу живота, сохраняя поясницу неподвижной.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=FUtIKZh55GM" target="_blank" rel="noopener">Видео с техникой</a>
+      </div>
+
+      <div class="ex-card" id="ex-7">
+        <div class="ex-head"><span class="ex-name">7. Боковая планка</span><span class="ex-dose">с недели 2</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>Лёжа на боку, опора на предплечье строго под плечом. Поднять таз так, чтобы тело было прямой линией от головы до колен (или до стоп в полном варианте). Не проваливаться в пояснице и не заваливаться вперёд/назад.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>Тренирует боковые мышцы туловища (квадратную мышцу поясницы, косые) на выносливость в статике, что даёт устойчивость позвоночника в боковой плоскости — это защищает от боли при переносе тяжестей в одной руке и при длительном стоянии/ходьбе.</p></div>
+        <a class="ex-video" href="https://fitstars.ru/blog/workout/bokovaya-planka-oshibki-i-tehnika" target="_blank" rel="noopener">Разбор техники и ошибок</a>
+      </div>
+
+      <div class="ex-card" id="ex-8">
+        <div class="ex-head"><span class="ex-name">8. Hip hinge (тазобедренный шарнир)</span><span class="ex-dose">с недели 3</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>Стоя, колени чуть согнуты и неподвижны. Отвести таз назад, наклоняя корпус вперёд с прямой спиной (как будто закрываете дверь тазом), пока не почувствуете растяжение задней поверхности бедра. Вернуться в исходное положение, выпрямляя бёдра, а не разгибая поясницу.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>Это движение — основа всех безопасных наклонов и подъёмов тяжестей в быту. Оно переносит нагрузку с поясницы на тазобедренные суставы и ягодицы. Большинство «сорвал спину, поднимая пакет» — следствие того, что человек сгибает поясницу вместо того, чтобы согнуться в тазобедренном суставе.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=IgxaBilV_bg" target="_blank" rel="noopener">Видео с техникой</a>
+      </div>
+
+      <div class="ex-card" id="ex-9">
+        <div class="ex-head"><span class="ex-name">9. Ходьба</span><span class="ex-dose">ежедневно</span></div>
+        <div class="ex-block"><span class="k">Как делать</span><p>Обычная прогулочная ходьба на ровной поверхности, без рывков и резких разворотов. Начинать с посильной дистанции и увеличивать её по мере переносимости.</p></div>
+        <div class="ex-block"><span class="k">Зачем и как действует</span><p>Межпозвонковый диск не имеет собственных сосудов и получает питание только за счёт ритмичной смены давления при движении. Долгий покой полезен только первые 1–2 дня острой боли, дальше он ухудшает состояние диска и мышц. Ходьба — самая безопасная форма движения, которая держит спину «в тонусе» между тренировками.</p></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="protocol">
+    <div class="section-label">Протокол успеха</div>
+    <h2>Что делать, если что-то заболело</h2>
+    <div class="callout">
+      <div class="protocol">
+        <div class="protocol-row">
+          <div class="protocol-if">Боль во время упражнения 2–3 из 10 и проходит после</div>
+          <div class="protocol-then">Это нормально — так реагируют скованные мышцы на новую работу. Продолжайте по плану.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">Боль резко усилилась во время конкретного упражнения</div>
+          <div class="protocol-then">Остановите именно это упражнение сегодня, доделайте остальные из дня. Завтра вернитесь к нему с меньшей амплитудой.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">После тренировки боль держится дольше часа</div>
+          <div class="protocol-then">В следующий раз сократите повторы и время удержания вдвое, скорость прогресса не главное.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">Пропустили день или несколько</div>
+          <div class="protocol-then">Не начинайте сначала — продолжайте со следующего дня по плану, объём не теряется так быстро.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">Текущая неделя ощущается легко</div>
+          <div class="protocol-then">Переходите к следующей неделе, даже если календарных 7 дней ещё не прошло — прогресс по ощущению, а не по дате.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">Нет улучшения за 2–3 недели или боль нарастает</div>
+          <div class="protocol-then">Остановите программу и обратитесь к травматологу-ортопеду или врачу ЛФК очно.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Программа носит образовательный характер и не заменяет очную консультацию травматолога-ортопеда или врача ЛФК. При появлении «красных флагов» — остановите программу и обратитесь к специалисту очно.
+  </footer>
+</div>
+
+<div class="page" data-lang="kz">
+  <div class="lang-switch"><button data-lang="ru" type="button">RU</button><button data-lang="kz" class="is-current" type="button">KZ</button></div>
+
+  <header class="hero">
+    <span class="eyebrow">Бел үшін бағдарлама · 4 апта · нейро-ЖДД</span>
+    <h1>БЕЛ-ТІРЕК</h1>
+    <p class="subtitle"><i>«бел» — поясница, «тірек» — тіреу: белдің тірегі</i> — бел ауруын басу және алдын алу бағдарламасы, нейро-ЖДД қағидаттарына негізделген: «белді айдау» емес, оған қайта бақылау қайтару. ТІЗЕ бағдарламасының негізінде жатқан сол логика: қарапайым қалыптан — қозғалысты бақылауға дейін.</p>
+    <p class="meta-row"><b>Бел үшін нейро-ЖДД дегеніміз не:</b> омыртқа жотасын жалғыз бұлшықет ұстамайды, оны бұлшықет–буын–ми байланысы ұстайды. Бел ауруы көбіне «әлсіз бел» емес, жүктеме кезінде омыртқаның бейтарап қалпын бақылаудан айырылумен байланысты. Бағдарлама алдымен осы қалыпты табуға, содан соң оны статикада ұстауға, тек содан кейін ғана — қозғалыс кезінде сақтауға үйретеді.</p>
+  </header>
+
+  <section id="triage-kz">
+    <div class="section-label">Неден бастау керек</div>
+    <h2>Ауруыңыз қандай — не істеу керек</h2>
+    <div class="triage">
+      <div class="triage-row">
+        <span class="triage-tag ok"><span class="dot"></span>Ауырмайды / жеңіл</span>
+        <div class="triage-txt">Алдын алу немесе ауру өмір сүруге дерлік кедергі жасамайды. <b>Нұсқа — БЕЛ-ТІРЕК</b>, 1-аптадан толық бағдарлама.</div>
+      </div>
+      <div class="triage-row">
+        <span class="triage-tag mid"><span class="dot"></span>Орташа</span>
+        <div class="triage-txt">Ауру еңкейгенде және ұзақ отырғанда кедергі жасайды, бірақ жүруге және ұйықтауға кедергі жасамайды. <b>Нұсқа — БЕЛ-ТІРЕК 50+</b>, жасыңызға қарамастан қатаңдық сезінсеңіз.</div>
+      </div>
+      <div class="triage-row">
+        <span class="triage-tag low"><span class="dot"></span>Күшті, бірақ қауіп белгілерісіз</span>
+        <div class="triage-txt">Төсектен тұру ауыртады, еңкею қиын, түнде ыңғайсыз позадан оянасыз — бірақ оң жақтағы тізімдегі белгілердің бірде-бірі жоқ. Бұл <b>ЖДД-ден бас тарту себебі емес</b>, ең жеңіл жүктемеден бастау себебі. <b>Нұсқа — БЕЛ-ТІРЕК жеңіл</b>, төсек пен орындықтан бастап.</div>
+      </div>
+      <div class="triage-row">
+        <span class="triage-tag stop"><span class="dot"></span>Қауіп белгісі</span>
+        <div class="triage-txt">Шат аймағында сезімталдықтың жоғалуы, зәр шығарудың бұзылуы, аяқтағы әлсіздіктің күшеюі, жарақаттан кейінгі ауру, себепсіз салмақ жоғалту. <b>Бағдарламаны бастамаңыз</b> — алдымен дәрігерге көрініңіз. <a href="#flags-kz">Толық тізім →</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flags-kz">
+    <div class="warn">
+      <div class="section-label">Қауіп белгілері — бағдарлама қашан жарамайды</div>
+      <p>Төмендегі белгілердің кемінде біреуі болса, бағдарламаны кейінге қалдырып, дәрігерге хабарласыңыз:</p>
+      <ul>
+        <li>Шат аймағында/аралық аймақта сезімталдықтың жоғалуы, зәр шығару немесе дефекацияның бұзылуы</li>
+        <li>Аяқтағы әлсіздіктің немесе сезімталдық жоғалуының күшеюі</li>
+        <li>Ауыр жарақаттан кейінгі ауру (құлау, апат)</li>
+        <li>Себепсіз салмақ жоғалту, қызба, онкологиялық анамнез</li>
+        <li>Түнде күшейетін және ешбір қалыпта тыныштықта басылмайтын ауру</li>
+      </ul>
+      <p>Қалған барлық жағдайда, соның ішінде күшті аурудың өзінде де — ЖДД бел ауруын емдеуде шамамен 50% табысты нәтиже береді, бұл клиникалық түрде де, травматолог-ортопедтің пікірімен де расталған.</p>
+    </div>
+  </section>
+
+  <section id="variants-kz">
+    <div class="section-label">Үш жүктеме нұсқасы</div>
+    <h2>Кімге қайсысы жарайды</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Нұсқа</th><th>Кімге жарайды</th><th>Қалыптар</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>БЕЛ-ТІРЕК</th>
+            <td>Ауру жоқ немесе жеңіл, белсенділерге</td>
+            <td>Еденде, жатып/төрт аяқтап барлық ауысулар</td>
+          </tr>
+          <tr>
+            <th>БЕЛ-ТІРЕК 50+</th>
+            <td>Орташа ауру немесе қатаңдық, кез келген жаста</td>
+            <td>Тұрғанда орындыққа сүйеніп, еденде</td>
+          </tr>
+          <tr>
+            <th>БЕЛ-ТІРЕК жеңіл</th>
+            <td>Қауіп белгісіз күшті ауру, өткір кезең, 60+</td>
+            <td>Төсек, орындық — еденге ауысу ең азы</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="schedule-kz">
+    <div class="section-label">Кесте, БЕЛ-ТІРЕК нұсқасы</div>
+    <h2>Апта бойынша, нақты қайталаулармен</h2>
+
+    <div class="week-block">
+      <div class="week-top"><span class="w">1-апта — бейтараптықты табу</span><span class="freq">аптасына 5 күн</span></div>
+      <p class="week-goal">Белдің бейтарап қалпын табуға және оны қозғалыссыз ұстауға үйренеміз.</p>
+      <div class="week-list">
+        <div class="week-item"><span class="n">1</span><a href="#ex-1-kz">Диафрагмалық тыныс алу</a><span class="dose">3×8–10 тыныс</span></div>
+        <div class="week-item"><span class="n">2</span><a href="#ex-2-kz">Мысық-сиыр</a><span class="dose">2×8–10 цикл</span></div>
+        <div class="week-item"><span class="n">3</span><a href="#ex-3-kz">Бөксе көпірі</a><span class="dose">3×10, 2 сек ұстау</span></div>
+        <div class="week-item"><span class="n">4</span><a href="#ex-4-kz">Өлі қоңыз</a><span class="dose">статика, 5×5 сек</span></div>
+        <div class="week-item"><span class="n">5</span><a href="#ex-5-kz">Құс-ит</a><span class="dose">8–10 сек ұстау, әр жаққа 5</span></div>
+        <div class="week-item"><span class="n">6</span><a href="#ex-9-kz">Жүру</a><span class="dose">20–30 минут</span></div>
+      </div>
+    </div>
+
+    <div class="week-block">
+      <div class="week-top"><span class="w">2-апта — ұстап тұру</span><span class="freq">аптасына 5 күн</span></div>
+      <p class="week-goal">Сол жиынтықты ұзағырақ ұстаймыз және көбірек қайталаймыз, тұрақтандырушы бұлшықеттердің төзімділігін қосамыз.</p>
+      <div class="week-list">
+        <div class="week-item"><span class="n">1</span><a href="#ex-1-kz">Диафрагмалық тыныс алу</a><span class="dose">3×10 тыныс</span></div>
+        <div class="week-item"><span class="n">2</span><a href="#ex-2-kz">Мысық-сиыр</a><span class="dose">2×10 цикл</span></div>
+        <div class="week-item"><span class="n">3</span><a href="#ex-3-kz">Бөксе көпірі</a><span class="dose">3×12, 3 сек ұстау</span></div>
+        <div class="week-item"><span class="n">4</span><a href="#ex-4-kz">Өлі қоңыз</a><span class="dose">статика, 5×8 сек</span></div>
+        <div class="week-item"><span class="n">5</span><a href="#ex-5-kz">Құс-ит</a><span class="dose">10 сек ұстау, әр жаққа 6</span></div>
+        <div class="week-item"><span class="n">6</span><a href="#ex-6-kz">Макгилл кёрл-абы</a><span class="dose">3×8, 6 сек ұстау</span></div>
+        <div class="week-item"><span class="n">7</span><a href="#ex-7-kz">Бүйір планкасы</a><span class="dose">тізеден, 3×15–20 сек</span></div>
+        <div class="week-item"><span class="n">8</span><a href="#ex-9-kz">Жүру</a><span class="dose">25–30 минут</span></div>
+      </div>
+    </div>
+
+    <div class="week-block">
+      <div class="week-top"><span class="w">3-апта — қозғалыстағы бақылау</span><span class="freq">аптасына 5 күн</span></div>
+      <p class="week-goal">Аяқ-қолдың қозғалысы қосылғанда омыртқаның бейтараптығын жоғалтпауға үйренеміз.</p>
+      <div class="week-list">
+        <div class="week-item"><span class="n">1</span><a href="#ex-2-kz">Мысық-сиыр</a><span class="dose">2×10 цикл, жылыну</span></div>
+        <div class="week-item"><span class="n">2</span><a href="#ex-3-kz">Бөксе көпірі</a><span class="dose">3×15, 4 сек ұстау</span></div>
+        <div class="week-item"><span class="n">3</span><a href="#ex-4-kz">Өлі қоңыз</a><span class="dose">қозғалыста, әр жаққа 3×8</span></div>
+        <div class="week-item"><span class="n">4</span><a href="#ex-5-kz">Құс-ит</a><span class="dose">толық созылумен, әр жаққа 3×8</span></div>
+        <div class="week-item"><span class="n">5</span><a href="#ex-6-kz">Макгилл кёрл-абы</a><span class="dose">3×10, 8 сек ұстау</span></div>
+        <div class="week-item"><span class="n">6</span><a href="#ex-7-kz">Бүйір планкасы</a><span class="dose">түзу аяқпен, 3×20 сек</span></div>
+        <div class="week-item"><span class="n">7</span><a href="#ex-8-kz">Hip hinge</a><span class="dose">үйрену, салмақсыз 3×10</span></div>
+        <div class="week-item"><span class="n">8</span><a href="#ex-9-kz">Жүру</a><span class="dose">30 минут</span></div>
+      </div>
+    </div>
+
+    <div class="week-block">
+      <div class="week-top"><span class="w">4-апта — біріктіру</span><span class="freq">аптасына 5 күн</span></div>
+      <p class="week-goal">Барлығын бір тізбекке жинаймыз және бақылауды тұрмыстық қозғалыстарға ауыстырамыз: еңкею, ауыртпалық көтеру, ұзақ отыру.</p>
+      <div class="week-list">
+        <div class="week-item"><span class="n">1</span><a href="#ex-2-kz">Мысық-сиыр</a><span class="dose">2×10 цикл, жылыну</span></div>
+        <div class="week-item"><span class="n">2</span><a href="#ex-3-kz">Бөксе көпірі</a><span class="dose">3×15, 5 сек ұстау</span></div>
+        <div class="week-item"><span class="n">3</span><a href="#ex-5-kz">Құс-ит</a><span class="dose">әр жаққа 3×10, 3 сек кідіріс</span></div>
+        <div class="week-item"><span class="n">4</span><a href="#ex-6-kz">Макгилл кёрл-абы</a><span class="dose">3×10, 8 сек ұстау</span></div>
+        <div class="week-item"><span class="n">5</span><a href="#ex-7-kz">Бүйір планкасы</a><span class="dose">түзу аяқпен, 3×25–30 сек</span></div>
+        <div class="week-item"><span class="n">6</span><a href="#ex-8-kz">Hip hinge</a><span class="dose">қолда жеңіл жүкпен 3×10</span></div>
+        <div class="week-item"><span class="n">7</span><a href="#ex-9-kz">Жүру</a><span class="dose">30–40 минут</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modifiers-kz">
+    <div class="section-label">Өткір ауру, 60+ немесе «жеңіл» нұсқасы болса</div>
+    <h2>Сол кесте қалай өзгереді</h2>
+    <div class="variant-grid">
+      <div class="variant-card">
+        <h3>Еденде аз</h3>
+        <p>Тыныс алу, өлі қоңыз және кёрл-ап — төсекте жатып. Мысық-сиыр және құс-ит — қолды еденге емес, орындық үстіне сүйеп.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Аз диапазон</h3>
+        <p>Бөксе көпірі және бүйір планкасы — жарты амплитудада, төменгі нүктеде кідіріссіз. Hip hinge — тек тірекпен (орындық арқасы), ыңғайлыдан тереңірек еңкеместен.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Көбірек демалыс</h3>
+        <p>Қайталаулар арасында 30–45 орнына 60–90 секунд. Бұлшықет шаршауы білінсе, әр жаттығуды күн сайын емес, күн ара орындауға болады. Келесі аптаға өту күнтізбемен емес, ағымдағы жүктеме жеңіл сезілгенде жасалады.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="library-kz">
+    <div class="section-label">Жаттығулар кітапханасы</div>
+    <h2>Бағдарламаның 9 жаттығуы</h2>
+    <div class="ex-grid">
+
+      <div class="ex-card" id="ex-1-kz">
+        <div class="ex-head"><span class="ex-name">1. Диафрагмалық тыныс алу</span><span class="ex-dose">күн сайын</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Арқамен жатып, тізелер бүгілген. Бір қол кеудеде, екіншісі — құрсақта. Мұрынмен дем алу — құрсақ пен төменгі қабырғалар қапталға қарай кеңейеді, кеудедегі қол дерлік қозғалмайды. Дем шығару — баяу, аздап жабылған ерінмен, құрсақ түседі.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Диафрагма — тек тыныс алу бұлшықеті ғана емес, сонымен қатар құрсақтың көлденең бұлшықеті, жамбас түбі бұлшықеттері және омыртқаның көп бөлікті бұлшықеттерімен бірге «ішкі корсеттің» бөлігі. Ауру кезінде бұл корсет көбіне үйлесімсіз жұмыс істейді: адам кеудемен тыныс алады және белін қысады. Жаттығу кез келген қозғалысқа дейін-ақ құрсақтағы негізгі қысымды қалпына келтіреді, бұл бел дискілерін жеңілдетеді.</p></div>
+      </div>
+
+      <div class="ex-card" id="ex-2-kz">
+        <div class="ex-head"><span class="ex-name">2. Мысық-сиыр</span><span class="ex-dose">2–3 қайталау</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Төрт аяқтап тұрып, алақандар иықтың астында, тізелер жамбастың астында. Дем алғанда белді төмен майыстырып, басты көтеру («сиыр»); дем шығарғанда арқаны дөңгелетіп, иекті кеудеге жақындату («мысық»). Қозғалыс баяу, жамбастан мойынға қарай толқын түрінде жүреді.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Бұл күш жаттығуы емес, «барлау» жаттығуы: ол миға омыртқаның бүгілу-жазылу диапазонын қауіпсіз, жүктемесіз қалыпта сезінуге мүмкіндік береді, сұйықтықтың қозғалысы арқылы дискілердің қоректенуін жақсартады және негізгі жұмыс алдында бұлшықеттің қорғаныш қатаңдығын алады.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=nmFiSxtGUt8" target="_blank" rel="noopener">Техникасы бар видео</a>
+      </div>
+
+      <div class="ex-card" id="ex-3-kz">
+        <div class="ex-head"><span class="ex-name">3. Бөксе көпірі</span><span class="ex-dose">3 қайталау</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Арқамен жатып, тізелер бүгілген, табандар жамбас енінде. Бөксені кернеп, тізе–жамбас–иық сызығы түзу болғанша жамбасты көтеріңіз, белде майыспай. Ұстап тұрып, бақылаумен түсіріңіз.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Бөксе бұлшықеттері — жамбастың негізгі жазушысы. Олар «ұйықтап жатқанда» (отырықшы өмір салтында жиі кездеседі), олардың жұмысын бел өзіне алады — содан артық жүктеме мен ауру пайда болады. Көпір жамбасты белдің майысуы арқылы емес, бөксе арқылы қозғалуға қайта үйретеді.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=zaAPhWavnT4" target="_blank" rel="noopener">Техникасы бар видео</a>
+      </div>
+
+      <div class="ex-card" id="ex-4-kz">
+        <div class="ex-head"><span class="ex-name">4. Өлі қоңыз</span><span class="ex-dose">3–5 қайталау</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Арқамен жатып, қолдар жоғары көтерілген, жамбас пен тізелер 90°-қа бүгілген. Бел еденге жұмсақ басылған («үш тірек нүктесі»: желке, қабырғалар, сегізкөз). 1-апта — тек осы қалыпты ұстап тұру. Кейінірек — дем шығарғанда белді еденнен көтермей, қарама-қарсы қол мен аяқты баяу түсіру, дем алғанда қайтару.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Қол мен аяқ қозғалғанда омыртқаны қозғалыссыз ұстауға құрсақтың алдыңғы қабырғасын үйретеді — бұл тұрмыста дәл осы керек (сөмке көтеру, затқа созылу), және дәл осы бел ауруында жиі жетіспейді.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=bsNm4Q0HUhY" target="_blank" rel="noopener">Техникасы бар видео</a>
+      </div>
+
+      <div class="ex-card" id="ex-5-kz">
+        <div class="ex-head"><span class="ex-name">5. Құс-ит (бёрд-дог)</span><span class="ex-dose">әр жаққа 5–10</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Төрт аяқтап, арқа бейтарап қалыпта. Жамбас пен иықты бұрмай, қарама-қарсы қол мен аяқты бір сызыққа созыңыз. Ұстап тұрып, бақылаумен қайтарыңыз, жақты ауыстырыңыз.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Бел үшін ең көп зерттелген жаттығулардың бірі («Макгилл үштігіне» кіреді): дискілерді қыспай, омыртқаның көп бөлікті бұлшықеттері мен бөксені қосады, ал қол мен аяқтың қарама-қарсы жұмысы қосымша ми жарты шарлары арасындағы үйлестіру мен жамбас теңгерімін жаттықтырады — бел бақылауының нейрологиялық бөлігі осы.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=9VzecpaSUGU" target="_blank" rel="noopener">Техникасы бар видео</a>
+      </div>
+
+      <div class="ex-card" id="ex-6-kz">
+        <div class="ex-head"><span class="ex-name">6. Макгилл модификацияланған кёрл-абы</span><span class="ex-dose">2-аптадан бастап</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Арқамен жатып, бір аяқ түзу, екіншісі бүгілген. Қолдар — бел иіні астында алақанмен (иінді сақтап). Белді бүкпей, басты және иықты еденнен бір қатты блок ретінде сәл көтеріңіз. Ұстап, түсіріңіз.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Әдеттегі прессті бүгуден айырмашылығы, мұнда бел бүгілмейді — ал жүктеме астында белдің қайталанып бүгілуі дискінің зақымдалуының негізгі механизмдерінің бірі саналады. Жаттығу белді қозғалыссыз сақтай отырып, тік құрсақ бұлшықетін нығайтады.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=FUtIKZh55GM" target="_blank" rel="noopener">Техникасы бар видео</a>
+      </div>
+
+      <div class="ex-card" id="ex-7-kz">
+        <div class="ex-head"><span class="ex-name">7. Бүйір планкасы</span><span class="ex-dose">2-аптадан бастап</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Бүйірмен жатып, білекке иықтың дәл астынан тіреу. Дене басынан тізеге дейін (толық нұсқада табанға дейін) түзу сызық болатындай жамбасты көтеріңіз. Белде батпаңыз және алға/артқа құламаңыз.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Дененің бүйір бұлшықеттерін (бел квадрат бұлшықеті, қиғаш бұлшықеттер) статикада төзімділікке жаттықтырады, бұл омыртқаның бүйір жазықтығындағы тұрақтылығын береді — бұл бір қолмен ауыртпалық тасығанда және ұзақ тұрғанда/жүргенде ауырудан қорғайды.</p></div>
+        <a class="ex-video" href="https://fitstars.ru/blog/workout/bokovaya-planka-oshibki-i-tehnika" target="_blank" rel="noopener">Техника талдауы</a>
+      </div>
+
+      <div class="ex-card" id="ex-8-kz">
+        <div class="ex-head"><span class="ex-name">8. Hip hinge (жамбас топсасы)</span><span class="ex-dose">3-аптадан бастап</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Тұрып, тізелер сәл бүгілген және қозғалмайды. Арқаны түзу ұстап, жамбасты артқа тартып, денені алға еңкейтіңіз (жамбаспен есікті жапқандай), сан артында созылу сезілгенше. Белді жазбай, жамбасты жазу арқылы бастапқы қалыпқа қайтыңыз.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Бұл қозғалыс — тұрмыста ауыртпалық көтерудің және еңкеюдің барлық қауіпсіз түрлерінің негізі. Ол жүктемені белден жамбас буындары мен бөксеге ауыстырады. «Пакет көтергенде белім тартып қалды» дегендердің көпшілігі — адамның жамбас буынында емес, белде бүгілуінің салдары.</p></div>
+        <a class="ex-video" href="https://www.youtube.com/watch?v=IgxaBilV_bg" target="_blank" rel="noopener">Техникасы бар видео</a>
+      </div>
+
+      <div class="ex-card" id="ex-9-kz">
+        <div class="ex-head"><span class="ex-name">9. Жүру</span><span class="ex-dose">күн сайын</span></div>
+        <div class="ex-block"><span class="k">Қалай орындау керек</span><p>Тегіс жерде қалыпты серуендеу қадамымен, кенеттен қозғалыссыз және күрт бұрылыссыз. Көтерімді қашықтықтан бастап, төзімділікке қарай ұлғайтыңыз.</p></div>
+        <div class="ex-block"><span class="k">Неге және қалай әсер етеді</span><p>Омыртқааралық дискінің өз тамырлары жоқ және тек қозғалыс кезіндегі қысымның ырғақты ауысуы арқылы қоректенеді. Ұзақ тыныштық өткір аурудың алғашқы 1–2 күнінде ғана пайдалы, одан әрі ол диск пен бұлшықет жағдайын нашарлатады. Жүру — жаттығулар арасында белді «сергек» ұстайтын ең қауіпсіз қозғалыс түрі.</p></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="protocol-kz">
+    <div class="section-label">Табыс хаттамасы</div>
+    <h2>Бірдеңе ауырса не істеу керек</h2>
+    <div class="callout">
+      <div class="protocol">
+        <div class="protocol-row">
+          <div class="protocol-if">Жаттығу кезінде 10-нан 2–3 балл ауру және кейін басылады</div>
+          <div class="protocol-then">Бұл қалыпты жағдай — қатқан бұлшықеттердің жаңа жұмысқа осылай әсер етуі. Жоспар бойынша жалғастырыңыз.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">Белгілі бір жаттығу кезінде ауру күрт күшейді</div>
+          <div class="protocol-then">Дәл осы жаттығуды бүгін тоқтатыңыз, күннің қалғанын аяқтаңыз. Ертең оған кішірек амплитудамен қайта оралыңыз.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">Жаттығудан кейін ауру бір сағаттан ұзаққа созылады</div>
+          <div class="protocol-then">Келесі жолы қайталау мен ұстау уақытын екі есе қысқартыңыз, жылдамдық басты нәрсе емес.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">Бір немесе бірнеше күн өткізіп алдыңыз</div>
+          <div class="protocol-then">Басынан бастамаңыз — жоспар бойынша келесі күннен жалғастырыңыз, көлем сонша тез жоғалмайды.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">Ағымдағы апта жеңіл сезілсе</div>
+          <div class="protocol-then">Күнтізбелік 7 күн өтпесе де, келесі аптаға көшіңіз — прогресс сезім бойынша, күн бойынша емес.</div>
+        </div>
+        <div class="protocol-row">
+          <div class="protocol-if">2–3 апта ішінде жақсару жоқ немесе ауру күшейсе</div>
+          <div class="protocol-then">Бағдарламаны тоқтатып, травматолог-ортопедке немесе ЖДД дәрігеріне жеке көрініңіз.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Бағдарлама білім беру сипатында және травматолог-ортопедтің немесе ЖДД дәрігерінің жеке кеңесін алмастырмайды. «Қауіп белгілері» пайда болса — бағдарламаны тоқтатып, маманға жеке хабарласыңыз.
+  </footer>
+</div>
+
+<script>
+  (function(){
+    var gate = document.getElementById('gate');
+    var pages = document.querySelectorAll('.page');
+    var STORAGE_KEY = 'bel-tirek-lang';
+
+    function showLang(lang){
+      pages.forEach(function(p){
+        p.classList.toggle('is-active', p.getAttribute('data-lang') === lang);
+      });
+      document.querySelectorAll('.lang-switch button').forEach(function(btn){
+        btn.classList.toggle('is-current', btn.getAttribute('data-lang') === lang);
+      });
+      gate.style.display = 'none';
+      window.scrollTo(0, 0);
+    }
+
+    document.querySelectorAll('[data-lang]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var lang = el.getAttribute('data-lang');
+        try{ localStorage.setItem(STORAGE_KEY, lang); }catch(e){}
+        showLang(lang);
+      });
+    });
+
+    var saved = null;
+    try{ saved = localStorage.getItem(STORAGE_KEY); }catch(e){}
+    if(saved === 'ru' || saved === 'kz'){
+      showLang(saved);
+    }
+  })();
+</script>
+</body>
+</html>
