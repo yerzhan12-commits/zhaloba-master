@@ -1,7 +1,7 @@
 const { kv } = require('@vercel/kv');
 const { randomUUID } = require('crypto');
 
-const PRICE_KZT = 1500;
+const PRICE_KZT = 4900;
 const RESULT_TTL_SECONDS = 60 * 60 * 24 * 5; // 5 дней — пользователь должен быть предупреждён об этом в интерфейсе
 const HISTORY_MAX_ITEMS = 30; // максимум записей "Моих обращений" на устройство
 
