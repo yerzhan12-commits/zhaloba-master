@@ -55,6 +55,13 @@
     background:rgba(230,103,103,0.08);border:1px solid rgba(230,103,103,0.3);
     border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.5;color:#f0a8a8;margin-bottom:14px;
   }
+  .price-anchor{
+    display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:12px 14px;margin:10px 0 14px;font-size:14px;flex-wrap:wrap;
+  }
+  .price-anchor-old{color:var(--ink2);text-decoration:line-through;text-decoration-color:#e66767;}
+  .price-anchor-arrow{color:var(--ink2);}
+  .price-anchor-new{color:var(--blue);font-weight:700;}
 
   body.text-lg .result-value, body.text-lg .card p, body.text-lg .muted, body.text-lg .bubble,
   body.text-lg .evidence-name, body.text-lg .evidence-where, body.text-lg textarea,
@@ -360,6 +367,11 @@
         <li data-i18n="paywallBullet3">Какие доказательства собрать</li>
         <li data-i18n="paywallBullet4">Сроки рассмотрения и как подать</li>
       </ul>
+      <div class="price-anchor">
+        <span class="price-anchor-old" data-i18n="priceAnchorLawyer">У юриста — от 15 000 ₸</span>
+        <span class="price-anchor-arrow">→</span>
+        <span class="price-anchor-new" data-i18n="priceAnchorUs">У нас — 1 500 ₸</span>
+      </div>
       <div class="retention-note" data-i18n="resultRetentionWarning">Результат хранится на сервере только 5 дней, потом удаляется. После оплаты сразу скачайте текст к себе.</div>
       <button class="btn-primary" id="paywall-pay-btn"><span data-i18n="paywallPayBtn">Оплатить</span> <span id="paywall-price"></span></button>
       <button class="btn-secondary" id="paywall-recheck-btn" style="display:none;margin-top:8px;" data-i18n="paywallRecheckBtn">Проверить оплату ещё раз</button>
@@ -622,6 +634,8 @@ const STRINGS = {
     overrideBubblePrefix: 'Изменить категорию на: ',
     paywallTitle: 'Ваше обращение готово!',
     paywallDesc: 'Составление обращения платное. Оплатите, чтобы открыть:',
+    priceAnchorLawyer: 'У юриста — от 15 000 ₸',
+    priceAnchorUs: 'У нас — 1 500 ₸',
     paywallBullet1: 'Куда именно подавать обращение',
     paywallBullet2: 'Готовый текст обращения',
     paywallBullet3: 'Какие доказательства собрать',
@@ -743,6 +757,8 @@ const STRINGS = {
     overrideBubblePrefix: 'Санатты мынаған өзгерту: ',
     paywallTitle: 'Өтінішіңіз дайын!',
     paywallDesc: 'Өтініш құрастыру ақылы. Мыналарды ашу үшін төлеңіз:',
+    priceAnchorLawyer: 'Заңгерде — 15 000 ₸-ден бастап',
+    priceAnchorUs: 'Бізде — 1 500 ₸',
     paywallBullet1: 'Өтінішті нақты қайда беру керектігі',
     paywallBullet2: 'Дайын өтініш мәтіні',
     paywallBullet3: 'Қандай дәлелдер жинау керектігі',
