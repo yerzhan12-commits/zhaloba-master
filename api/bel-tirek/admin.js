@@ -2,16 +2,17 @@ const crypto = require('crypto');
 const { kv } = require('@vercel/kv');
 
 // Admin endpoint for БЕЛ-ТІРЕК access codes: add / reset / list.
-// Protected by the same ADMIN_PASSWORD used for /admin/login.html —
-// sent in the request body (not a session cookie), since this is meant
-// to be called from a terminal/script, not a browser session.
+// Protected by BELTIREK_ADMIN_KEY — a dedicated secret (set once in the
+// Vercel dashboard, separate from ADMIN_PASSWORD used for /admin/login.html),
+// sent in the request body since this is meant to be called from a
+// terminal/script, not a browser session.
 
 function codeKey(code) {
   return `beltirek:code:${code}`;
 }
 
 function checkAdminPassword(body) {
-  const expected = process.env.ADMIN_PASSWORD || '';
+  const expected = process.env.BELTIREK_ADMIN_KEY || '';
   const a = Buffer.from(String(body.adminPassword || ''));
   const b = Buffer.from(expected);
   return expected.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
