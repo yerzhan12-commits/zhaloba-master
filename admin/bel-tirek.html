@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>БЕЛ-ТІРЕК — коды доступа</title>
+<style>
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,sans-serif;background:#0d0d0d;color:#fff;padding:16px;max-width:640px;margin:0 auto;}
+  h1{font-size:19px;color:#3987e5;margin:24px 0 4px;}
+  .sub{font-size:13px;color:#8a8a86;margin-bottom:20px;}
+  .card{background:#18181b;border:1px solid #2a2a2e;border-radius:12px;padding:16px;margin-bottom:16px;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;}
+  input{flex:1;min-width:140px;padding:11px 13px;border:1px solid rgba(255,255,255,0.1);border-radius:9px;
+    font-size:14px;background:#1a1a19;color:#fff;}
+  button{padding:11px 16px;border:none;border-radius:9px;background:#3987e5;color:#fff;
+    font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  button:disabled{opacity:0.5;cursor:default;}
+  button.ghost{background:transparent;border:1px solid #3a3a3e;color:#c8c6c0;}
+  button.danger{background:transparent;border:1px solid rgba(230,103,103,.4);color:#e66767;}
+  table{width:100%;border-collapse:collapse;margin-top:4px;}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #232326;font-size:13.5px;}
+  th{color:#8a8a86;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;}
+  td.code{font-family:ui-monospace,monospace;color:#e0e0dc;}
+  .badge{font-size:11px;padding:3px 9px;border-radius:100px;font-weight:600;}
+  .badge.active{background:rgba(62,207,158,.15);color:#3ecf9e;}
+  .badge.free{background:rgba(255,255,255,.08);color:#8a8a86;}
+  .error{color:#e66767;font-size:13px;margin-top:10px;}
+  .empty{color:#8a8a86;font-size:13px;padding:12px 0;}
+  .top-row{display:flex;justify-content:space-between;align-items:center;}
+  .logout{font-size:12.5px;color:#8a8a86;text-decoration:none;}
+</style>
+</head>
+<body>
+
+<div class="top-row">
+  <h1>БЕЛ-ТІРЕК — коды доступа</h1>
+  <a class="logout" href="#" id="logout-link">Выйти</a>
+</div>
+<div class="sub">Один код = одно устройство. Сброс отвязывает код от устройства, но не удаляет его.</div>
+
+<div class="card">
+  <div class="row">
+    <input type="text" id="new-name" placeholder="Имя клиента">
+    <input type="text" id="new-code" placeholder="Код (пусто = сгенерировать)">
+    <button id="add-btn">Добавить</button>
+  </div>
+  <div class="error" id="add-error" style="display:none;"></div>
+</div>
+
+<div class="card">
+  <table id="codes-table">
+    <thead><tr><th>Код</th><th>Имя</th><th>Статус</th><th></th></tr></thead>
+    <tbody id="codes-body"></tbody>
+  </table>
+  <div class="empty" id="empty-msg" style="display:none;">Кодов пока нет.</div>
+</div>
+
+<script>
+function genCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = 'BT-';
+  for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+document.getElementById('new-code').placeholder = 'Код (пусто = ' + genCode() + ')';
+
+async function api(action, extra){
+  const res = await fetch('/api/bel-tirek/admin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Object.assign({ action }, extra)),
+  });
+  if (res.status === 403) {
+    window.location.href = '/admin/login.html?next=' + encodeURIComponent('/admin/bel-tirek.html');
+    throw new Error('forbidden');
+  }
+  return res.json();
+}
+
+function escapeHtml(str){
+  return String(str || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadCodes(){
+  const data = await api('list');
+  const body = document.getElementById('codes-body');
+  const empty = document.getElementById('empty-msg');
+  if (!data.ok || !data.codes || !data.codes.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = data.codes.map((c) => `
+    <tr>
+      <td class="code">${escapeHtml(c.code)}</td>
+      <td>${escapeHtml(c.name)}</td>
+      <td><span class="badge ${c.active ? 'active' : 'free'}">${c.active ? 'активирован' : 'свободен'}</span></td>
+      <td><button class="ghost reset-btn" data-code="${escapeHtml(c.code)}" ${c.active ? '' : 'disabled'}>Сбросить</button></td>
+    </tr>
+  `).join('');
+
+  body.querySelectorAll('.reset-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await api('reset', { code: btn.dataset.code });
+      loadCodes();
+    });
+  });
+}
+
+document.getElementById('add-btn').addEventListener('click', async () => {
+  const nameEl = document.getElementById('new-name');
+  const codeEl = document.getElementById('new-code');
+  const errEl = document.getElementById('add-error');
+  const name = nameEl.value.trim();
+  const code = codeEl.value.trim() || genCode();
+  errEl.style.display = 'none';
+  if (!name) {
+    errEl.textContent = 'Введите имя клиента';
+    errEl.style.display = 'block';
+    return;
+  }
+  const data = await api('add', { name, code });
+  if (!data.ok) {
+    errEl.textContent = 'Не удалось добавить код';
+    errEl.style.display = 'block';
+    return;
+  }
+  nameEl.value = '';
+  codeEl.value = '';
+  codeEl.placeholder = 'Код (пусто = ' + genCode() + ')';
+  loadCodes();
+});
+
+document.getElementById('logout-link').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/admin/login.html';
+});
+
+loadCodes().catch(() => {});
+</script>
+</body>
+</html>

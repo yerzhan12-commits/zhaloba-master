@@ -38,7 +38,8 @@ async function submit(){
       body: JSON.stringify({ password }),
     });
     if (!res.ok) throw new Error('Неверный пароль');
-    window.location.href = '/api/admin';
+    const next = new URLSearchParams(window.location.search).get('next');
+    window.location.href = next || '/api/admin';
   } catch (err) {
     btn.disabled = false;
     errorEl.textContent = err.message;
