@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ТІЗЕ — программа для колена</title>
-<meta name="description" content="ТІЗЕ — прогрессивная 4-недельная программа восстановления и профилактики травм колена на принципах нейро-ОФП. Три версии: обычная, 50+ и 60+.">
+<title>Программы для тела — ТІЗЕ, Скорость, ТАБАН, RESET</title>
+<meta name="description" content="Четыре программы для тела: ТІЗЕ (колено, нейро-ОФП), Взрывная скорость (для футболиста), ТАБАН (гимнастика для стоп детям) и RESET (мобильность для танцора).">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><text y=%2214%22 font-size=%2214%22>🦵</text></svg>">
 <style>
   :root{
@@ -17,6 +17,9 @@
     --ink2:#b3b0a8;
     --ink3:#7c7972;
     --orange:#e05c1a;
+    --cyan:#1ad1e0;
+    --mint:#3ecf9e;
+    --violet:#9b7fe0;
     --acc:var(--orange);
     --radius-card:16px;
     --radius-btn:13px;
@@ -77,7 +80,16 @@
     color:var(--ink3);background:var(--panel);font-weight:600;
   }
   tbody tr:last-child td{border-bottom:none;}
-  tbody th{color:var(--orange);font-weight:700;white-space:nowrap;}
+  tbody th{color:var(--acc);font-weight:700;white-space:nowrap;}
+
+  .acc-cyan{--acc:var(--cyan);}
+  .acc-mint{--acc:var(--mint);}
+  .acc-violet{--acc:var(--violet);}
+  .section-head h2{font-size:1.8rem;margin:10px 0 10px;}
+  .section-head p{color:var(--ink2);font-size:14.5px;margin:0;}
+  .quicknav{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}
+  .quicknav a{font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:var(--ink2);border:1px solid var(--line);border-radius:var(--radius-pill);padding:7px 13px;text-decoration:none;}
+  .quicknav a:hover{border-color:var(--ink2);color:var(--ink);}
   td{color:var(--ink2);}
 
   .product{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--card);overflow:hidden;margin-top:22px;}
@@ -95,11 +107,11 @@
 
   .feature-list{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:10px;}
   .feature-list li{display:flex;gap:10px;font-size:14.5px;color:var(--ink2);line-height:1.5;}
-  .feature-list li::before{content:"—";flex:none;color:var(--orange);font-weight:700;}
+  .feature-list li::before{content:"—";flex:none;color:var(--acc);font-weight:700;}
 
   .phases{margin-top:22px;border-top:1px solid var(--line-soft);}
   .phase-row{display:flex;gap:16px;padding:13px 0;border-bottom:1px solid var(--line-soft);align-items:baseline;}
-  .phase-num{font-family:var(--mono);font-size:12px;color:var(--orange);font-weight:700;min-width:84px;flex:none;letter-spacing:.02em;}
+  .phase-num{font-family:var(--mono);font-size:12px;color:var(--acc);font-weight:700;min-width:84px;flex:none;letter-spacing:.02em;}
   .phase-txt{font-size:13.5px;color:var(--ink2);line-height:1.5;}
   .phase-txt b{color:var(--ink);}
 
@@ -110,9 +122,9 @@
     cursor:pointer;font-family:inherit;transition:transform .15s ease;
   }
   .btn:hover{transform:translateY(-1px);}
-  .btn-solid{background:var(--orange);color:#0d0d0f;}
+  .btn-solid{background:var(--acc);color:#0d0d0f;}
   .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink);}
-  .btn-ghost:hover{border-color:var(--orange);color:var(--orange);}
+  .btn-ghost:hover{border-color:var(--acc);color:var(--acc);}
   .cta-note{font-size:12.5px;color:var(--ink3);}
 
   .price-badge{
@@ -121,7 +133,7 @@
     padding:7px 13px;font-variant-numeric:tabular-nums;
   }
   .price-was{font-family:var(--mono);font-size:13px;color:var(--ink3);text-decoration:line-through;font-variant-numeric:tabular-nums;margin-right:8px;}
-  .price-off{font-family:var(--mono);font-weight:700;font-size:11.5px;color:var(--orange);margin-left:8px;}
+  .price-off{font-family:var(--mono);font-weight:700;font-size:11.5px;color:var(--acc);margin-left:8px;}
 
   .disclaimer{
     margin-top:22px;padding:14px 16px;border-radius:12px;
@@ -148,16 +160,22 @@
 
 <div class="top">
   <div class="top-inner">
-    <span class="brand">ТІЗЕ</span>
-    <a class="top-cta" href="#get">Получить доступ</a>
+    <span class="brand">Программы для тела</span>
+    <a class="top-cta" href="#tize">Получить доступ</a>
   </div>
 </div>
 
 <header class="hero">
   <div class="wrap">
-    <span class="eyebrow">Программа для колена · 4 недели · нейро-ОФП</span>
-    <h1>Восстановление колена и его профилактика через нейро-ОФП</h1>
-    <p class="lede"><i>каз. «колено»</i> — прогрессивная программа укрепления и восстановления коленных суставов. Не одна программа для всех, а три — под конкретный возраст и уровень нагрузки.</p>
+    <span class="eyebrow">4 программы · колено, скорость, стопа, мобильность</span>
+    <h1>ТІЗЕ, Взрывная скорость, ТАБАН и RESET</h1>
+    <p class="lede">Четыре прогрессивные программы для тела — каждая со своей задачей и уровнем нагрузки: восстановление и профилактика травм колена, стартовая скорость для футболиста, гимнастика для стоп детям и недельный цикл мобильности для танцора.</p>
+    <div class="quicknav">
+      <a href="#tize">ТІЗЕ</a>
+      <a href="#speed">Взрывная скорость</a>
+      <a href="#taban">ТАБАН</a>
+      <a href="#dancer">RESET</a>
+    </div>
   </div>
 </header>
 
@@ -235,9 +253,119 @@
   </div>
 </section>
 
+<section id="speed">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Программа для футболиста · 8 недель</span>
+      <h2>Взрывная скорость</h2>
+      <p>Развитие стартовой и дистанционной скорости: 3 тренировки в неделю, минимум 48 часов между занятиями, с контрольными замерами в конце.</p>
+    </div>
+
+    <div class="product acc-cyan reveal">
+      <div class="product-top">
+        <div class="product-meta">
+          <span class="meta-item">Длительность: <b>8 недель</b></span>
+          <span class="meta-item">Тренировок: <b>3 в неделю</b></span>
+        </div>
+        <span class="price-badge">9 990 ₸</span>
+      </div>
+      <div class="product-body">
+        <h3>От адаптации до игровой скорости</h3>
+        <p class="product-desc">
+          Нагрузка нарастает от нервно-мышечной адаптации до пиковой игровой скорости. В программе — гайд по циклу тренировок, раздел «⚡ Питание и добавки» и контрольные тесты на 10 и 30 метров, чтобы видеть реальный результат.
+        </p>
+        <div class="phases">
+          <div class="phase-row"><div class="phase-num">НЕД. 1–2</div><div class="phase-txt"><b>Адаптация</b> — координация старта, реакция, техника отталкивания</div></div>
+          <div class="phase-row"><div class="phase-num">НЕД. 3–4</div><div class="phase-txt"><b>Наращивание объёма</b> — растёт мощность отталкивания, старты резче</div></div>
+          <div class="phase-row"><div class="phase-num">НЕД. 5–6</div><div class="phase-txt"><b>Интенсификация</b> — плиометрика и сила дают суммарный эффект</div></div>
+          <div class="phase-row"><div class="phase-num">НЕД. 7–8</div><div class="phase-txt"><b>Пик и тест</b> — резкость воспроизводится в игре, замеры 10 и 30 м</div></div>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-solid" id="cta-speed" href="#" target="_blank" rel="noopener">Написать в WhatsApp — 9 990 ₸</a>
+          <span class="cta-note">Код доступа приходит в WhatsApp после оплаты</span>
+        </div>
+        <div class="disclaimer">⚠️ Программа не заменяет медицинский осмотр. При травмах или хронических заболеваниях суставов и мышц проконсультируйся с врачом перед началом.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="taban">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Гимнастика для стоп · 4 недели · дети 6-12 лет</span>
+      <h2>ТАБАН</h2>
+      <p><i>каз. «табан»</i> — стопа, подошва. Тесты подвижности стопы, укрепление свода и баланс для юных спортсменов — с чётким критерием «прошёл / не прошёл» по итогам каждой недели.</p>
+    </div>
+
+    <div class="product acc-mint reveal">
+      <div class="product-top">
+        <div class="product-meta">
+          <span class="meta-item">Длительность: <b>4 недели</b></span>
+          <span class="meta-item">Возраст: <b>6-12 лет</b></span>
+        </div>
+      </div>
+      <div class="product-body">
+        <h3>Диагностика и прогресс по неделям</h3>
+        <p class="product-desc">
+          Каждая неделя заканчивается тестом с понятным критерием «прошёл / не прошёл» — не прошёл, можно повторить неделю ещё раз, в этом возрасте это нормально. Устанавливается на экран телефона одним нажатием, после первого захода работает без интернета.
+        </p>
+        <div class="phases">
+          <div class="phase-row"><div class="phase-num">НЕДЕЛЯ 1</div><div class="phase-txt"><b>Диагностика</b> — тесты подвижности и знакомство со стопой</div></div>
+          <div class="phase-row"><div class="phase-num">НЕДЕЛЯ 2</div><div class="phase-txt"><b>Свод и гибкость</b> — короткая стопа, растяжка, гусеничка</div></div>
+          <div class="phase-row"><div class="phase-num">НЕДЕЛЯ 3</div><div class="phase-txt"><b>Сила и баланс</b> — подъёмы на носки, равновесие</div></div>
+          <div class="phase-row"><div class="phase-num">НЕДЕЛЯ 4</div><div class="phase-txt"><b>Перенос в движение</b> — баланс с закрытыми глазами, приземления</div></div>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-solid" href="https://yerzhan12-commits.github.io/taban-app/" target="_blank" rel="noopener">Открыть ТАБАН →</a>
+          <span class="cta-note">Бесплатно, открывается сразу в браузере</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="dancer">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Мобильность и расслабление · для танцора</span>
+      <h2>RESET</h2>
+      <p>Еженедельный цикл для танцора: ТБС и голеностоп по будням, работа над осанкой, лёгкий день и полноценный отдых — чтобы тело успевало восстанавливаться между тренировками, а не копило усталость.</p>
+    </div>
+
+    <div class="product acc-violet reveal">
+      <div class="product-top">
+        <div class="product-meta">
+          <span class="meta-item">Формат: <b>недельный цикл</b></span>
+          <span class="meta-item">Фокус: <b>ТБС, голеностоп, осанка</b></span>
+        </div>
+      </div>
+      <div class="product-body">
+        <h3>Как устроена неделя</h3>
+        <p class="product-desc">
+          Нагрузка чередуется по будням, а не идёт подряд — с обязательным днём восстановления и днём отдыха, чтобы мобильность нарабатывалась без хронической усталости в теле.
+        </p>
+        <div class="phases">
+          <div class="phase-row"><div class="phase-num">ПН</div><div class="phase-txt"><b>ТБС или голеностоп</b> — 8 упражнений, 40-50 мин с разминкой/заминкой</div></div>
+          <div class="phase-row"><div class="phase-num">ВТ</div><div class="phase-txt"><b>По желанию</b> — 2 коротких упражнения, если есть 10 минут</div></div>
+          <div class="phase-row"><div class="phase-num">СР</div><div class="phase-txt"><b>Противоположный фокус</b> — то же самое, только голеностоп или ТБС наоборот</div></div>
+          <div class="phase-row"><div class="phase-num">ЧТ</div><div class="phase-txt"><b>Осанка</b> — полный блок целиком, без разминки/заминки, ~12 мин</div></div>
+          <div class="phase-row"><div class="phase-num">ПТ</div><div class="phase-txt"><b>Всё вместе</b> — понемногу каждого фокуса, 8 упражнений</div></div>
+          <div class="phase-row"><div class="phase-num">СБ</div><div class="phase-txt"><b>Восстановление</b> — без тренировки, только расслабление</div></div>
+          <div class="phase-row"><div class="phase-num">ВС</div><div class="phase-txt"><b>Отдых</b> — максимум пара коротких упражнений</div></div>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-solid" href="https://yerzhan12-commits.github.io/dancer-reset/" target="_blank" rel="noopener">Открыть RESET →</a>
+          <span class="cta-note">Бесплатно, открывается сразу в браузере</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
-    <div class="footer-note">ТІЗЕ — программа для восстановления и профилактики травм колена · <a href="https://wa.me/77020252932" style="text-decoration:underline;">+7 702 025 29 32</a></div>
+    <div class="footer-note">ТІЗЕ, Взрывная скорость, ТАБАН, RESET — программы для тела · <a href="https://wa.me/77020252932" style="text-decoration:underline;">+7 702 025 29 32</a></div>
   </div>
 </footer>
 
@@ -249,6 +377,7 @@
   document.getElementById("cta-tize").href   = waLink("Здравствуйте! Хочу купить программу ТІЗЕ (базовая версия).");
   document.getElementById("cta-tize50").href = waLink("Здравствуйте! Хочу купить программу ТІЗЕ 50+.");
   document.getElementById("cta-tize60").href = waLink("Здравствуйте! Хочу купить программу ТІЗЕ 60+.");
+  document.getElementById("cta-speed").href  = waLink("Здравствуйте! Хочу купить программу «Взрывная скорость».");
 
   if ("IntersectionObserver" in window){
     var io = new IntersectionObserver(function(entries){
