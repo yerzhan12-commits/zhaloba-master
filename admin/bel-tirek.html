@@ -5,134 +5,142 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>БЕЛ-ТІРЕК — коды доступа</title>
 <style>
-  body{font-family:-apple-system,sans-serif;background:#0d0d0d;color:#fff;padding:16px;max-width:520px;margin:0 auto;}
-  h1{font-size:18px;color:#7fc7b4;margin:24px 0 4px;}
-  .sub{color:#898781;font-size:13px;margin-bottom:20px;}
-  .card{background:#1a1a19;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:16px;}
-  label{display:block;font-size:12px;color:#898781;margin-bottom:4px;}
-  input{width:100%;padding:11px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:9px;
-    font-size:14px;background:#111;color:#fff;margin-bottom:12px;box-sizing:border-box;}
-  button{padding:11px 18px;border:none;border-radius:9px;background:#7fc7b4;color:#0d0d0f;
-    font-size:14px;font-weight:700;cursor:pointer;}
-  button:disabled{opacity:0.5;}
-  button.ghost{background:none;border:1px solid rgba(255,255,255,0.15);color:#fff;font-weight:600;padding:7px 12px;font-size:12.5px;}
-  .msg{font-size:13px;margin-top:10px;display:none;}
-  .msg.err{color:#e66767;}
-  .msg.ok{color:#8bb35e;}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.08);}
-  th{color:#898781;font-weight:600;font-size:11.5px;text-transform:uppercase;}
-  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;}
-  .dot.on{background:#8bb35e;}
-  .dot.off{background:#898781;}
-  .row-actions button{margin-right:6px;}
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,sans-serif;background:#0d0d0d;color:#fff;padding:16px;max-width:640px;margin:0 auto;}
+  h1{font-size:19px;color:#3987e5;margin:24px 0 4px;}
+  .sub{font-size:13px;color:#8a8a86;margin-bottom:20px;}
+  .card{background:#18181b;border:1px solid #2a2a2e;border-radius:12px;padding:16px;margin-bottom:16px;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;}
+  input{flex:1;min-width:140px;padding:11px 13px;border:1px solid rgba(255,255,255,0.1);border-radius:9px;
+    font-size:14px;background:#1a1a19;color:#fff;}
+  button{padding:11px 16px;border:none;border-radius:9px;background:#3987e5;color:#fff;
+    font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  button:disabled{opacity:0.5;cursor:default;}
+  button.ghost{background:transparent;border:1px solid #3a3a3e;color:#c8c6c0;}
+  button.danger{background:transparent;border:1px solid rgba(230,103,103,.4);color:#e66767;}
+  table{width:100%;border-collapse:collapse;margin-top:4px;}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #232326;font-size:13.5px;}
+  th{color:#8a8a86;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;}
+  td.code{font-family:ui-monospace,monospace;color:#e0e0dc;}
+  .badge{font-size:11px;padding:3px 9px;border-radius:100px;font-weight:600;}
+  .badge.active{background:rgba(62,207,158,.15);color:#3ecf9e;}
+  .badge.free{background:rgba(255,255,255,.08);color:#8a8a86;}
+  .error{color:#e66767;font-size:13px;margin-top:10px;}
+  .empty{color:#8a8a86;font-size:13px;padding:12px 0;}
   .top-row{display:flex;justify-content:space-between;align-items:center;}
-  .logout-btn{background:none;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#c3c2b7;font-size:12px;padding:6px 12px;cursor:pointer;}
+  .logout{font-size:12.5px;color:#8a8a86;text-decoration:none;}
 </style>
 </head>
 <body>
-  <div class="top-row">
-    <h1>БЕЛ-ТІРЕК — коды доступа</h1>
-    <button type="button" class="logout-btn" id="logout-btn">Выйти</button>
-  </div>
-  <div class="sub">Один код активируется на первом устройстве, которое его ввело. Остальные попытки с других устройств отклоняются автоматически.</div>
 
-  <div class="card">
-    <label for="code">Код (латиницей/цифрами, без пробелов)</label>
-    <input type="text" id="code" placeholder="Например ERZHAN" autocapitalize="characters">
-    <label for="name">Имя владельца кода</label>
-    <input type="text" id="name" placeholder="Например Ержан">
-    <button type="button" id="add-btn">Выдать код</button>
-    <div class="msg" id="add-msg"></div>
-  </div>
+<div class="top-row">
+  <h1>БЕЛ-ТІРЕК — коды доступа</h1>
+  <a class="logout" href="#" id="logout-link">Выйти</a>
+</div>
+<div class="sub">Один код = одно устройство. Сброс отвязывает код от устройства, но не удаляет его.</div>
 
-  <div class="card">
-    <div class="top-row" style="margin-bottom:10px;">
-      <b style="font-size:14px;">Все коды</b>
-      <button type="button" class="ghost" id="refresh-btn">Обновить</button>
-    </div>
-    <table id="codes-table">
-      <thead><tr><th>Код</th><th>Имя</th><th>Статус</th><th></th></tr></thead>
-      <tbody id="codes-body"><tr><td colspan="4" style="color:#898781;">Загрузка...</td></tr></tbody>
-    </table>
+<div class="card">
+  <div class="row">
+    <input type="text" id="new-name" placeholder="Имя клиента">
+    <input type="text" id="new-code" placeholder="Код (пусто = сгенерировать)">
+    <button id="add-btn">Добавить</button>
   </div>
+  <div class="error" id="add-error" style="display:none;"></div>
+</div>
+
+<div class="card">
+  <table id="codes-table">
+    <thead><tr><th>Код</th><th>Имя</th><th>Статус</th><th></th></tr></thead>
+    <tbody id="codes-body"></tbody>
+  </table>
+  <div class="empty" id="empty-msg" style="display:none;">Кодов пока нет.</div>
+</div>
 
 <script>
-const ENDPOINT = '/api/bel-tirek/admin';
+function genCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = 'BT-';
+  for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+document.getElementById('new-code').placeholder = 'Код (пусто = ' + genCode() + ')';
 
-async function call(action, extra){
-  const res = await fetch(ENDPOINT, {
+async function api(action, extra){
+  const res = await fetch('/api/bel-tirek/admin', {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    credentials: 'include',
-    body: JSON.stringify({action, ...extra})
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Object.assign({ action }, extra)),
   });
-  if (res.status === 403){
+  if (res.status === 403) {
     window.location.href = '/admin/login.html?next=' + encodeURIComponent('/admin/bel-tirek.html');
-    throw new Error('redirecting');
+    throw new Error('forbidden');
   }
   return res.json();
 }
 
-function showMsg(el, text, ok){
-  el.textContent = text;
-  el.className = 'msg ' + (ok ? 'ok' : 'err');
-  el.style.display = 'block';
+function escapeHtml(str){
+  return String(str || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 async function loadCodes(){
+  const data = await api('list');
   const body = document.getElementById('codes-body');
-  body.innerHTML = '<tr><td colspan="4" style="color:#898781;">Загрузка...</td></tr>';
-  try{
-    const data = await call('list');
-    if (!data.ok){ body.innerHTML = '<tr><td colspan="4">Ошибка загрузки</td></tr>'; return; }
-    if (!data.codes.length){ body.innerHTML = '<tr><td colspan="4" style="color:#898781;">Пока нет ни одного кода.</td></tr>'; return; }
-    body.innerHTML = data.codes.map(c => `
-      <tr>
-        <td>${c.code}</td>
-        <td>${c.name}</td>
-        <td><span class="dot ${c.active ? 'on' : 'off'}"></span>${c.active ? 'активирован' : 'ещё не использован'}</td>
-        <td class="row-actions">${c.active ? `<button class="ghost" data-reset="${c.code}">Сбросить</button>` : ''}</td>
-      </tr>
-    `).join('');
-    body.querySelectorAll('[data-reset]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        await call('reset', {code: btn.dataset.reset});
-        loadCodes();
-      });
+  const empty = document.getElementById('empty-msg');
+  if (!data.ok || !data.codes || !data.codes.length) {
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = data.codes.map((c) => `
+    <tr>
+      <td class="code">${escapeHtml(c.code)}</td>
+      <td>${escapeHtml(c.name)}</td>
+      <td><span class="badge ${c.active ? 'active' : 'free'}">${c.active ? 'активирован' : 'свободен'}</span></td>
+      <td><button class="ghost reset-btn" data-code="${escapeHtml(c.code)}" ${c.active ? '' : 'disabled'}>Сбросить</button></td>
+    </tr>
+  `).join('');
+
+  body.querySelectorAll('.reset-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await api('reset', { code: btn.dataset.code });
+      loadCodes();
     });
-  }catch(e){ /* redirect already handled */ }
+  });
 }
 
 document.getElementById('add-btn').addEventListener('click', async () => {
-  const code = document.getElementById('code').value.trim();
-  const name = document.getElementById('name').value.trim();
-  const msg = document.getElementById('add-msg');
-  if (!code || !name){ showMsg(msg, 'Заполните код и имя.', false); return; }
-  const btn = document.getElementById('add-btn');
-  btn.disabled = true;
-  try{
-    const data = await call('add', {code, name});
-    if (data.ok){
-      showMsg(msg, `Код ${data.code} выдан для ${data.name}.`, true);
-      document.getElementById('code').value = '';
-      document.getElementById('name').value = '';
-      loadCodes();
-    } else {
-      showMsg(msg, 'Не получилось: ' + data.error, false);
-    }
-  }catch(e){ /* redirect already handled */ }
-  btn.disabled = false;
+  const nameEl = document.getElementById('new-name');
+  const codeEl = document.getElementById('new-code');
+  const errEl = document.getElementById('add-error');
+  const name = nameEl.value.trim();
+  const code = codeEl.value.trim() || genCode();
+  errEl.style.display = 'none';
+  if (!name) {
+    errEl.textContent = 'Введите имя клиента';
+    errEl.style.display = 'block';
+    return;
+  }
+  const data = await api('add', { name, code });
+  if (!data.ok) {
+    errEl.textContent = 'Не удалось добавить код';
+    errEl.style.display = 'block';
+    return;
+  }
+  nameEl.value = '';
+  codeEl.value = '';
+  codeEl.placeholder = 'Код (пусто = ' + genCode() + ')';
+  loadCodes();
 });
 
-document.getElementById('refresh-btn').addEventListener('click', loadCodes);
-document.getElementById('logout-btn').addEventListener('click', async () => {
+document.getElementById('logout-link').addEventListener('click', async (e) => {
+  e.preventDefault();
   await fetch('/api/auth?action=logout', { method: 'POST' });
   window.location.href = '/admin/login.html';
 });
 
-loadCodes();
+loadCodes().catch(() => {});
 </script>
 </body>
 </html>
