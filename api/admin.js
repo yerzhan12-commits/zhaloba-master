@@ -150,7 +150,7 @@ module.exports = async (req, res) => {
   ${feedbackRows || '<p>Пока пусто.</p>'}
 <script>
 document.getElementById('logout-btn').addEventListener('click', async () => {
-  await fetch('/api/auth/logout', { method: 'POST' });
+  await fetch('/api/auth?action=logout', { method: 'POST' });
   window.location.href = '/admin/login.html';
 });
 </script>
