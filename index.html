@@ -278,6 +278,7 @@
       <h2 data-i18n="modeTitle">Что вы хотите сделать?</h2>
       <div class="lang-row">
         <button class="lang-btn" id="mode-complaint" data-i18n="modeComplaint">Составить обращение</button>
+        <button class="lang-btn" id="mode-lawsuit" data-i18n="modeLawsuit">Составить административный иск</button>
         <button class="lang-btn" id="mode-review" data-i18n="modeReview">Проверить полученный ответ</button>
       </div>
     </div>
@@ -561,6 +562,7 @@ const STRINGS = {
     minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
     modeTitle: 'Что вы хотите сделать?',
     modeComplaint: 'Составить обращение',
+    modeLawsuit: 'Составить административный иск',
     modeReview: 'Проверить полученный ответ',
     reviewIntakeTitle: 'Что вы просили и что вам ответили',
     reviewIntakeDesc: 'Кратко опишите, что вы просили в своём обращении, и вставьте текст ответа, который получили от органа. Мастер проверит, законен ли этот ответ.',
@@ -592,6 +594,9 @@ const STRINGS = {
     intakeTitle: 'Опишите вашу ситуацию своими словами',
     intakeDesc: 'Что произошло, кто (какой орган/должностное лицо) причастен, чего вы хотите добиться. Мастер сам разберётся с формой и адресатом.',
     intakePlaceholder: 'Например: подал заявление в акимат месяц назад, ответа так и не получил...',
+    lawsuitIntakeTitle: 'Опишите ситуацию: что обжалуете и что уже сделано',
+    lawsuitIntakeDesc: 'Какой акт, действие или бездействие органа вы обжалуете, подавали ли уже жалобу вышестоящему органу и что вам ответили (или истёк ли срок ответа без результата). Мастер составит административный иск по требованиям АППК.',
+    lawsuitIntakePlaceholder: 'Например: подал жалобу в вышестоящий орган на отказ акимата в выделении земельного участка, ответ получил, но он меня не устраивает...',
     intakeSubmit: 'Продолжить',
     chatAnswerPlaceholder: 'Ваш ответ...',
     chatSubmit: 'Ответить',
@@ -684,6 +689,7 @@ const STRINGS = {
     minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
     modeTitle: 'Нені жасағыңыз келеді?',
     modeComplaint: 'Өтініш құрастыру',
+    modeLawsuit: 'Әкімшілік талап-арыз құрастыру',
     modeReview: 'Алынған жауапты тексеру',
     reviewIntakeTitle: 'Не сұрадыңыз және сізге не деп жауап берді',
     reviewIntakeDesc: 'Өтінішіңізде нені сұрағаныңызды қысқаша жазыңыз және органнан алған жауап мәтінін енгізіңіз. Шебер бұл жауаптың заңды екенін тексереді.',
@@ -715,6 +721,9 @@ const STRINGS = {
     intakeTitle: 'Жағдайыңызды өз сөзіңізбен сипаттаңыз',
     intakeDesc: 'Не болды, қандай орган/лауазымды тұлға қатысты, нені қалайтыныңызды жазыңыз. Шебер нысаны мен адресатын өзі анықтайды.',
     intakePlaceholder: 'Мысалы: бір ай бұрын әкімдікке өтініш бердім, жауап әлі алған жоқпын...',
+    lawsuitIntakeTitle: 'Жағдайды сипаттаңыз: нені даулайсыз және не істелді',
+    lawsuitIntakeDesc: 'Органның қандай актісін, әрекетін немесе әрекетсіздігін даулайсыз, жоғары тұрған органға шағым бердіңіз бе және қандай жауап алдыңыз (немесе жауап мерзімі нәтижесіз өтіп кетті ме). Шебер АППК талаптарына сай әкімшілік талап-арыз құрастырады.',
+    lawsuitIntakePlaceholder: 'Мысалы: жоғары тұрған органға әкімдіктің жер учаскесін бөлуден бас тартуына шағым бердім, жауап алдым, бірақ маған қанағаттанарлық емес...',
     intakeSubmit: 'Жалғастыру',
     chatAnswerPlaceholder: 'Жауабыңыз...',
     chatSubmit: 'Жауап беру',
@@ -932,10 +941,11 @@ function applyLang(lang){
 
 function applyMode(){
   const isReview = state.mode === 'review';
-  document.getElementById('intake-title-el').textContent = t(isReview ? 'reviewIntakeTitle' : 'intakeTitle');
-  document.getElementById('intake-desc-el').textContent = t(isReview ? 'reviewIntakeDesc' : 'intakeDesc');
-  document.getElementById('intake-text').setAttribute('placeholder', t(isReview ? 'reviewIntakePlaceholder' : 'intakePlaceholder'));
-  document.getElementById('example-row').style.display = isReview ? 'none' : 'flex';
+  const isLawsuit = state.mode === 'lawsuit';
+  document.getElementById('intake-title-el').textContent = t(isReview ? 'reviewIntakeTitle' : isLawsuit ? 'lawsuitIntakeTitle' : 'intakeTitle');
+  document.getElementById('intake-desc-el').textContent = t(isReview ? 'reviewIntakeDesc' : isLawsuit ? 'lawsuitIntakeDesc' : 'intakeDesc');
+  document.getElementById('intake-text').setAttribute('placeholder', t(isReview ? 'reviewIntakePlaceholder' : isLawsuit ? 'lawsuitIntakePlaceholder' : 'intakePlaceholder'));
+  document.getElementById('example-row').style.display = (isReview || isLawsuit) ? 'none' : 'flex';
 }
 
 function compressImage(file){
@@ -1908,6 +1918,13 @@ document.getElementById('mode-complaint').addEventListener('click', () => {
   showScreen('intake');
 });
 
+document.getElementById('mode-lawsuit').addEventListener('click', () => {
+  state.mode = 'lawsuit';
+  applyMode();
+  restoreDraft();
+  showScreen('intake');
+});
+
 document.getElementById('mode-review').addEventListener('click', () => {
   state.mode = 'review';
   applyMode();
@@ -1969,7 +1986,7 @@ document.getElementById('restore-show-btn').addEventListener('click', () => {
   if (saved.mode === 'review') {
     showReviewResult(saved.result);
   } else {
-    state.mode = 'complaint';
+    state.mode = saved.mode === 'lawsuit' ? 'lawsuit' : 'complaint';
     state.pendingResult = saved.result;
     showResult(saved.result);
   }
