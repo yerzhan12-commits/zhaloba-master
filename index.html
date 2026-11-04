@@ -1927,7 +1927,7 @@ document.getElementById('paywall-admin-btn').addEventListener('click', async () 
   const btn = document.getElementById('paywall-admin-btn');
   btn.disabled = true;
   try {
-    const res = await fetch('/api/admin-unlock', {
+    const res = await fetch('/api/history-item', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Admin-Token': token },
       body: JSON.stringify({ resultId: state.pendingResult.resultId }),
