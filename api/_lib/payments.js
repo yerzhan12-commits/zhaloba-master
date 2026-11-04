@@ -5,6 +5,19 @@ const PRICE_KZT = 4900;
 const RESULT_TTL_SECONDS = 60 * 60 * 24 * 5; // 5 дней — пользователь должен быть предупреждён об этом в интерфейсе
 const HISTORY_MAX_ITEMS = 30; // максимум записей "Моих обращений" на устройство
 
+// Поля, которые видно ДО оплаты — доказывают человеку, что ИИ реально
+// разобрался в его ситуации (куда/почему/сроки/как подать/самопроверка),
+// но не отдают сам готовый текст и список доказательств — ради них и платят.
+const PREVIEW_FIELDS = ['category', 'addressee', 'addresseeReasoning', 'deadlines', 'howToSubmit', 'draftQualityCheck'];
+
+function pickPreviewFields(result) {
+  const out = {};
+  for (const key of PREVIEW_FIELDS) {
+    if (result && result[key] !== undefined) out[key] = result[key];
+  }
+  return out;
+}
+
 function resultKey(resultId) {
   return `result:${resultId}`;
 }
@@ -128,6 +141,8 @@ async function markOrderFailed(orderId) {
 module.exports = {
   PRICE_KZT,
   RESULT_TTL_SECONDS,
+  PREVIEW_FIELDS,
+  pickPreviewFields,
   lockResultForPayment,
   getResult,
   saveResult,

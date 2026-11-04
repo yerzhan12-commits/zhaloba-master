@@ -1,6 +1,6 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { kv } = require('@vercel/kv');
-const { lockResultForPayment, PRICE_KZT } = require('./_lib/payments');
+const { lockResultForPayment, PRICE_KZT, pickPreviewFields } = require('./_lib/payments');
 const { getBankruptcyThresholdText, getSpousalLoanConsentThresholdText } = require('./_lib/thresholds');
 
 const SYSTEM_PROMPT = `Ты — помощник, который на основе практики работы отдела по работе с обращениями органов прокуратуры Республики Казахстан помогает обычным гражданам (не юристам) правильно оформить жалобу или обращение в государственный орган.
@@ -609,9 +609,11 @@ module.exports = async (req, res) => {
           });
           parsed.resultId = resultId;
           parsed.unlocked = false;
-          // Составление обращения всегда платное — отдаём только категорию,
-          // остальное открывается после оплаты.
-          parsed.result = { category: parsed.result.category };
+          // Составление обращения всегда платное — но часть полей отдаём сразу
+          // (куда/почему/сроки/как подать/самопроверка), чтобы человек видел,
+          // что ИИ разобрался именно в его ситуации, прежде чем платить.
+          // Сам текст обращения/иска и список доказательств — только после оплаты.
+          parsed.result = pickPreviewFields(parsed.result);
           parsed.priceKzt = PRICE_KZT;
         } catch (gateErr) {
           console.error('payment gate error:', gateErr);

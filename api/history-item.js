@@ -1,4 +1,4 @@
-const { getResult, PRICE_KZT } = require('./_lib/payments');
+const { getResult, PRICE_KZT, pickPreviewFields } = require('./_lib/payments');
 
 // Полная карточка одного прошлого обращения из истории — доступна только тому
 // же устройству, которое её создало (сверяем deviceId, сохранённый вместе с
@@ -25,10 +25,10 @@ module.exports = async (req, res) => {
     }
 
     // Хранилище держит полный результат даже для неоплаченных записей (см.
-    // api/wizard.js — там же обрезается только ответ клиенту), поэтому здесь
-    // так же нужно урезать до category, иначе неоплаченная запись из истории
-    // отдаст черновик в обход пейволла.
-    const payload = stored.unlocked ? stored.result : { category: stored.result && stored.result.category };
+    // api/wizard.js — там же обрезается ответ клиенту), поэтому здесь так же
+    // нужно урезать до превью-полей, иначе неоплаченная запись из истории
+    // отдаст готовый текст обращения в обход пейволла.
+    const payload = stored.unlocked ? stored.result : pickPreviewFields(stored.result);
 
     res.status(200).json({
       resultId,

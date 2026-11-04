@@ -28,7 +28,19 @@
     background:var(--page);
     color:var(--ink);
   }
-  .app{max-width:520px;margin:0 auto;padding:20px 16px 40px;min-height:100vh;}
+  /* Еле заметные юридические силуэты на чёрном фоне — чисто декоративные,
+     не мешают чтению (очень низкая непрозрачность, не анимированы, не
+     перехватывают клики), видны только на достаточно широких экранах. */
+  .bg-deco{
+    position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  }
+  .bg-deco svg{position:absolute;opacity:0.05;}
+  .bg-deco .scales{top:-40px;right:-60px;width:360px;height:360px;transform:rotate(8deg);}
+  .bg-deco .paragraph{bottom:-70px;left:-40px;font-size:420px;line-height:1;
+    font-family:Georgia,'Times New Roman',serif;color:var(--blue);opacity:0.045;
+    position:absolute;user-select:none;}
+  @media (max-width:640px){ .bg-deco{display:none;} }
+  .app{max-width:520px;margin:0 auto;padding:20px 16px 40px;min-height:100vh;position:relative;z-index:1;}
   header{padding:8px 4px 20px;text-align:center;}
   header h1{font-size:22px;color:var(--blue);}
   header .subtitle{font-size:13px;color:var(--muted);margin-top:4px;}
@@ -226,6 +238,18 @@
 </style>
 </head>
 <body>
+<div class="bg-deco" aria-hidden="true">
+  <svg class="scales" viewBox="0 0 200 200" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="100" y1="20" x2="100" y2="150"/>
+    <line x1="40" y1="55" x2="160" y2="55"/>
+    <path d="M40 55 L20 100 a22 22 0 0 0 40 0 Z"/>
+    <path d="M160 55 L140 100 a22 22 0 0 0 40 0 Z"/>
+    <line x1="75" y1="150" x2="125" y2="150"/>
+    <line x1="100" y1="150" x2="100" y2="170"/>
+    <line x1="65" y1="180" x2="135" y2="180"/>
+  </svg>
+  <div class="paragraph">§</div>
+</div>
 <div class="app">
   <header>
     <h1 data-i18n="appTitle">Жалоба</h1>
@@ -357,16 +381,54 @@
     </div>
   </div>
 
+  <!-- Экран 3.4: превью — открытые поля до оплаты -->
+  <div class="screen" id="screen-preview">
+    <div class="card result-card">
+      <h2 data-i18n="previewTitle">Мы разобрались в вашей ситуации</h2>
+      <p class="muted" data-i18n="previewDesc" style="margin-top:-4px;">Вот что уже понятно — прежде чем платить.</p>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="resultAddressee">Куда подавать</h2>
+      <div class="result-value" id="preview-addressee"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="resultAddresseeReasoning">Почему именно туда</h2>
+      <div class="result-value" id="preview-addressee-reasoning"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="resultDeadlines">Сроки</h2>
+      <div class="result-value" id="preview-deadlines"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="resultHowToSubmit">Как подать</h2>
+      <div class="result-value" id="preview-how-to-submit"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="resultQualityCheck">Проверка полноты готового текста</h2>
+      <div class="result-value" id="preview-quality-check"></div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="previewLockedTitle">Осталось получить сам текст</h2>
+      <p class="muted" data-i18n="previewLockedDesc">Готовый текст, который можно сразу подавать, и список доказательств, которые стоит собрать, — откроются после оплаты.</p>
+      <button class="btn-primary" id="preview-continue-btn"><span data-i18n="previewContinueBtn">Получить готовый текст</span> <span id="preview-price"></span></button>
+      <button class="btn-secondary" id="preview-home-btn" style="margin-top:8px;" data-i18n="paywallHomeBtn">На главную</button>
+    </div>
+  </div>
+
   <!-- Экран 3.5: оплата (составление обращения всегда платное) -->
   <div class="screen" id="screen-paywall">
     <div class="card">
       <h2 data-i18n="paywallTitle">Ваше обращение готово!</h2>
       <p class="muted" data-i18n="paywallDesc">Составление обращения платное. Оплатите, чтобы открыть:</p>
       <ul style="margin:12px 0 4px 20px;font-size:14px;line-height:1.7;color:var(--ink2);">
-        <li data-i18n="paywallBullet1">Куда именно подавать обращение</li>
-        <li data-i18n="paywallBullet2">Готовый текст обращения</li>
-        <li data-i18n="paywallBullet3">Какие доказательства собрать</li>
-        <li data-i18n="paywallBullet4">Сроки рассмотрения и как подать</li>
+        <li data-i18n="paywallBullet1">Готовый текст, который можно сразу подавать</li>
+        <li data-i18n="paywallBullet2">Список доказательств, которые стоит собрать</li>
       </ul>
       <div class="price-anchor">
         <span class="price-anchor-old" data-i18n="priceAnchorLawyer">У юриста — от 15 000 ₸</span>
@@ -426,10 +488,10 @@
     </div>
 
     <div class="card result-card">
-      <h2 data-i18n="resultDraft">Черновик обращения</h2>
+      <h2 data-i18n="resultDraft">Готовый текст обращения</h2>
       <div class="result-value" id="result-draft"></div>
       <div class="result-actions">
-        <button class="btn-secondary" id="copy-draft-btn" data-i18n="copyDraft">📋 Скопировать черновик</button>
+        <button class="btn-secondary" id="copy-draft-btn" data-i18n="copyDraft">📋 Скопировать текст</button>
         <button class="btn-secondary" id="download-doc-btn" data-i18n="downloadDoc">💾 Скачать как .doc</button>
       </div>
       <button class="btn-secondary" id="print-result-btn" data-i18n="printPdf">🖨️ Сохранить как PDF</button>
@@ -452,7 +514,7 @@
     </div>
 
     <div class="card result-card">
-      <h2 data-i18n="resultQualityCheck">Проверка полноты черновика</h2>
+      <h2 data-i18n="resultQualityCheck">Проверка полноты готового текста</h2>
       <div class="result-value" id="result-quality-check"></div>
     </div>
 
@@ -475,7 +537,7 @@
       <div class="muted" id="feedback-thanks" style="display:none;" data-i18n="feedbackThanks">Спасибо за отзыв!</div>
     </div>
 
-    <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
+    <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: текст сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
     <button class="btn-secondary" id="restart-btn" data-i18n="restart">Начать заново</button>
   </div>
 
@@ -530,7 +592,7 @@
       <div class="muted" id="feedback-review-thanks" style="display:none;" data-i18n="feedbackThanks">Спасибо за отзыв!</div>
     </div>
 
-    <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
+    <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: текст сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
     <button class="btn-secondary" id="restart-review-btn" data-i18n="restart">Начать заново</button>
   </div>
 </div>
@@ -568,7 +630,7 @@ const STRINGS = {
     reviewIntakeDesc: 'Кратко опишите, что вы просили в своём обращении, и вставьте текст ответа, который получили от органа. Мастер проверит, законен ли этот ответ.',
     reviewIntakePlaceholder: 'Например: просил ремонт дороги во дворе, акимат ответил, что вопрос не в их компетенции...',
     resultEvidenceGuide: 'Какие доказательства собрать',
-    resultQualityCheck: 'Проверка полноты черновика',
+    resultQualityCheck: 'Проверка полноты готового текста',
     reviewMotivation: 'Мотивирован ли ответ',
     reviewDeadline: 'Соблюдены ли сроки',
     reviewArguments: 'Разобраны ли все ваши доводы',
@@ -620,14 +682,14 @@ const STRINGS = {
     resultHierarchy: 'Порядок обращения по АППК',
     resultResponseReq: 'Каким должен быть ответ',
     resultIfRedirected: 'Если вас отфутболят',
-    resultDraft: 'Черновик обращения',
+    resultDraft: 'Готовый текст обращения',
     resultDeadlines: 'Сроки',
     resultHowToSubmit: 'Как подать',
     openEotinish: '🌐 Открыть eOtinish.kz',
-    copyDraft: '📋 Скопировать черновик',
+    copyDraft: '📋 Скопировать текст',
     copyDraftDone: '✅ Скопировано!',
     downloadDoc: '💾 Скачать как .doc',
-    disclaimer: 'Дисклеймер: черновик сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.',
+    disclaimer: 'Дисклеймер: текст сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.',
     restart: 'Начать заново',
     errorServer: 'Сервер вернул ошибку: ',
     errorConnection: 'Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (',
@@ -637,14 +699,17 @@ const STRINGS = {
     intakeBackBtn: '← Назад',
     errorParse: 'Не удалось разобрать ответ мастера. Попробуйте ещё раз.',
     overrideBubblePrefix: 'Изменить категорию на: ',
+    previewTitle: 'Мы разобрались в вашей ситуации',
+    previewDesc: 'Вот что уже понятно — прежде чем платить.',
+    previewLockedTitle: 'Осталось получить сам текст',
+    previewLockedDesc: 'Готовый текст, который можно сразу подавать, и список доказательств, которые стоит собрать, — откроются после оплаты.',
+    previewContinueBtn: 'Получить готовый текст',
     paywallTitle: 'Ваше обращение готово!',
     paywallDesc: 'Составление обращения платное. Оплатите, чтобы открыть:',
     priceAnchorLawyer: 'У юриста — от 15 000 ₸',
     priceAnchorUs: 'У нас — 4 900 ₸',
-    paywallBullet1: 'Куда именно подавать обращение',
-    paywallBullet2: 'Готовый текст обращения',
-    paywallBullet3: 'Какие доказательства собрать',
-    paywallBullet4: 'Сроки рассмотрения и как подать',
+    paywallBullet1: 'Готовый текст, который можно сразу подавать',
+    paywallBullet2: 'Список доказательств, которые стоит собрать',
     paywallPayBtn: 'Оплатить',
     paywallError: 'Не удалось начать оплату: ',
     paywallFailed: 'Оплата не прошла. Попробуйте ещё раз.',
@@ -695,7 +760,7 @@ const STRINGS = {
     reviewIntakeDesc: 'Өтінішіңізде нені сұрағаныңызды қысқаша жазыңыз және органнан алған жауап мәтінін енгізіңіз. Шебер бұл жауаптың заңды екенін тексереді.',
     reviewIntakePlaceholder: 'Мысалы: аула жолын жөндеуді сұрадым, әкімдік бұл біздің құзыретімізде емес деп жауап берді...',
     resultEvidenceGuide: 'Қандай дәлелдер жинау керек',
-    resultQualityCheck: 'Жоба толықтығын тексеру',
+    resultQualityCheck: 'Дайын мәтін толықтығын тексеру',
     reviewMotivation: 'Жауап негізделген бе',
     reviewDeadline: 'Мерзімдер сақталды ма',
     reviewArguments: 'Барлық дәлелдеріңіз қаралды ма',
@@ -747,14 +812,14 @@ const STRINGS = {
     resultHierarchy: 'АППК бойынша жүгіну тәртібі',
     resultResponseReq: 'Жауап қандай болуы керек',
     resultIfRedirected: 'Егер басқа органға жіберсе',
-    resultDraft: 'Өтініш жобасы',
+    resultDraft: 'Дайын өтініш мәтіні',
     resultDeadlines: 'Мерзімдер',
     resultHowToSubmit: 'Қалай беру керек',
     openEotinish: '🌐 eOtinish.kz ашу',
-    copyDraft: '📋 Жобаны көшіру',
+    copyDraft: '📋 Мәтінді көшіру',
     copyDraftDone: '✅ Көшірілді!',
     downloadDoc: '💾 .doc түрінде жүктеу',
-    disclaimer: 'Дисклеймер: жобаны деректеріңіз негізінде жасанды интеллект жасады — бұл ресми заңгерлік кеңес емес және адвокатты алмастырмайды. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.',
+    disclaimer: 'Дисклеймер: мәтінді деректеріңіз негізінде жасанды интеллект жасады — бұл ресми заңгерлік кеңес емес және адвокатты алмастырмайды. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.',
     restart: 'Қайта бастау',
     errorServer: 'Сервер қате қайтарды: ',
     errorConnection: 'Серверге қосыла алмадық. Байланысты тексеріп, қайта көріңіз. (',
@@ -764,14 +829,17 @@ const STRINGS = {
     intakeBackBtn: '← Артқа',
     errorParse: 'Шебердің жауабын түсіндіру мүмкін болмады. Қайта көріңіз.',
     overrideBubblePrefix: 'Санатты мынаған өзгерту: ',
+    previewTitle: 'Жағдайыңызды анықтадық',
+    previewDesc: 'Төлеу алдында нақты не түсінікті болғанын көріңіз.',
+    previewLockedTitle: 'Мәтіннің өзін алу қалды',
+    previewLockedDesc: 'Бірден тапсыруға болатын дайын мәтін және жинау қажет дәлелдер тізімі — төлегеннен кейін ашылады.',
+    previewContinueBtn: 'Дайын мәтінді алу',
     paywallTitle: 'Өтінішіңіз дайын!',
     paywallDesc: 'Өтініш құрастыру ақылы. Мыналарды ашу үшін төлеңіз:',
     priceAnchorLawyer: 'Заңгерде — 15 000 ₸-ден бастап',
     priceAnchorUs: 'Бізде — 4 900 ₸',
-    paywallBullet1: 'Өтінішті нақты қайда беру керектігі',
-    paywallBullet2: 'Дайын өтініш мәтіні',
-    paywallBullet3: 'Қандай дәлелдер жинау керектігі',
-    paywallBullet4: 'Қарау мерзімдері және қалай беру керектігі',
+    paywallBullet1: 'Дайын мәтін — бірден тапсыруға болатын',
+    paywallBullet2: 'Жинау қажет дәлелдер тізімі',
     paywallPayBtn: 'Төлеу',
     paywallError: 'Төлемді бастау мүмкін болмады: ',
     paywallFailed: 'Төлем өтпеді. Қайта көріңіз.',
@@ -1072,6 +1140,7 @@ const screens = {
   intake: document.getElementById('screen-intake'),
   chat: document.getElementById('screen-chat'),
   confirm: document.getElementById('screen-confirm'),
+  preview: document.getElementById('screen-preview'),
   paywall: document.getElementById('screen-paywall'),
   paymentWait: document.getElementById('screen-payment-wait'),
   result: document.getElementById('screen-result'),
@@ -1287,6 +1356,17 @@ function showConfirmCategory(result){
   showScreen('confirm');
 }
 
+function showPreview(result){
+  state.pendingResult = result;
+  document.getElementById('preview-addressee').textContent = result.addressee || '—';
+  document.getElementById('preview-addressee-reasoning').textContent = result.addresseeReasoning || '—';
+  document.getElementById('preview-deadlines').textContent = result.deadlines || '—';
+  document.getElementById('preview-how-to-submit').textContent = result.howToSubmit || '—';
+  document.getElementById('preview-quality-check').textContent = result.draftQualityCheck || '—';
+  document.getElementById('preview-price').textContent = (result.priceKzt || '') + ' ₸';
+  showScreen('preview');
+}
+
 function showPaywall(result){
   document.getElementById('paywall-price').textContent = (result.priceKzt || '') + ' ₸';
   const errorEl = document.getElementById('paywall-error');
@@ -1464,7 +1544,7 @@ function buildFullDocText(result){
     '',
     label('resultIfRedirected', 'Если вас отфутболят') + ':\n' + (result.ifRedirected || ''),
     '',
-    label('resultDraft', 'Черновик обращения') + ':\n' + (result.draft || ''),
+    label('resultDraft', 'Готовый текст обращения') + ':\n' + (result.draft || ''),
     '',
     label('resultEvidenceGuide', 'Какие доказательства собрать') + ':\n' + (Array.isArray(result.evidenceGuide)
       ? result.evidenceGuide.map((e) => '- ' + (e.item || '') + ' (' + (e.whereToGet || '') + ')').join('\n')
@@ -1474,7 +1554,7 @@ function buildFullDocText(result){
     '',
     label('resultHowToSubmit', 'Как подать') + ':\n' + (result.howToSubmit || ''),
     '',
-    label('resultQualityCheck', 'Проверка полноты черновика') + ':\n' + (result.draftQualityCheck || ''),
+    label('resultQualityCheck', 'Проверка полноты готового текста') + ':\n' + (result.draftQualityCheck || ''),
   ].join('\n');
 }
 
@@ -1711,7 +1791,7 @@ async function openHistoryItem(resultId){
     if (data.unlocked) {
       showResult(result);
     } else {
-      showPaywall(result);
+      showPreview(result);
     }
   } catch (err) {
     console.error('history item open error', err);
@@ -1793,10 +1873,18 @@ document.getElementById('chat-cancel-btn').addEventListener('click', () => {
 
 document.getElementById('confirm-yes').addEventListener('click', () => {
   if (state.pendingResult && state.pendingResult.unlocked === false) {
-    showPaywall(state.pendingResult);
+    showPreview(state.pendingResult);
   } else {
     showResult(state.pendingResult);
   }
+});
+
+document.getElementById('preview-continue-btn').addEventListener('click', () => {
+  showPaywall(state.pendingResult);
+});
+
+document.getElementById('preview-home-btn').addEventListener('click', () => {
+  showScreen('mode');
 });
 
 document.getElementById('paywall-pay-btn').addEventListener('click', startPayment);
