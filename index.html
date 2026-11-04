@@ -354,7 +354,7 @@
     </div>
     <div class="spinner" id="chat-spinner" style="display:none;">
       <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      <span data-i18n="chatThinking">Мастер думает...</span>
+      <span id="chat-spinner-text" data-i18n="chatThinking">Мастер думает...</span>
     </div>
     <button class="btn-secondary" id="chat-cancel-btn" style="display:none;" data-i18n="chatCancelBtn">Отмена, хочу исправить</button>
   </div>
@@ -667,6 +667,7 @@ const STRINGS = {
     chatBackBtn: '← Назад, хочу дополнить',
     chatCancelBtn: 'Отмена, хочу исправить',
     chatThinking: 'Мастер думает...',
+    chatThinkingSlow: 'Это иногда занимает больше времени обычного — не закрывайте страницу, мы ждём ответ...',
     confirmTitle: 'Мы определили это как:',
     confirmYes: 'Да, всё верно',
     confirmChange: 'Изменить категорию',
@@ -799,6 +800,7 @@ const STRINGS = {
     chatBackBtn: '← Артқа, толықтырғым келеді',
     chatCancelBtn: 'Болдырмау, түзеткім келеді',
     chatThinking: 'Шебер ойлануда...',
+    chatThinkingSlow: 'Бұл кейде әдеттегіден көбірек уақыт алады — бетті жаппаңыз, жауапты күтудеміз...',
     confirmTitle: 'Біз мұны келесідей анықтадық:',
     confirmYes: 'Иә, дұрыс',
     confirmChange: 'Санатты өзгерту',
@@ -1302,20 +1304,30 @@ function goBackOneStep(){
 
 let currentWizardController = null;
 
-async function callWizard(){
+async function callWizard(attempt){
+  attempt = attempt || 1;
   chatInputCard.style.display = 'none';
   chatSpinner.style.display = 'flex';
   chatCancelBtn.style.display = 'block';
+  const spinnerText = document.getElementById('chat-spinner-text');
+  if (spinnerText) spinnerText.textContent = t('chatThinking');
   currentWizardController = new AbortController();
   // На мобильных браузерах вкладка в фоне (например, после переключения в
   // другое приложение и возврата) может "заморозить" зависший fetch без
   // ошибки — спиннер крутится бесконечно. Ставим разумный тайм-аут, чтобы
-  // вместо вечного ожидания показать понятную ошибку с возможностью повтора.
+  // вместо вечного ожидания либо тихо повторить запрос один раз, либо
+  // показать понятную ошибку, если и повтор не помог.
   let wizardTimedOut = false;
   const wizardTimeoutId = setTimeout(() => {
     wizardTimedOut = true;
     currentWizardController.abort();
   }, 60000);
+  // Ответ иногда реально занимает больше времени (не завис, а модель долго
+  // генерирует) — через 15 секунд меняем текст, чтобы человек не решил, что
+  // всё сломалось, и не ушёл со страницы сам обновлять её.
+  const slowHintId = setTimeout(() => {
+    if (spinnerText) spinnerText.textContent = t('chatThinkingSlow');
+  }, 15000);
   try {
     const res = await fetch('/api/wizard', {
       method: 'POST',
@@ -1324,6 +1336,7 @@ async function callWizard(){
       signal: currentWizardController.signal,
     });
     clearTimeout(wizardTimeoutId);
+    clearTimeout(slowHintId);
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
       throw new Error(t('errorServer') + res.status + (errText ? ' — ' + errText : ''));
@@ -1360,9 +1373,20 @@ async function callWizard(){
     }
   } catch (err) {
     clearTimeout(wizardTimeoutId);
+    clearTimeout(slowHintId);
+    if (err.name === 'AbortError' && !wizardTimedOut) {
+      // пользователь сам отменил запрос кнопкой "Отмена" — не повторяем
+      chatSpinner.style.display = 'none';
+      chatCancelBtn.style.display = 'none';
+      return;
+    }
+    if (err.name === 'AbortError' && wizardTimedOut && attempt < 2) {
+      // Тихий повтор один раз — не показываем ошибку человеку, просто
+      // пробуем заново тот же запрос (спиннер остаётся на экране).
+      return callWizard(attempt + 1);
+    }
     chatSpinner.style.display = 'none';
     chatCancelBtn.style.display = 'none';
-    if (err.name === 'AbortError' && !wizardTimedOut) return; // пользователь сам отменил запрос кнопкой "Отмена"
     showScreen('chat');
     chatInputCard.style.display = 'block';
     if (err.name === 'AbortError' && wizardTimedOut) {
