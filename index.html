@@ -438,6 +438,7 @@
       <div class="retention-note" data-i18n="resultRetentionWarning">Результат хранится на сервере только 5 дней, потом удаляется. После оплаты сразу скачайте текст к себе.</div>
       <button class="btn-primary" id="paywall-pay-btn"><span data-i18n="paywallPayBtn">Оплатить</span> <span id="paywall-price"></span></button>
       <button class="btn-secondary" id="paywall-recheck-btn" style="display:none;margin-top:8px;" data-i18n="paywallRecheckBtn">Проверить оплату ещё раз</button>
+      <button class="btn-secondary" id="paywall-admin-btn" style="display:none;margin-top:8px;border:1px dashed var(--blue);" data-i18n="paywallAdminBtn">⚙️ Admin: открыть без оплаты</button>
       <p style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;">Оплачивая, вы соглашаетесь с <a href="oferta.html" target="_blank" style="color:var(--muted);text-decoration:underline;">условиями оплаты и возврата</a> и <a href="privacy.html" target="_blank" style="color:var(--muted);text-decoration:underline;">политикой конфиденциальности</a>.</p>
       <div class="error-box" id="paywall-error" style="display:none;margin-top:10px;"></div>
       <button class="btn-secondary" id="paywall-home-btn" style="margin-top:8px;" data-i18n="paywallHomeBtn">На главную</button>
@@ -695,6 +696,7 @@ const STRINGS = {
     errorConnection: 'Не получилось связаться с сервером. Проверьте соединение и попробуйте снова. (',
     errorTimeout: 'Ответ не пришёл вовремя — возможно, вкладка была в фоне слишком долго. Попробуйте отправить ещё раз.',
     paywallRecheckBtn: 'Проверить оплату ещё раз',
+    paywallAdminBtn: '⚙️ Admin: открыть без оплаты',
     paywallHomeBtn: 'На главную',
     intakeBackBtn: '← Назад',
     errorParse: 'Не удалось разобрать ответ мастера. Попробуйте ещё раз.',
@@ -825,6 +827,7 @@ const STRINGS = {
     errorConnection: 'Серверге қосыла алмадық. Байланысты тексеріп, қайта көріңіз. (',
     errorTimeout: 'Жауап уақтылы келмеді — бет ұзақ уақыт фонда болған болуы мүмкін. Қайта жіберіп көріңіз.',
     paywallRecheckBtn: 'Төлемді қайта тексеру',
+    paywallAdminBtn: '⚙️ Admin: төлеусіз ашу',
     paywallHomeBtn: 'Басты бетке',
     intakeBackBtn: '← Артқа',
     errorParse: 'Шебердің жауабын түсіндіру мүмкін болмады. Қайта көріңіз.',
@@ -873,7 +876,27 @@ const CONVERSATION_STORAGE_KEY = 'zhaloba_conversation_v1';
 const DEVICE_ID_KEY = 'zhaloba_device_id';
 const PENDING_PAYMENT_KEY = 'zhaloba_pending_payment';
 const PENDING_RESULT_KEY = 'zhaloba_pending_result';
+const ADMIN_TOKEN_KEY = 'zhaloba_admin_token';
 let draftSaveTimer = null;
+
+// Админский обход оплаты (для демо-видео/личного пользования) — токен
+// передаётся один раз через ?admin=... в ссылке, дальше живёт в этом
+// браузере. Сразу убираем его из адресной строки, чтобы не светился
+// в истории браузера/скриншотах.
+function getAdminToken(){
+  return localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+}
+(function initAdminToken(){
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('admin');
+  if (token) {
+    localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    params.delete('admin');
+    const rest = params.toString();
+    const newUrl = window.location.pathname + (rest ? '?' + rest : '') + window.location.hash;
+    window.history.replaceState({}, '', newUrl);
+  }
+})();
 
 // Анонимный идентификатор устройства — привязывает оплаченные результаты
 // к браузеру. Не требует входа/SMS, но сбрасывается
@@ -1382,7 +1405,8 @@ function showPaywall(result){
   try { pendingPayment = JSON.parse(localStorage.getItem(PENDING_PAYMENT_KEY) || 'null'); } catch {}
   const recheckBtn = document.getElementById('paywall-recheck-btn');
   recheckBtn.style.display = (pendingPayment && pendingPayment.resultId === result.resultId) ? 'block' : 'none';
-  // Черновик уже готов и сохранён на сервере (resultId) — сохраняем и здесь,
+  document.getElementById('paywall-admin-btn').style.display = getAdminToken() ? 'block' : 'none';
+  // Готовый текст уже составлен и сохранён на сервере (resultId) — сохраняем и здесь,
   // на устройстве, чтобы при обрыве оплаты (например, ошибка на странице
   // банка и обновление страницы) не заставлять человека проходить весь
   // диалог заново, а сразу вернуть его на этот же экран оплаты.
@@ -1895,6 +1919,30 @@ document.getElementById('paywall-recheck-btn').addEventListener('click', () => {
   if (!pendingPayment || !pendingPayment.orderId) return;
   showScreen('paymentWait');
   pollPaymentStatus(pendingPayment.orderId);
+});
+
+document.getElementById('paywall-admin-btn').addEventListener('click', async () => {
+  const token = getAdminToken();
+  if (!token || !state.pendingResult || !state.pendingResult.resultId) return;
+  const btn = document.getElementById('paywall-admin-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin-unlock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Token': token },
+      body: JSON.stringify({ resultId: state.pendingResult.resultId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    clearPendingPaywall();
+    const fullResult = { ...data.result, resultId: data.resultId, unlocked: true };
+    showResult(fullResult);
+  } catch (err) {
+    console.error('admin unlock error', err);
+    alert('Admin unlock failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 document.getElementById('confirm-change').addEventListener('click', () => {
