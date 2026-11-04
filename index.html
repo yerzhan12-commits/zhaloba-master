@@ -494,6 +494,7 @@
       <div class="result-actions">
         <button class="btn-secondary" id="copy-draft-btn" data-i18n="copyDraft">📋 Скопировать текст</button>
         <button class="btn-secondary" id="download-doc-btn" data-i18n="downloadDoc">💾 Скачать как .doc</button>
+        <button class="btn-secondary" id="download-txt-btn" data-i18n="downloadTxt">💾 Скачать как .txt</button>
       </div>
       <button class="btn-secondary" id="print-result-btn" data-i18n="printPdf">🖨️ Сохранить как PDF</button>
     </div>
@@ -690,6 +691,7 @@ const STRINGS = {
     copyDraft: '📋 Скопировать текст',
     copyDraftDone: '✅ Скопировано!',
     downloadDoc: '💾 Скачать как .doc',
+    downloadTxt: '💾 Скачать как .txt',
     disclaimer: 'Дисклеймер: текст сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.',
     restart: 'Начать заново',
     errorServer: 'Сервер вернул ошибку: ',
@@ -821,6 +823,7 @@ const STRINGS = {
     copyDraft: '📋 Мәтінді көшіру',
     copyDraftDone: '✅ Көшірілді!',
     downloadDoc: '💾 .doc түрінде жүктеу',
+    downloadTxt: '💾 .txt түрінде жүктеу',
     disclaimer: 'Дисклеймер: мәтінді деректеріңіз негізінде жасанды интеллект жасады — бұл ресми заңгерлік кеңес емес және адвокатты алмастырмайды. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.',
     restart: 'Қайта бастау',
     errorServer: 'Сервер қате қайтарды: ',
@@ -2102,6 +2105,24 @@ document.getElementById('download-doc-btn').addEventListener('click', () => {
   const a = document.createElement('a');
   a.href = url;
   a.download = 'zhaloba.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// Обычный .txt — в отличие от .doc (это на самом деле HTML с чужим
+// расширением, Word его понимает, а вот встроенный просмотрщик iOS/Quick
+// Look — не всегда, показывает "не удалось открыть") открывается
+// одинаково надёжно на любом устройстве и в любом приложении.
+document.getElementById('download-txt-btn').addEventListener('click', () => {
+  if (!state.pendingResult) return;
+  const text = buildFullDocText(state.pendingResult);
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'zhaloba.txt';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
