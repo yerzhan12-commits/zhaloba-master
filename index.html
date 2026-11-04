@@ -417,6 +417,7 @@
       <h2 data-i18n="previewLockedTitle">Осталось получить сам текст</h2>
       <p class="muted" data-i18n="previewLockedDesc">Готовый текст, который можно сразу подавать, и список доказательств, которые стоит собрать, — откроются после оплаты.</p>
       <button class="btn-primary" id="preview-continue-btn"><span data-i18n="previewContinueBtn">Получить готовый текст</span> <span id="preview-price"></span></button>
+      <button class="btn-secondary" id="preview-admin-btn" style="display:none;margin-top:8px;border:1px dashed var(--blue);" data-i18n="paywallAdminBtn">⚙️ Admin: открыть без оплаты</button>
       <button class="btn-secondary" id="preview-home-btn" style="margin-top:8px;" data-i18n="paywallHomeBtn">На главную</button>
     </div>
   </div>
@@ -1417,6 +1418,7 @@ function showPreview(result){
   document.getElementById('preview-how-to-submit').textContent = result.howToSubmit || '—';
   document.getElementById('preview-quality-check').textContent = result.draftQualityCheck || '—';
   document.getElementById('preview-price').textContent = (result.priceKzt || '') + ' ₸';
+  document.getElementById('preview-admin-btn').style.display = getAdminToken() ? 'block' : 'none';
   showScreen('preview');
 }
 
@@ -1951,10 +1953,9 @@ document.getElementById('paywall-recheck-btn').addEventListener('click', () => {
   pollPaymentStatus(pendingPayment.orderId);
 });
 
-document.getElementById('paywall-admin-btn').addEventListener('click', async () => {
+async function handleAdminUnlockClick(btn){
   const token = getAdminToken();
   if (!token || !state.pendingResult || !state.pendingResult.resultId) return;
-  const btn = document.getElementById('paywall-admin-btn');
   btn.disabled = true;
   try {
     const res = await fetch('/api/history-item', {
@@ -1973,7 +1974,10 @@ document.getElementById('paywall-admin-btn').addEventListener('click', async () 
   } finally {
     btn.disabled = false;
   }
-});
+}
+
+document.getElementById('paywall-admin-btn').addEventListener('click', (e) => handleAdminUnlockClick(e.currentTarget));
+document.getElementById('preview-admin-btn').addEventListener('click', (e) => handleAdminUnlockClick(e.currentTarget));
 
 document.getElementById('confirm-change').addEventListener('click', () => {
   document.getElementById('confirm-override').style.display = 'block';
