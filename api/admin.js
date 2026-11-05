@@ -12,6 +12,13 @@ function formatEvidenceGuide(evidenceGuide) {
   return evidenceGuide.map((e) => `• ${escapeHtml(e.item)} — ${escapeHtml(e.whereToGet)}`).join('\n');
 }
 
+function modeLabel(mode) {
+  if (mode === 'review') return 'Проверка ответа';
+  if (mode === 'lawsuit') return 'Иск';
+  if (mode === 'consult') return 'Консультация';
+  return 'Обращение';
+}
+
 module.exports = async (req, res) => {
   if (!verifySession(req)) {
     res.writeHead(302, { Location: '/admin/login.html' });
@@ -39,7 +46,7 @@ module.exports = async (req, res) => {
     }).filter(Boolean);
 
     const rows = entries.map((e) => {
-      const meta = `<div class="meta">${escapeHtml(e.ts)} · ${e.lang === 'kk' ? 'Қазақша' : 'Русский'} · ${e.mode === 'review' ? 'Проверка ответа' : 'Обращение'}</div>`;
+      const meta = `<div class="meta">${escapeHtml(e.ts)} · ${e.lang === 'kk' ? 'Қазақша' : 'Русский'} · ${modeLabel(e.mode)}</div>`;
 
       if (e.mode === 'review') {
         return `
@@ -60,6 +67,27 @@ module.exports = async (req, res) => {
         </details>
         <details>
           <summary>Что делать дальше</summary>
+          <pre>${escapeHtml(e.nextSteps)}</pre>
+        </details>
+      </div>
+    `;
+      }
+
+      if (e.mode === 'consult') {
+        return `
+      <div class="entry">
+        ${meta}
+        <div class="cat">${escapeHtml(e.situationSummary)}</div>
+        <details>
+          <summary>Что это значит по АППК</summary>
+          <pre>${escapeHtml(e.explanation)}</pre>
+        </details>
+        <details>
+          <summary>Что делать дальше</summary>
+          <pre>${escapeHtml(e.recommendedPath)}</pre>
+        </details>
+        <details>
+          <summary>Конкретные шаги</summary>
           <pre>${escapeHtml(e.nextSteps)}</pre>
         </details>
       </div>
@@ -116,7 +144,7 @@ module.exports = async (req, res) => {
 
     const feedbackRows = feedbackEntries.map((f) => `
       <div class="entry">
-        <div class="meta">${escapeHtml(f.ts)} · ${f.lang === 'kk' ? 'Қазақша' : 'Русский'} · ${f.mode === 'review' ? 'Проверка ответа' : 'Обращение'}</div>
+        <div class="meta">${escapeHtml(f.ts)} · ${f.lang === 'kk' ? 'Қазақша' : 'Русский'} · ${modeLabel(f.mode)}</div>
         <div class="cat">${f.rating === 'up' ? '👍' : '👎'}</div>
         ${f.comment ? `<pre>${escapeHtml(f.comment)}</pre>` : ''}
       </div>

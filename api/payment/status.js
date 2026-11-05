@@ -48,7 +48,12 @@ module.exports = async (req, res) => {
     }
 
     const stored = await getResult(order.resultId);
-    res.status(200).json({ status: 'paid', result: stored ? stored.result : null });
+    res.status(200).json({
+      status: 'paid',
+      result: stored ? stored.result : null,
+      resultId: order.resultId,
+      mode: stored ? (stored.mode || 'complaint') : 'complaint',
+    });
   } catch (err) {
     console.error('payment status error:', err);
     res.status(500).json({ error: err.message || 'internal error' });

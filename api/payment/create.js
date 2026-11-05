@@ -1,5 +1,5 @@
 const { randomInt } = require('crypto');
-const { getResult, createOrder, PRICE_KZT } = require('../_lib/payments');
+const { getResult, createOrder, resolvePrice } = require('../_lib/payments');
 const { preparePurchase } = require('../_lib/bcc');
 
 // Банк требует, чтобы ORDER было ЧИСТО ЦИФРОВЫМ и уникальным (не UUID с
@@ -41,8 +41,13 @@ module.exports = async (req, res) => {
       return;
     }
 
+    // Сумма к списанию считается ЗДЕСЬ, на сервере, по сохранённому режиму
+    // результата (stored.mode) и актуальному зачёту за консультацию — никогда
+    // не доверяем сумме, присланной клиентом, иначе её можно подделать.
+    const { amountKzt, creditAppliedKzt } = await resolvePrice(stored.mode, deviceId);
+
     const orderId = generateNumericOrderId();
-    await createOrder({ orderId, resultId, deviceId, amountKzt: PRICE_KZT });
+    await createOrder({ orderId, resultId, deviceId, amountKzt, creditAppliedKzt });
 
     const proto = req.headers['x-forwarded-proto'] || 'https';
     const origin = `${proto}://${req.headers.host}`;
@@ -63,10 +68,14 @@ module.exports = async (req, res) => {
       || req.socket?.remoteAddress
       || '0.0.0.0';
 
+    const descriptionByMode = {
+      lawsuit: 'иска',
+      consult: 'консультации',
+    };
     const { actionUrl, fields } = preparePurchase({
       orderId,
-      amountKzt: PRICE_KZT,
-      description: `Оплата обращения ${resultId.slice(0, 8)}`,
+      amountKzt,
+      description: `Оплата ${descriptionByMode[stored.mode] || 'обращения'} ${resultId.slice(0, 8)}`,
       backrefUrl,
       notifyUrl,
       clientIp,

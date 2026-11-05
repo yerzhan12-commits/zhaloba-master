@@ -272,8 +272,8 @@
       <b>Дисклеймер.</b> Это конструктор для составления обращений и жалоб. Все черновики и рекомендации формируются искусственным интеллектом на основе введённых вами данных — это вспомогательный материал, а не официальная юридическая консультация, не официальная позиция госоргана и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.
     </div>
     <div class="privacy-note" style="margin-bottom:14px;">
-      <b>Бағасы.</b> Алынған жауапты тексеру — әрқашан тегін. Өтініш құрастыру — әр өтініш 4900 ₸.<br><br>
-      <b>Цена.</b> Проверка полученного от госоргана ответа — всегда бесплатна. Составление обращения — 4900 ₸ за каждое обращение.
+      <b>Бағасы.</b> Алынған жауапты тексеру — әрқашан тегін. АППК бойынша кеңес — 999 ₸. Өтініш құрастыру — 4900 ₸. Әкімшілік талап-арыз құрастыру — 6900 ₸.<br><br>
+      <b>Цена.</b> Проверка полученного от госоргана ответа — всегда бесплатна. Консультация «Разобраться в АППК» — 999 ₸. Составление обращения — 4900 ₸. Составление административного иска — 6900 ₸.
     </div>
     <div class="card">
       <h2>Тілді таңдаңыз / Выберите язык</h2>
@@ -301,6 +301,7 @@
     <div class="card">
       <h2 data-i18n="modeTitle">Что вы хотите сделать?</h2>
       <div class="lang-row">
+        <button class="lang-btn" id="mode-consult" data-i18n="modeConsult">🧭 Разобраться в АППК</button>
         <button class="lang-btn" id="mode-complaint" data-i18n="modeComplaint">Составить обращение</button>
         <button class="lang-btn" id="mode-lawsuit" data-i18n="modeLawsuit">Составить административный иск</button>
         <button class="lang-btn" id="mode-review" data-i18n="modeReview">Проверить полученный ответ</button>
@@ -425,17 +426,18 @@
   <!-- Экран 3.5: оплата (составление обращения всегда платное) -->
   <div class="screen" id="screen-paywall">
     <div class="card">
-      <h2 data-i18n="paywallTitle">Ваше обращение готово!</h2>
-      <p class="muted" data-i18n="paywallDesc">Составление обращения платное. Оплатите, чтобы открыть:</p>
-      <ul style="margin:12px 0 4px 20px;font-size:14px;line-height:1.7;color:var(--ink2);">
+      <h2 id="paywall-title-el" data-i18n="paywallTitle">Ваше обращение готово!</h2>
+      <p class="muted" id="paywall-desc-el" data-i18n="paywallDesc">Составление обращения платное. Оплатите, чтобы открыть:</p>
+      <ul id="paywall-bullets-el" style="margin:12px 0 4px 20px;font-size:14px;line-height:1.7;color:var(--ink2);">
         <li data-i18n="paywallBullet1">Готовый текст, который можно сразу подавать</li>
         <li data-i18n="paywallBullet2">Список доказательств, которые стоит собрать</li>
       </ul>
       <div class="price-anchor">
-        <span class="price-anchor-old" data-i18n="priceAnchorLawyer">У юриста — от 15 000 ₸</span>
+        <span class="price-anchor-old" id="price-anchor-old-el" data-i18n="priceAnchorLawyer">У юриста — от 15 000 ₸</span>
         <span class="price-anchor-arrow">→</span>
-        <span class="price-anchor-new" data-i18n="priceAnchorUs">У нас — 4 900 ₸</span>
+        <span class="price-anchor-new" id="price-anchor-new-el">У нас — 4 900 ₸</span>
       </div>
+      <div class="muted" id="paywall-credit-note" style="display:none;font-size:13px;margin-top:-6px;margin-bottom:6px;"></div>
       <div class="retention-note" data-i18n="resultRetentionWarning">Результат хранится на сервере только 5 дней, потом удаляется. После оплаты сразу скачайте текст к себе.</div>
       <button class="btn-primary" id="paywall-pay-btn"><span data-i18n="paywallPayBtn">Оплатить</span> <span id="paywall-price"></span></button>
       <button class="btn-secondary" id="paywall-recheck-btn" style="display:none;margin-top:8px;" data-i18n="paywallRecheckBtn">Проверить оплату ещё раз</button>
@@ -598,6 +600,43 @@
     <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: текст сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
     <button class="btn-secondary" id="restart-review-btn" data-i18n="restart">Начать заново</button>
   </div>
+
+  <!-- Экран 6: результат консультации «Разобраться в АППК» -->
+  <div class="screen" id="screen-consult-result">
+    <div class="card result-card">
+      <h2 data-i18n="consultSituationSummary">Ваша ситуация</h2>
+      <div class="result-value" id="consult-situation-summary"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="consultExplanation">Что это значит по АППК</h2>
+      <div class="result-value" id="consult-explanation"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="consultRecommendedPath">Что делать дальше</h2>
+      <div class="result-value" id="consult-recommended-path"></div>
+    </div>
+
+    <div class="card result-card">
+      <h2 data-i18n="consultNextSteps">Конкретные шаги</h2>
+      <div class="result-value" id="consult-next-steps"></div>
+      <div class="result-actions">
+        <button class="btn-secondary" id="copy-consult-btn" data-i18n="copyConsult">📋 Скопировать</button>
+      </div>
+      <button class="btn-secondary" id="print-consult-btn" data-i18n="printPdf">🖨️ Сохранить как PDF</button>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="consultUpsellTitle">Готовы составить документ?</h2>
+      <p class="muted" data-i18n="consultCreditNote">✓ Эта консультация даёт скидку 500 ₸ на обращение или иск, если понадобится составить документ</p>
+      <button class="btn-primary" id="consult-draft-complaint-btn" data-i18n="consultDraftComplaintBtn">📝 Составить обращение</button>
+      <button class="btn-primary" id="consult-draft-lawsuit-btn" style="margin-top:8px;" data-i18n="consultDraftLawsuitBtn">⚖️ Составить административный иск</button>
+    </div>
+
+    <div class="disclaimer" data-i18n="disclaimer">Дисклеймер: текст сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.</div>
+    <button class="btn-secondary" id="restart-consult-btn" data-i18n="restart">Начать заново</button>
+  </div>
 </div>
 
 <script>
@@ -626,6 +665,7 @@ const STRINGS = {
     followupSeedNextSteps: 'Рекомендация по дальнейшим действиям',
     minLengthError: 'Опишите ситуацию чуть подробнее (минимум 20 символов) — так мастер сможет разобраться точнее.',
     modeTitle: 'Что вы хотите сделать?',
+    modeConsult: '🧭 Разобраться в АППК',
     modeComplaint: 'Составить обращение',
     modeLawsuit: 'Составить административный иск',
     modeReview: 'Проверить полученный ответ',
@@ -662,6 +702,9 @@ const STRINGS = {
     lawsuitIntakeTitle: 'Опишите ситуацию: что обжалуете и что уже сделано',
     lawsuitIntakeDesc: 'Какой акт, действие или бездействие органа вы обжалуете, подавали ли уже жалобу вышестоящему органу и что вам ответили (или истёк ли срок ответа без результата). Мастер составит административный иск по требованиям АППК.',
     lawsuitIntakePlaceholder: 'Например: подал жалобу в вышестоящий орган на отказ акимата в выделении земельного участка, ответ получил, но он меня не устраивает...',
+    consultIntakeTitle: 'Опишите, что вас беспокоит',
+    consultIntakeDesc: 'Не обязательно сразу знать, нужно ли писать обращение или иск — просто расскажите, что произошло. Мастер объяснит ситуацию с точки зрения АППК и подскажет, что делать дальше.',
+    consultIntakePlaceholder: 'Например: акимат уже два месяца не отвечает на моё заявление, не знаю, что делать дальше...',
     intakeSubmit: 'Продолжить',
     chatAnswerPlaceholder: 'Ваш ответ...',
     chatSubmit: 'Ответить',
@@ -692,6 +735,14 @@ const STRINGS = {
     openEotinish: '🌐 Открыть eOtinish.kz',
     copyDraft: '📋 Скопировать текст',
     copyDraftDone: '✅ Скопировано!',
+    consultSituationSummary: 'Ваша ситуация',
+    consultExplanation: 'Что это значит по АППК',
+    consultRecommendedPath: 'Что делать дальше',
+    consultNextSteps: 'Конкретные шаги',
+    copyConsult: '📋 Скопировать',
+    consultUpsellTitle: 'Готовы составить документ?',
+    consultDraftComplaintBtn: '📝 Составить обращение',
+    consultDraftLawsuitBtn: '⚖️ Составить административный иск',
     downloadDoc: '💾 Скачать как .doc',
     downloadTxt: '💾 Скачать как .txt',
     disclaimer: 'Дисклеймер: текст сформирован искусственным интеллектом на основе введённых данных — это не официальная юридическая консультация и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.',
@@ -712,10 +763,19 @@ const STRINGS = {
     previewContinueBtn: 'Получить готовый текст',
     paywallTitle: 'Ваше обращение готово!',
     paywallDesc: 'Составление обращения платное. Оплатите, чтобы открыть:',
+    paywallTitleLawsuit: 'Ваш иск готов!',
+    paywallTitleConsult: 'Ваша консультация готова!',
+    paywallDescConsult: 'Разбор вашей ситуации готов. Оплатите, чтобы открыть:',
     priceAnchorLawyer: 'У юриста — от 15 000 ₸',
-    priceAnchorUs: 'У нас — 4 900 ₸',
+    priceAnchorLawyerLawsuit: 'У юриста — от 20 000 ₸',
+    priceAnchorLawyerConsult: 'У юриста — от 5 000 ₸',
+    priceAnchorUsPrefix: 'У нас — ',
     paywallBullet1: 'Готовый текст, который можно сразу подавать',
     paywallBullet2: 'Список доказательств, которые стоит собрать',
+    paywallBulletConsult1: 'Объяснение ситуации и ваших прав по АППК',
+    paywallBulletConsult2: 'Конкретную рекомендацию, что делать дальше',
+    consultCreditNote: '✓ Эта консультация даёт скидку 500 ₸ на обращение или иск, если понадобится составить документ',
+    paywallCreditApplied: '✓ Скидка 500 ₸ за оплаченную консультацию уже учтена в цене',
     paywallPayBtn: 'Оплатить',
     paywallError: 'Не удалось начать оплату: ',
     paywallFailed: 'Оплата не прошла. Попробуйте ещё раз.',
@@ -759,6 +819,7 @@ const STRINGS = {
     followupSeedNextSteps: 'Әрі қарайғы әрекеттер бойынша ұсыныс',
     minLengthError: 'Жағдайды сәл толығырақ сипаттаңыз (кемінде 20 таңба) — осылай шебер дәлірек түсінеді.',
     modeTitle: 'Нені жасағыңыз келеді?',
+    modeConsult: '🧭 АППК бойынша түсінісу',
     modeComplaint: 'Өтініш құрастыру',
     modeLawsuit: 'Әкімшілік талап-арыз құрастыру',
     modeReview: 'Алынған жауапты тексеру',
@@ -795,6 +856,9 @@ const STRINGS = {
     lawsuitIntakeTitle: 'Жағдайды сипаттаңыз: нені даулайсыз және не істелді',
     lawsuitIntakeDesc: 'Органның қандай актісін, әрекетін немесе әрекетсіздігін даулайсыз, жоғары тұрған органға шағым бердіңіз бе және қандай жауап алдыңыз (немесе жауап мерзімі нәтижесіз өтіп кетті ме). Шебер АППК талаптарына сай әкімшілік талап-арыз құрастырады.',
     lawsuitIntakePlaceholder: 'Мысалы: жоғары тұрған органға әкімдіктің жер учаскесін бөлуден бас тартуына шағым бердім, жауап алдым, бірақ маған қанағаттанарлық емес...',
+    consultIntakeTitle: 'Сізді не мазалайтынын сипаттаңыз',
+    consultIntakeDesc: 'Өтініш немесе талап-арыз жазу керек пе екенін бірден білу міндетті емес — жай болған жағдайды айтыңыз. Шебер жағдайды АППК тұрғысынан түсіндіреді және әрі қарай не істеу керегін айтады.',
+    consultIntakePlaceholder: 'Мысалы: әкімдік екі айдан бері өтінішіме жауап бермей отыр, әрі қарай не істерімді білмей отырмын...',
     intakeSubmit: 'Жалғастыру',
     chatAnswerPlaceholder: 'Жауабыңыз...',
     chatSubmit: 'Жауап беру',
@@ -825,6 +889,14 @@ const STRINGS = {
     openEotinish: '🌐 eOtinish.kz ашу',
     copyDraft: '📋 Мәтінді көшіру',
     copyDraftDone: '✅ Көшірілді!',
+    consultSituationSummary: 'Сіздің жағдайыңыз',
+    consultExplanation: 'АППК бойынша бұл нені білдіреді',
+    consultRecommendedPath: 'Әрі қарай не істеу керек',
+    consultNextSteps: 'Нақты қадамдар',
+    copyConsult: '📋 Көшіру',
+    consultUpsellTitle: 'Құжат құрастыруға дайынсыз ба?',
+    consultDraftComplaintBtn: '📝 Өтініш құрастыру',
+    consultDraftLawsuitBtn: '⚖️ Әкімшілік талап-арыз құрастыру',
     downloadDoc: '💾 .doc түрінде жүктеу',
     downloadTxt: '💾 .txt түрінде жүктеу',
     disclaimer: 'Дисклеймер: мәтінді деректеріңіз негізінде жасанды интеллект жасады — бұл ресми заңгерлік кеңес емес және адвокатты алмастырмайды. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.',
@@ -845,10 +917,19 @@ const STRINGS = {
     previewContinueBtn: 'Дайын мәтінді алу',
     paywallTitle: 'Өтінішіңіз дайын!',
     paywallDesc: 'Өтініш құрастыру ақылы. Мыналарды ашу үшін төлеңіз:',
+    paywallTitleLawsuit: 'Талап-арызыңыз дайын!',
+    paywallTitleConsult: 'Кеңесіңіз дайын!',
+    paywallDescConsult: 'Жағдайыңыздың талдауы дайын. Ашу үшін төлеңіз:',
     priceAnchorLawyer: 'Заңгерде — 15 000 ₸-ден бастап',
-    priceAnchorUs: 'Бізде — 4 900 ₸',
+    priceAnchorLawyerLawsuit: 'Заңгерде — 20 000 ₸-ден бастап',
+    priceAnchorLawyerConsult: 'Заңгерде — 5 000 ₸-ден бастап',
+    priceAnchorUsPrefix: 'Бізде — ',
     paywallBullet1: 'Дайын мәтін — бірден тапсыруға болатын',
     paywallBullet2: 'Жинау қажет дәлелдер тізімі',
+    paywallBulletConsult1: 'Жағдайды және АППК бойынша құқықтарыңызды түсіндіру',
+    paywallBulletConsult2: 'Әрі қарай не істеу керегі туралы нақты ұсыныс',
+    consultCreditNote: '✓ Бұл кеңес құжат құрастыру қажет болса, өтініш немесе талап-арызға 500 ₸ жеңілдік береді',
+    paywallCreditApplied: '✓ Төленген кеңес үшін 500 ₸ жеңілдік бағаға қосылды',
     paywallPayBtn: 'Төлеу',
     paywallError: 'Төлемді бастау мүмкін болмады: ',
     paywallFailed: 'Төлем өтпеді. Қайта көріңіз.',
@@ -1039,10 +1120,14 @@ function applyLang(lang){
 function applyMode(){
   const isReview = state.mode === 'review';
   const isLawsuit = state.mode === 'lawsuit';
-  document.getElementById('intake-title-el').textContent = t(isReview ? 'reviewIntakeTitle' : isLawsuit ? 'lawsuitIntakeTitle' : 'intakeTitle');
-  document.getElementById('intake-desc-el').textContent = t(isReview ? 'reviewIntakeDesc' : isLawsuit ? 'lawsuitIntakeDesc' : 'intakeDesc');
-  document.getElementById('intake-text').setAttribute('placeholder', t(isReview ? 'reviewIntakePlaceholder' : isLawsuit ? 'lawsuitIntakePlaceholder' : 'intakePlaceholder'));
-  document.getElementById('example-row').style.display = (isReview || isLawsuit) ? 'none' : 'flex';
+  const isConsult = state.mode === 'consult';
+  const titleKey = isReview ? 'reviewIntakeTitle' : isLawsuit ? 'lawsuitIntakeTitle' : isConsult ? 'consultIntakeTitle' : 'intakeTitle';
+  const descKey = isReview ? 'reviewIntakeDesc' : isLawsuit ? 'lawsuitIntakeDesc' : isConsult ? 'consultIntakeDesc' : 'intakeDesc';
+  const placeholderKey = isReview ? 'reviewIntakePlaceholder' : isLawsuit ? 'lawsuitIntakePlaceholder' : isConsult ? 'consultIntakePlaceholder' : 'intakePlaceholder';
+  document.getElementById('intake-title-el').textContent = t(titleKey);
+  document.getElementById('intake-desc-el').textContent = t(descKey);
+  document.getElementById('intake-text').setAttribute('placeholder', t(placeholderKey));
+  document.getElementById('example-row').style.display = (isReview || isLawsuit || isConsult) ? 'none' : 'flex';
 }
 
 function compressImage(file){
@@ -1174,6 +1259,7 @@ const screens = {
   paymentWait: document.getElementById('screen-payment-wait'),
   result: document.getElementById('screen-result'),
   resultReview: document.getElementById('screen-result-review'),
+  resultConsult: document.getElementById('screen-consult-result'),
 };
 function showScreen(name){
   Object.values(screens).forEach(s => s.classList.remove('active'));
@@ -1369,7 +1455,16 @@ async function callWizard(attempt){
         data.result.resultId = data.resultId;
         data.result.unlocked = data.unlocked;
         data.result.priceKzt = data.priceKzt;
-        showConfirmCategory(data.result);
+        data.result.creditAppliedKzt = data.creditAppliedKzt;
+        if (state.mode === 'consult') {
+          // У консультации нет category для подтверждения — сразу на оплату
+          // (превью не показываем: все поля консультации всё равно закрыты
+          // до оплаты, пустой экран-превью выглядел бы странно).
+          state.pendingResult = data.result;
+          showPaywall(data.result);
+        } else {
+          showConfirmCategory(data.result);
+        }
       }
     } else {
       showScreen('chat');
@@ -1428,6 +1523,28 @@ function showPaywall(result){
   errorEl.style.display = 'none';
   const btn = document.getElementById('paywall-pay-btn');
   btn.disabled = false;
+
+  // Заголовок/описание/список/сравнение с юристом — разные для трёх типов
+  // платного результата (обращение/иск/консультация), так как и цена, и
+  // объём того, что открывается после оплаты, у них разные.
+  const isLawsuit = state.mode === 'lawsuit';
+  const isConsult = state.mode === 'consult';
+  document.getElementById('paywall-title-el').textContent = t(isConsult ? 'paywallTitleConsult' : isLawsuit ? 'paywallTitleLawsuit' : 'paywallTitle');
+  document.getElementById('paywall-desc-el').textContent = t(isConsult ? 'paywallDescConsult' : 'paywallDesc');
+  const bulletsEl = document.getElementById('paywall-bullets-el');
+  bulletsEl.innerHTML = isConsult
+    ? `<li>${t('paywallBulletConsult1')}</li><li>${t('paywallBulletConsult2')}</li>`
+    : `<li>${t('paywallBullet1')}</li><li>${t('paywallBullet2')}</li>`;
+  document.getElementById('price-anchor-old-el').textContent = t(isConsult ? 'priceAnchorLawyerConsult' : isLawsuit ? 'priceAnchorLawyerLawsuit' : 'priceAnchorLawyer');
+  document.getElementById('price-anchor-new-el').textContent = t('priceAnchorUsPrefix') + (result.priceKzt || '') + ' ₸';
+  const creditNoteEl = document.getElementById('paywall-credit-note');
+  if (!isConsult && result.creditAppliedKzt > 0) {
+    creditNoteEl.textContent = t('paywallCreditApplied');
+    creditNoteEl.style.display = 'block';
+  } else {
+    creditNoteEl.style.display = 'none';
+  }
+
   showScreen('paywall');
 
   // Если есть незавершённая (не подтверждённая) оплата этого же результата —
@@ -1443,7 +1560,7 @@ function showPaywall(result){
   // банка и обновление страницы) не заставлять человека проходить весь
   // диалог заново, а сразу вернуть его на этот же экран оплаты.
   try {
-    localStorage.setItem(PENDING_RESULT_KEY, JSON.stringify({ result, ts: Date.now() }));
+    localStorage.setItem(PENDING_RESULT_KEY, JSON.stringify({ result, mode: state.mode, ts: Date.now() }));
   } catch {}
 }
 
@@ -1464,7 +1581,7 @@ function restorePendingPaywall(){
     clearPendingPaywall();
     return false;
   }
-  state.mode = 'complaint';
+  state.mode = saved.mode === 'lawsuit' ? 'lawsuit' : saved.mode === 'consult' ? 'consult' : 'complaint';
   state.pendingResult = saved.result;
   showPaywall(saved.result);
   return true;
@@ -1515,7 +1632,7 @@ async function startPayment(){
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
     localStorage.setItem(PENDING_PAYMENT_KEY, JSON.stringify({
-      orderId: data.orderId, resultId: state.pendingResult.resultId,
+      orderId: data.orderId, resultId: state.pendingResult.resultId, mode: state.mode,
     }));
     submitPaymentForm(data.actionUrl, data.fields);
   } catch (err) {
@@ -1538,9 +1655,15 @@ async function pollPaymentStatus(orderId, attempt){
     if (res.ok && data.status === 'paid' && data.result) {
       localStorage.removeItem(PENDING_PAYMENT_KEY);
       clearPendingPaywall();
-      state.mode = 'complaint';
+      data.result.resultId = data.resultId;
+      data.result.unlocked = true;
+      state.mode = data.mode === 'lawsuit' ? 'lawsuit' : data.mode === 'consult' ? 'consult' : 'complaint';
       state.pendingResult = data.result;
-      showResult(data.result);
+      if (state.mode === 'consult') {
+        showConsultResult(data.result);
+      } else {
+        showResult(data.result);
+      }
       return;
     }
     if (res.ok && data.status === 'failed') {
@@ -1577,7 +1700,7 @@ function handlePaymentReturn(){
 
   let pending = null;
   try { pending = JSON.parse(localStorage.getItem(PENDING_PAYMENT_KEY) || 'null'); } catch {}
-  state.mode = 'complaint';
+  state.mode = (pending && pending.mode === 'lawsuit') ? 'lawsuit' : (pending && pending.mode === 'consult') ? 'consult' : 'complaint';
   state.pendingResult = { resultId: pending ? pending.resultId : null, unlocked: false };
 
   showScreen('paymentWait');
@@ -1757,6 +1880,17 @@ function showReviewResult(result){
   showScreen('resultReview');
 }
 
+function showConsultResult(result){
+  state.pendingResult = result;
+  document.getElementById('consult-situation-summary').textContent = result.situationSummary || '—';
+  document.getElementById('consult-explanation').textContent = result.explanation || '—';
+  document.getElementById('consult-recommended-path').textContent = result.recommendedPath || '—';
+  document.getElementById('consult-next-steps').textContent = result.nextSteps || '—';
+  saveResultToStorage('consult', result);
+  window.va('event', { name: 'consult_completed' });
+  showScreen('resultConsult');
+}
+
 let historyReturnScreen = 'mode';
 
 async function loadHistory(){
@@ -1842,10 +1976,17 @@ async function openHistoryItem(resultId){
     result.resultId = data.resultId;
     result.unlocked = data.unlocked;
     result.priceKzt = data.priceKzt;
-    state.mode = 'complaint';
+    result.creditAppliedKzt = data.creditAppliedKzt;
+    state.mode = data.mode === 'lawsuit' ? 'lawsuit' : data.mode === 'consult' ? 'consult' : 'complaint';
     state.pendingResult = result;
     if (data.unlocked) {
-      showResult(result);
+      if (state.mode === 'consult') {
+        showConsultResult(result);
+      } else {
+        showResult(result);
+      }
+    } else if (state.mode === 'consult') {
+      showPaywall(result);
     } else {
       showPreview(result);
     }
@@ -1967,7 +2108,12 @@ async function handleAdminUnlockClick(btn){
     if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
     clearPendingPaywall();
     const fullResult = { ...data.result, resultId: data.resultId, unlocked: true };
-    showResult(fullResult);
+    if (data.mode === 'consult') {
+      state.mode = 'consult';
+      showConsultResult(fullResult);
+    } else {
+      showResult(fullResult);
+    }
   } catch (err) {
     console.error('admin unlock error', err);
     alert('Admin unlock failed: ' + err.message);
@@ -2081,6 +2227,13 @@ document.getElementById('intake-back-btn').addEventListener('click', () => {
   showScreen('mode');
 });
 
+document.getElementById('mode-consult').addEventListener('click', () => {
+  state.mode = 'consult';
+  applyMode();
+  restoreDraft();
+  showScreen('intake');
+});
+
 document.getElementById('mode-complaint').addEventListener('click', () => {
   state.mode = 'complaint';
   applyMode();
@@ -2124,6 +2277,63 @@ document.getElementById('copy-draft-btn').addEventListener('click', async () => 
 
 document.getElementById('print-result-btn').addEventListener('click', () => window.print());
 document.getElementById('print-review-btn').addEventListener('click', () => window.print());
+document.getElementById('print-consult-btn').addEventListener('click', () => window.print());
+
+document.getElementById('copy-consult-btn').addEventListener('click', async () => {
+  const result = state.pendingResult;
+  if (!result) return;
+  const btn = document.getElementById('copy-consult-btn');
+  const text = [
+    t('consultSituationSummary') + ':\n' + (result.situationSummary || ''),
+    '',
+    t('consultExplanation') + ':\n' + (result.explanation || ''),
+    '',
+    t('consultRecommendedPath') + ':\n' + (result.recommendedPath || ''),
+    '',
+    t('consultNextSteps') + ':\n' + (result.nextSteps || ''),
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    const original = btn.textContent;
+    btn.textContent = t('copyDraftDone');
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  } catch (e) {
+    console.error('clipboard error', e);
+  }
+});
+
+document.getElementById('restart-consult-btn').addEventListener('click', restartToHome);
+
+// Апсейл с консультации: заводим новый диалог сразу с готовым контекстом,
+// чтобы человеку не пришлось пересказывать ситуацию заново. Зачёт 500 ₸
+// (если консультация была оплачена) применится автоматически на оплате —
+// сервер сам проверяет его по deviceId, ничего передавать здесь не нужно.
+function seedConsultUpsell(targetMode){
+  const result = state.pendingResult;
+  if (!result) return;
+  const seedText = [
+    t('consultSituationSummary') + ': ' + (result.situationSummary || ''),
+    t('consultExplanation') + ': ' + (result.explanation || ''),
+    t('consultRecommendedPath') + ': ' + (result.recommendedPath || ''),
+  ].join('\n');
+
+  state.mode = targetMode;
+  state.messages = [{ role: 'user', content: seedText }];
+  state.attachedFiles = [];
+  state.pendingResult = null;
+  state.questionCount = 0;
+  localStorage.removeItem(RESULT_STORAGE_KEY);
+  saveConversation();
+  applyMode();
+  chatHistory.innerHTML = '';
+  addBubble('user', seedText);
+  updateProgress();
+  showScreen('chat');
+  callWizard();
+}
+
+document.getElementById('consult-draft-complaint-btn').addEventListener('click', () => seedConsultUpsell('complaint'));
+document.getElementById('consult-draft-lawsuit-btn').addEventListener('click', () => seedConsultUpsell('lawsuit'));
 
 document.getElementById('download-doc-btn').addEventListener('click', () => {
   if (!state.pendingResult) return;
@@ -2173,6 +2383,10 @@ document.getElementById('restore-show-btn').addEventListener('click', () => {
   document.getElementById('restore-banner').style.display = 'none';
   if (saved.mode === 'review') {
     showReviewResult(saved.result);
+  } else if (saved.mode === 'consult') {
+    state.mode = 'consult';
+    state.pendingResult = saved.result;
+    showConsultResult(saved.result);
   } else {
     state.mode = saved.mode === 'lawsuit' ? 'lawsuit' : 'complaint';
     state.pendingResult = saved.result;

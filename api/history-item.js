@@ -1,4 +1,4 @@
-const { getResult, saveResult, PRICE_KZT, pickPreviewFields } = require('./_lib/payments');
+const { getResult, saveResult, pickPreviewFields, resolvePrice, getPriceForMode } = require('./_lib/payments');
 
 // GET — полная карточка одного прошлого обращения из истории, доступна только
 // тому же устройству, которое её создало (сверяем deviceId, сохранённый вместе
@@ -33,12 +33,15 @@ module.exports = async (req, res) => {
       // нужно урезать до превью-полей, иначе неоплаченная запись из истории
       // отдаст готовый текст обращения в обход пейволла.
       const payload = stored.unlocked ? stored.result : pickPreviewFields(stored.result);
+      const { amountKzt, creditAppliedKzt } = await resolvePrice(stored.mode, deviceId);
 
       res.status(200).json({
         resultId,
         unlocked: stored.unlocked,
+        mode: stored.mode || 'complaint',
         result: payload,
-        priceKzt: PRICE_KZT,
+        priceKzt: amountKzt,
+        creditAppliedKzt,
       });
     } catch (err) {
       console.error('history item error:', err);
@@ -71,7 +74,7 @@ module.exports = async (req, res) => {
         stored.unlocked = true;
         await saveResult(resultId, stored);
       }
-      res.status(200).json({ resultId, unlocked: true, result: stored.result, priceKzt: PRICE_KZT });
+      res.status(200).json({ resultId, unlocked: true, mode: stored.mode || 'complaint', result: stored.result, priceKzt: getPriceForMode(stored.mode) });
     } catch (err) {
       console.error('admin unlock error:', err);
       res.status(500).json({ error: err.message || 'internal error' });

@@ -1,6 +1,6 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { kv } = require('@vercel/kv');
-const { lockResultForPayment, PRICE_KZT, pickPreviewFields } = require('./_lib/payments');
+const { lockResultForPayment, pickPreviewFields, resolvePrice } = require('./_lib/payments');
 const { getBankruptcyThresholdText, getSpousalLoanConsentThresholdText } = require('./_lib/thresholds');
 
 const SYSTEM_PROMPT = `Ты — помощник, который на основе практики работы отдела по работе с обращениями органов прокуратуры Республики Казахстан помогает обычным гражданам (не юристам) правильно оформить жалобу или обращение в государственный орган.
@@ -391,6 +391,61 @@ const RESULT_SCHEMA = {
   additionalProperties: false,
 };
 
+// "Разобраться в АППК" — лёгкая консультация (999 ₸): человек ещё не знает,
+// нужен ли ему вообще документ, хочет сначала понять ситуацию и права.
+// Переиспользуем ВЕСЬ блок проверенной базы знаний из SYSTEM_PROMPT (всё,
+// что идёт до "Твоя задача —") — меняем только финальную часть про задачу
+// и формат ответа, чтобы не дублировать и не рисковать расхождением одних
+// и тех же юридических фактов в двух местах.
+const CONSULT_TASK_PROMPT = `Контекст этого режима: человек пришёл не за готовым документом, а чтобы РАЗОБРАТЬСЯ В СИТУАЦИИ — понять, что происходит, какие у него права и что вообще стоит делать дальше, прежде чем решать, составлять ли официальное обращение или иск. Это отдельная, более лёгкая платная консультация (999 ₸) — в этом режиме ты НЕ составляешь черновик обращения или иска, только объясняешь ситуацию и даёшь рекомендацию.
+
+ВАЖНОЕ ОГРАНИЧЕНИЕ СФЕРЫ: эта консультация — только по вопросам в рамках АППК (обращения, жалобы, административные акты госорганов, административный иск), та же сфера, что и у остальных режимов этого помощника. Если вопрос человека явно выходит за эти рамки (уголовное дело, семейный спор, гражданский иск не по АППК, вопрос к частной компании/банку вне госуслуг) — честно скажи об этом прямо в explanation и направь, куда реально стоит обратиться (к адвокату по уголовным делам, в суд по семейным делам и т.п.), не пытайся притвориться, что это АППК-вопрос только потому, что человек заплатил за консультацию.
+
+Твоя задача — пошагово, вопрос за вопросом (СТРОГО по одному вопросу за раз, как переписка с толковым другом, а не заполнение анкеты), выяснить у человека:
+1) что именно произошло и что его беспокоит;
+2) какой орган или должностное лицо к этому причастны (если применимо);
+3) что человек хочет понять или решить для себя — варианты действий, оценка ситуации с точки зрения закона, просто разъяснение своих прав и т.п.
+
+Действуют те же правила, что и в остальных режимах этого промпта: НИКОГДА не спрашивай личные данные (ФИО/ИИН/адрес/телефон), не переспрашивай другими словами то, что человек уже прямо сказал, не задавай больше 4 уточняющих вопросов суммарно — переходи к финальному ответу, как только достаточно информации, даже если что-то по мелочи осталось неясным.
+
+Когда информации достаточно, верни (отдельные смысловые блоки, каждый самодостаточный):
+- situationSummary — короткое, в 1-2 предложениях, обобщение сути вопроса человека простыми словами — чтобы человек сразу увидел, что его услышали и поняли правильно;
+- explanation — объяснение ситуации с точки зрения АППК: какие у человека права, что обязан (или не обязан) делать орган, какие нормы применимы — простыми словами, с конкретными ссылками на статьи там, где это уместно, но без канцелярита. Если вопрос вне сферы АППК (см. выше) — здесь же честно скажи об этом вместо юридического разбора;
+- recommendedPath — конкретная рекомендация, что делать дальше: нужно ли писать обращение, жалобу, сразу административный иск, или достаточно устного обращения/иного шага; используй логику специфических разделов этого промпта, если ситуация под них подпадает (АСП, образование, воинская служба и т.д.). Если по итогу разумно составить официальный документ — прямо скажи об этом и упомяни, что для этого в сервисе есть отдельные разделы "Составить обращение" и "Составить административный иск";
+- nextSteps — конкретные практические шаги прямо сейчас, по порядку (что сделать в первую очередь, куда обратиться, что подготовить) — коротко, по пунктам.
+
+Пока не готов финальный ответ — верни status: "need_more_info" и один вопрос в поле question (поле result оставь с пустыми строками). Когда готов — верни status: "done", поле question оставь пустой строкой, а result заполни полностью.
+
+Отвечай только по существу казахстанского законодательства и практики в рамках АППК.`;
+
+const CONSULT_SYSTEM_PROMPT = SYSTEM_PROMPT.slice(0, SYSTEM_PROMPT.indexOf('Твоя задача —')) + CONSULT_TASK_PROMPT;
+
+const CONSULT_LANG_INSTRUCTIONS = {
+  ru: 'Пиши все свои ответы (уточняющие вопросы и все поля result — situationSummary, explanation, recommendedPath, nextSteps) на русском языке.',
+  kk: 'МАҢЫЗДЫ: барлық жауаптарыңды (нақтылау сұрақтарын және result өрістерінің барлығын — situationSummary, explanation, recommendedPath, nextSteps) ТЕК қазақ тілінде жаз, табиғи әрі сауатты қазақ тілінде, орны келген жерде заң терминдерін де қазақша қолдан.',
+};
+
+const CONSULT_RESULT_SCHEMA = {
+  type: 'object',
+  properties: {
+    status: { type: 'string', enum: ['need_more_info', 'done'] },
+    question: { type: 'string' },
+    result: {
+      type: 'object',
+      properties: {
+        situationSummary: { type: 'string', minLength: 1 },
+        explanation: { type: 'string', minLength: 1 },
+        recommendedPath: { type: 'string', minLength: 1 },
+        nextSteps: { type: 'string', minLength: 1 },
+      },
+      required: ['situationSummary', 'explanation', 'recommendedPath', 'nextSteps'],
+      additionalProperties: false,
+    },
+  },
+  required: ['status', 'question', 'result'],
+  additionalProperties: false,
+};
+
 const REVIEW_SYSTEM_PROMPT = `Ты — помощник, который на основе практики работы отдела по работе с обращениями органов прокуратуры Республики Казахстан помогает обычному человеку (не юристу) проверить, законен ли и полон ли ОТВЕТ, который он уже ПОЛУЧИЛ от государственного органа на своё заявление/жалобу/сообщение/запрос — то есть не составить новое обращение, а разобрать уже полученный ответ.
 
 Правовая база — Административный процедурно-процессуальный кодекс РК (АППК). Ключевые принципы, которые нужно применять при разборе ответа:
@@ -503,11 +558,14 @@ module.exports = async (req, res) => {
   }
   const isReview = mode === 'review';
   const isLawsuit = mode === 'lawsuit';
+  const isConsult = mode === 'consult';
   const rawSystemPrompt = isReview
     ? REVIEW_SYSTEM_PROMPT
-    : isLawsuit
-      ? SYSTEM_PROMPT + '\n\nВАЖНО: пользователь явно выбрал раздел "Составить административный иск" (отдельный от обычного обращения) — значит, независимо от того, что именно он опишет, ты ВСЕГДА составляешь черновик по правилам блока "АДМИНИСТРАТИВНЫЙ ИСК В СУД" выше (структура ст.131 ч.2 АППК), а НЕ обычное досудебное обращение по ст.63. НЕ применяй условие "если досудебный порядок ещё не пройден — составляй обращение по ст.63 как раньше" из этого блока — здесь оно не действует, пользователь осознанно пришёл именно за иском. Если из разговора не ясно, пройдены ли уже жалоба вышестоящему органу и получен ли на неё ответ (или истёк ли срок без ответа) — обязательно выясни это одним из первых уточняющих вопросов, поскольку без этих сведений суд вправе вернуть иск (ст.138 АППК), и это не опциональная деталь, а обязательный пункт структуры иска.'
-      : SYSTEM_PROMPT;
+    : isConsult
+      ? CONSULT_SYSTEM_PROMPT
+      : isLawsuit
+        ? SYSTEM_PROMPT + '\n\nВАЖНО: пользователь явно выбрал раздел "Составить административный иск" (отдельный от обычного обращения) — значит, независимо от того, что именно он опишет, ты ВСЕГДА составляешь черновик по правилам блока "АДМИНИСТРАТИВНЫЙ ИСК В СУД" выше (структура ст.131 ч.2 АППК), а НЕ обычное досудебное обращение по ст.63. НЕ применяй условие "если досудебный порядок ещё не пройден — составляй обращение по ст.63 как раньше" из этого блока — здесь оно не действует, пользователь осознанно пришёл именно за иском. Если из разговора не ясно, пройдены ли уже жалоба вышестоящему органу и получен ли на неё ответ (или истёк ли срок без ответа) — обязательно выясни это одним из первых уточняющих вопросов, поскольку без этих сведений суд вправе вернуть иск (ст.138 АППК), и это не опциональная деталь, а обязательный пункт структуры иска.'
+        : SYSTEM_PROMPT;
   // Пороги по МРП (банкротство, согласие супруга на заём) считаются кодом от
   // текущего MRP_KZT, а не оставляются на усмотрение модели — см. _lib/thresholds.js.
   // Значение стабильно между деплоями (меняется раз в год), поэтому кэш промпта
@@ -515,8 +573,8 @@ module.exports = async (req, res) => {
   const systemPrompt = rawSystemPrompt
     .replace('{{BANKRUPTCY_THRESHOLD_TEXT}}', getBankruptcyThresholdText(process.env.MRP_KZT))
     .replace('{{SPOUSAL_CONSENT_THRESHOLD_TEXT}}', getSpousalLoanConsentThresholdText(process.env.MRP_KZT));
-  const langInstructions = isReview ? REVIEW_LANG_INSTRUCTIONS : LANG_INSTRUCTIONS;
-  const resultSchema = isReview ? REVIEW_RESULT_SCHEMA : RESULT_SCHEMA;
+  const langInstructions = isReview ? REVIEW_LANG_INSTRUCTIONS : isConsult ? CONSULT_LANG_INSTRUCTIONS : LANG_INSTRUCTIONS;
+  const resultSchema = isReview ? REVIEW_RESULT_SCHEMA : isConsult ? CONSULT_RESULT_SCHEMA : RESULT_SCHEMA;
   const langInstruction = langInstructions[lang] || langInstructions.ru;
 
   try {
@@ -579,22 +637,32 @@ module.exports = async (req, res) => {
               argumentsCoverage: parsed.result.argumentsCoverage,
               nextSteps: parsed.result.nextSteps,
             }
-          : {
-              ts: new Date().toISOString(),
-              mode: 'complaint',
-              lang: lang === 'kk' ? 'kk' : 'ru',
-              category: parsed.result.category,
-              addressee: parsed.result.addressee,
-              addresseeReasoning: parsed.result.addresseeReasoning,
-              hierarchyProcedure: parsed.result.hierarchyProcedure,
-              responseRequirements: parsed.result.responseRequirements,
-              ifRedirected: parsed.result.ifRedirected,
-              draft: parsed.result.draft,
-              evidenceGuide: parsed.result.evidenceGuide,
-              draftQualityCheck: parsed.result.draftQualityCheck,
-              deadlines: parsed.result.deadlines,
-              howToSubmit: parsed.result.howToSubmit,
-            };
+          : isConsult
+            ? {
+                ts: new Date().toISOString(),
+                mode: 'consult',
+                lang: lang === 'kk' ? 'kk' : 'ru',
+                situationSummary: parsed.result.situationSummary,
+                explanation: parsed.result.explanation,
+                recommendedPath: parsed.result.recommendedPath,
+                nextSteps: parsed.result.nextSteps,
+              }
+            : {
+                ts: new Date().toISOString(),
+                mode: isLawsuit ? 'lawsuit' : 'complaint',
+                lang: lang === 'kk' ? 'kk' : 'ru',
+                category: parsed.result.category,
+                addressee: parsed.result.addressee,
+                addresseeReasoning: parsed.result.addresseeReasoning,
+                hierarchyProcedure: parsed.result.hierarchyProcedure,
+                responseRequirements: parsed.result.responseRequirements,
+                ifRedirected: parsed.result.ifRedirected,
+                draft: parsed.result.draft,
+                evidenceGuide: parsed.result.evidenceGuide,
+                draftQualityCheck: parsed.result.draftQualityCheck,
+                deadlines: parsed.result.deadlines,
+                howToSubmit: parsed.result.howToSubmit,
+              };
         await kv.lpush('wizard_log', JSON.stringify(logEntry));
       } catch (logErr) {
         console.error('wizard log error:', logErr);
@@ -602,19 +670,26 @@ module.exports = async (req, res) => {
 
       if (!isReview) {
         try {
+          const storageMode = isLawsuit ? 'lawsuit' : isConsult ? 'consult' : 'complaint';
           const { resultId } = await lockResultForPayment({
             deviceId,
             lang: lang === 'kk' ? 'kk' : 'ru',
             result: parsed.result,
+            mode: storageMode,
           });
           parsed.resultId = resultId;
           parsed.unlocked = false;
-          // Составление обращения всегда платное — но часть полей отдаём сразу
-          // (куда/почему/сроки/как подать/самопроверка), чтобы человек видел,
-          // что ИИ разобрался именно в его ситуации, прежде чем платить.
-          // Сам текст обращения/иска и список доказательств — только после оплаты.
+          // Составление обращения/иска всегда платное — но часть полей отдаём
+          // сразу (куда/почему/сроки/как подать/самопроверка), чтобы человек
+          // видел, что ИИ разобрался именно в его ситуации, прежде чем
+          // платить. У консультации своя структура полей — ни одно из них не
+          // совпадает с PREVIEW_FIELDS, так что pickPreviewFields для неё
+          // естественно возвращает пустой объект (полностью закрыто до оплаты,
+          // так и задумано — это не комплексный документ, а лёгкая консультация).
           parsed.result = pickPreviewFields(parsed.result);
-          parsed.priceKzt = PRICE_KZT;
+          const { amountKzt, creditAppliedKzt } = await resolvePrice(storageMode, deviceId);
+          parsed.priceKzt = amountKzt;
+          parsed.creditAppliedKzt = creditAppliedKzt;
         } catch (gateErr) {
           console.error('payment gate error:', gateErr);
           res.status(500).json({ error: 'Не удалось обработать результат. Попробуйте ещё раз.' });
