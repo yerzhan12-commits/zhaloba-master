@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Шпаргалка ОСИ</title>
+<meta name="description" content="Права, обязанности, выборы и управление домом — справочник для председателей, советов дома и собственников по закону «О жилищных отношениях» с учётом реформы 2025 года.">
+<style>
+  :root{
+    --bg:#f6f4ee;
+    --surface:#ffffff;
+    --surface-2:#f0ede4;
+    --ink:#1c2430;
+    --ink-dim:#5b6472;
+    --border:#e2ddd1;
+    --accent:#1f5f6b;
+    --accent-ink:#ffffff;
+    --accent-soft:#e3eeef;
+    --warn:#a34a22;
+    --warn-soft:#f6e9e1;
+    --good:#2f7a4f;
+    --good-soft:#e5f1e8;
+    --shadow:0 1px 2px rgba(28,36,48,0.06), 0 4px 14px rgba(28,36,48,0.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14181c;
+      --surface:#1b2024;
+      --surface-2:#20262b;
+      --ink:#e8e5dc;
+      --ink-dim:#9aa3ab;
+      --border:#2a3137;
+      --accent:#5fb8c4;
+      --accent-ink:#0d1619;
+      --accent-soft:#1d3134;
+      --warn:#e2a07a;
+      --warn-soft:#2e2219;
+      --good:#8fd1a6;
+      --good-soft:#1c2b20;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 4px 18px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14181c;
+    --surface:#1b2024;
+    --surface-2:#20262b;
+    --ink:#e8e5dc;
+    --ink-dim:#9aa3ab;
+    --border:#2a3137;
+    --accent:#5fb8c4;
+    --accent-ink:#0d1619;
+    --accent-soft:#1d3134;
+    --warn:#e2a07a;
+    --warn-soft:#2e2219;
+    --good:#8fd1a6;
+    --good-soft:#1c2b20;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 4px 18px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:22px 18px 80px;}
+  header.top{margin-bottom:22px;}
+  .eyebrow{
+    font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:6px;
+  }
+  h1{
+    font-size:clamp(26px,5vw,34px);
+    font-weight:800;
+    letter-spacing:-.01em;
+    margin:0 0 6px;
+    text-wrap:balance;
+  }
+  .sub{color:var(--ink-dim);font-size:15px;max-width:60ch;}
+  .lawref{
+    display:inline-flex;align-items:center;gap:6px;
+    margin-top:12px;font-size:12.5px;color:var(--ink-dim);
+    background:var(--surface-2);border:1px solid var(--border);
+    padding:6px 10px;border-radius:8px;
+  }
+
+  nav.tabs{
+    display:flex;gap:6px;flex-wrap:wrap;
+    margin:22px 0 18px;
+    position:sticky;top:0;z-index:5;
+    background:var(--bg);
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .tab-btn{
+    appearance:none;border:1px solid var(--border);background:var(--surface);
+    color:var(--ink);padding:9px 14px;border-radius:999px;
+    font-size:13.5px;font-weight:600;cursor:pointer;
+    transition:background .15s, color .15s, border-color .15s;
+    white-space:nowrap;
+  }
+  .tab-btn:hover{border-color:var(--accent);}
+  .tab-btn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+
+  section.panel{display:none;}
+  section.panel.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .subtab-btn{
+    appearance:none;border:1px solid var(--border);background:var(--surface-2);
+    color:var(--ink-dim);padding:7px 12px;border-radius:8px;
+    font-size:13px;font-weight:600;cursor:pointer;
+  }
+  .subtab-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+  .subpanel{display:none;}
+  .subpanel.active{display:block;}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow);
+  }
+  .card h3{margin:0 0 10px;font-size:17px;font-weight:700;letter-spacing:-.005em;}
+  .card ul{margin:0;padding-left:20px;}
+  .card li{margin-bottom:8px;}
+  .card li:last-child{margin-bottom:0;}
+  a.art{
+    display:inline-block;font-size:11.5px;font-weight:700;color:var(--accent);
+    background:var(--accent-soft);padding:2px 7px;border-radius:5px;
+    font-variant-numeric:tabular-nums;margin-left:4px;white-space:nowrap;
+    text-decoration:none;border:1px solid transparent;
+  }
+  a.art:hover{border-color:var(--accent);text-decoration:underline;}
+  .promo{
+    background:linear-gradient(135deg, var(--accent-soft), var(--surface));
+    border:1px solid var(--accent);border-radius:14px;padding:18px 20px;margin-top:18px;
+  }
+  .promo h3{margin:0 0 6px;font-size:16px;}
+  .promo p{margin:0 0 12px;color:var(--ink-dim);font-size:14px;max-width:55ch;}
+  .promo a.cta{
+    display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--accent-ink);
+    padding:10px 16px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;
+  }
+  .note{
+    display:flex;gap:10px;align-items:flex-start;
+    background:var(--warn-soft);border:1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    border-radius:12px;padding:14px 16px;margin:14px 0;font-size:14.5px;
+  }
+  .note .ic{font-size:17px;line-height:1;flex-shrink:0;}
+  .note.good{background:var(--good-soft);border-color:color-mix(in srgb, var(--good) 35%, transparent);}
+
+  .qa{border-bottom:1px solid var(--border);padding:16px 0;}
+  .qa:last-child{border-bottom:none;}
+  .qa button.q{
+    appearance:none;background:none;border:none;text-align:left;width:100%;
+    font-size:15.5px;font-weight:700;color:var(--ink);cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0;
+  }
+  .qa button.q:after{content:"+";font-size:20px;color:var(--accent);font-weight:400;flex-shrink:0;}
+  .qa.open button.q:after{content:"\2212";}
+  .qa .a{display:none;color:var(--ink-dim);font-size:14.5px;margin-top:10px;max-width:65ch;}
+  .qa.open .a{display:block;}
+
+  .steps{list-style:none;margin:0;padding:0;counter-reset:step;}
+  .steps li{
+    counter-increment:step;position:relative;padding:4px 0 4px 36px;margin-bottom:6px;
+  }
+  .steps li:before{
+    content:counter(step);position:absolute;left:0;top:4px;
+    width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  }
+
+  footer{margin-top:36px;color:var(--ink-dim);font-size:12.5px;text-align:center;}
+
+  @media (max-width:480px){
+    .wrap{padding:16px 14px 60px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Бесплатный справочник для жителей</div>
+    <h1>Шпаргалка ОСИ</h1>
+    <p class="sub">Права, обязанности, выборы и управление домом — коротко, по делу, со ссылками на закон. Для председателей, членов совета дома и собственников.</p>
+    <div class="lawref">⚖ Закон РК «О жилищных отношениях» №94-I, с учётом реформы 2025 года (№207-VIII)</div>
+  </header>
+
+  <nav class="tabs" id="mainTabs">
+    <button class="tab-btn active" data-tab="rights">Права</button>
+    <button class="tab-btn" data-tab="duties">Обязанности</button>
+    <button class="tab-btn" data-tab="election">Избрание</button>
+    <button class="tab-btn" data-tab="management">Управление</button>
+    <button class="tab-btn" data-tab="qa">Вопрос-ответ</button>
+  </nav>
+
+  <!-- ПРАВА -->
+  <section class="panel active" id="panel-rights">
+    <div class="subtabs" id="rightsSubtabs">
+      <button class="subtab-btn active" data-sub="chair">Председатель</button>
+      <button class="subtab-btn" data-sub="council">Члены совета дома</button>
+      <button class="subtab-btn" data-sub="owners">Собственники квартир</button>
+      <button class="subtab-btn" data-sub="nonres">Собственники нежилых помещений</button>
+    </div>
+
+    <div class="subpanel active" id="sub-chair">
+      <div class="card">
+        <h3>Права председателя ОСИ</h3>
+        <ul>
+          <li>Представляет интересы ОСИ без доверенности во всех судах, госорганах и иных организациях<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.2</a></li>
+          <li>Вправе заключить трудовой договор с управляющим домом — отдельным специалистом с подтверждённой квалификацией, не обязательно жителем этого дома<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.7</a></li>
+          <li>По должности является членом совета дома — участвует в его решениях на общих основаниях</li>
+          <li>Вправе получать оплату за свою работу по решению собрания (не выше установленного в смете лимита на управленческие расходы)</li>
+        </ul>
+      </div>
+      <div class="note"><span class="ic">💡</span>Представительство «без доверенности» не означает «без контроля» — ключевые решения (бюджет, тариф, наём управляющего) всё равно принимает собрание или совет дома, а не председатель единолично.</div>
+    </div>
+
+    <div class="subpanel" id="sub-council">
+      <div class="card">
+        <h3>Права совета дома (как коллегиального органа)</h3>
+        <ul>
+          <li>Рассматривать проект сметы и годовые/месячные отчёты председателя<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51 п.3</a></li>
+          <li>Контролировать договоры по управлению домом, расходование средств и качество услуг подрядчиков<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51 п.3</a></li>
+          <li>Согласовывать кандидатуру управляющего</li>
+          <li>Организовывать собрания собственников</li>
+          <li>Избрать временно исполняющего обязанности председателя, если он более 15 дней не может их исполнять — на срок до 6 месяцев, до выборов нового<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.6</a></li>
+        </ul>
+      </div>
+      <div class="note"><span class="ic">⚠️</span><b>Разберём момент, который чаще всего путают.</b> Один отдельный член совета лично не может приказывать председателю — это правда. Но если совет дома собрался коллегиально и оформил решение протоколом, подписанным большинством членов, — такое решение обязательно для исполнения, в том числе председателем<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51 п.5</a>. Разница — не «может ли совет указывать», а «в какой форме»: не личным требованием одного человека, а коллективным протокольным решением. При этом <b>уволить или досрочно переизбрать самого председателя совет дома не может</b> — это исключительно право общего собрания собственников, которое его избирало; совет вправе только назначить временного ВРИО на период, когда председатель объективно не может работать (см. выше).</div>
+    </div>
+
+    <div class="subpanel" id="sub-owners">
+      <div class="card">
+        <h3>Права собственников квартир</h3>
+        <ul>
+          <li>Голос на собрании — один объект (квартира) = один голос, независимо от числа совладельцев<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/42.htm" target="_blank" rel="noopener">ст.42</a></li>
+          <li>Избирать и быть избранным в совет дома или председателем — если сам собственник, или постоянно проживающий с ним член семьи<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51, 51-1</a></li>
+          <li>Знакомиться с отчётами, знать, кто и как голосовал на собрании</li>
+          <li>Участвовать в решении судьбы общего имущества дома — перенос инженерных систем требует согласия не менее 2/3 всех собственников<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/40.htm" target="_blank" rel="noopener">ст.40</a></li>
+          <li>Оспорить незаконные решения ОСИ — через жилищную инспекцию или суд</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="subpanel" id="sub-nonres">
+      <div class="card">
+        <h3>Права собственников нежилых помещений</h3>
+        <ul>
+          <li>Полностью равный статус с владельцами квартир — тот же голос, то же право быть избранным<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/34-1.htm" target="_blank" rel="noopener">ст.34-1, 42, 51</a></li>
+          <li>Вправе знать о расходовании взносов наравне со всеми</li>
+        </ul>
+      </div>
+      <div class="note"><span class="ic">💡</span>Про подвалы, проданные застройщиком отдельно от квартир, — частый и болезненный вопрос у собственников НП. Полный разбор — в разделе «Вопрос-ответ».</div>
+    </div>
+  </section>
+
+  <!-- ОБЯЗАННОСТИ -->
+  <section class="panel" id="panel-duties">
+    <div class="card">
+      <h3>Обязанности председателя</h3>
+      <ul>
+        <li>Обеспечить регистрацию ОСИ, вести список собственников, заключать договоры от имени дома, вести мониторинг взносов и качества услуг<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.5</a></li>
+        <li>Открыть текущий счёт (на управление домом) и сберегательный счёт (накопления на капремонт) — в течение 15 рабочих дней после регистрации ОСИ (Правила по управлению объектом кондоминиума); за нарушение срока штраф лично на председателя, 50 МРП<a class="art" href="https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/320.htm" target="_blank" rel="noopener">ч.4 ст.320 КоАП</a></li>
+        <li>Ежемесячный отчёт по управлению домом — до 20 числа; годовой отчёт — до 1 апреля; за нарушение срока сдачи отчёта штраф 50 МРП, при повторном нарушении в течение года — 100 МРП<a class="art" href="https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/320.htm" target="_blank" rel="noopener">ч.5 ст.320 КоАП</a></li>
+        <li>При создании ОСИ — в течение 3 рабочих дней уведомить прежний субъект управления и совместно составить акт приёма-передачи финансовой и технической документации дома (Правила по управлению объектом кондоминиума)</li>
+        <li>Подготовить инвентарный перечень общего имущества дома и акт осмотра объекта кондоминиума, проводить осмотры совместно с советом дома (Правила)</li>
+        <li>Перед текущим ремонтом — составить дефектный акт с участием совета дома, после ремонта — подписать акт выполненных работ (Правила)</li>
+        <li>Не использовать деньги с текущего счёта на цели, не предусмотренные годовой сметой (Правила)</li>
+        <li>При переходе между формами управления (ОСИ ↔ НУ) — уведомить жилищную инспекцию в течение 3 рабочих дней (Правила)</li>
+        <li>Готовить инженерные системы дома к сезону (отопление, кровля)<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.5</a></li>
+        <li>Обеспечить сохранность документации, печати, ключей и кодов доступа дома<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.3</a></li>
+        <li>При окончании полномочий — передать всю документацию и имущество преемнику по акту приёма-передачи в течение 10 рабочих дней<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.4</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Обязанности членов совета дома</h3>
+      <ul>
+        <li>Участвовать в заседаниях, добросовестно исполнять функции контроля (сметы, расходы, подрядчики)</li>
+        <li>Принимать решения коллегиально, протоколом, подписанным членами<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51 п.5</a></li>
+        <li>Участвовать совместно с председателем в осмотре общего имущества и составлении его инвентарного перечня (Правила)</li>
+        <li>Участвовать в составлении дефектного акта перед текущим ремонтом и принимать акты выполненных работ по его результатам (Правила)</li>
+        <li>Рассматривать проект годовой сметы расходов и размеры текущих взносов до их утверждения собранием<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51 п.3</a></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Обязанности собственников нежилых помещений</h3>
+      <ul>
+        <li>Участвовать во всех расходах на управление домом и в целевых взносах наравне с владельцами квартир (Правила)</li>
+        <li>Ежемесячно перечислять на сберегательный счёт не менее 0,005 МРП за кв.м площади помещения на капремонт — тот же минимум, что и для квартир (Правила)</li>
+        <li>Обеспечивать сохранность общего имущества дома (Правила)</li>
+        <li>При сдаче части общего имущества в пользование (например, вывеска, часть фасада) — платежи идут на счёт ОСИ, а не лично собственнику (Правила)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Обязанности собственников</h3>
+      <ul>
+        <li>Платить взносы — до 25 числа месяца, следующего за отчётным<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/34-1.htm" target="_blank" rel="noopener">ст.34-1 п.8</a></li>
+        <li>Содержать своё помещение в надлежащем состоянии: текущий и капитальный ремонт внутри квартиры, исправные счётчики, соблюдение санитарных норм и правил пожарной безопасности</li>
+        <li>Использовать жильё по назначению, не нарушать права и законные интересы соседей</li>
+        <li>Участвовать в общих собраниях и соблюдать принятые на них решения</li>
+        <li>Участвовать в расходах на содержание и ремонт общего имущества — подъездов, крыши, лифтов, придомовой территории (уборка, озеленение, вывоз мусора — по решению собрания)</li>
+        <li>Не мусорить, не курить, не распивать алкоголь в местах общего пользования (подъезды, лестницы, дворовая территория)</li>
+        <li>Уведомить председателя/управляющего при сдаче помещения в аренду, с данными арендатора<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/34.htm" target="_blank" rel="noopener">ст.34 п.6</a></li>
+        <li>Не хранить личные вещи (коляски, самокаты, велосипеды, мебель) на лестничных площадках — только в специально оборудованных кладовых<a class="art" href="https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/505.htm" target="_blank" rel="noopener">ст.505 КоАП</a></li>
+        <li>Не переносить/демонтировать общедомовое имущество (трубы, краны) в одиночку — требуется согласие 2/3 всех собственников<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/40.htm" target="_blank" rel="noopener">ст.40</a></li>
+      </ul>
+    </div>
+    <div class="note warn"><span class="ic">💸</span>Штраф за просрочку взносов начисляется без ограничения срока исковой давности — долг не «сгорает» со временем<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/34-1.htm" target="_blank" rel="noopener">ст.34-1 п.9</a>. После 2 месяцев просрочки взыскание возможно через нотариуса или суд<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/34-1.htm" target="_blank" rel="noopener">ст.34-1 п.10</a></div>
+  </section>
+
+  <!-- ИЗБРАНИЕ -->
+  <section class="panel" id="panel-election">
+    <div class="card">
+      <h3>Избрание председателя ОСИ</h3>
+      <ul>
+        <li><b>Срок полномочий — 3 года</b> (по действующей редакции, с 15.09.2025). Отчётный «календарный год» — это просто цикл отчётности (отчёт до 1 апреля), а не срок полномочий — отсюда и путаница<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.1</a></li>
+        <li>Кандидат — собственник квартиры/нежилого помещения, <b>или</b> член его семьи: супруг(а), совместные или одного из супругов дети (в т.ч. усыновлённые), родители, родители супруга(и), <b>а также семьи детей</b> собственника — все при условии постоянного проживания с собственником<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51-1.htm" target="_blank" rel="noopener">ст.51-1 п.1</a></li>
+        <li>Избирается общим собранием собственников — тем же органом, который и может его досрочно переизбрать или снять, независимо от того, истёк трёхлетний срок или нет</li>
+        <li>Автоматически становится членом совета дома по должности — с 15.09.2025 раздельное «председатель без совета» не допускается</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Избрание членов совета дома</h3>
+      <ul>
+        <li>Минимум 3 человека — из числа собственников <b>либо тех же категорий членов семьи</b>, что и у председателя (супруг(а), дети, родители, родители супруга, семьи детей), постоянно проживающих с собственником<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51 п.1</a></li>
+        <li>Исключение: члены семьи действующего председателя ОСИ и члены ревизионной комиссии в совет дома избираться не могут — правило против конфликта интересов<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51 п.1</a></li>
+        <li>Срок полномочий — 3 года, избирается тем же общим собранием<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/51.htm" target="_blank" rel="noopener">ст.51 п.4</a></li>
+      </ul>
+    </div>
+    <div class="note good"><span class="ic">✅</span>Допуск членов семьи собственника (а не только самих собственников) — ключевое изменение реформы 2025 года (действует с 15.09.2025). Просто арендатор без родства с собственником по-прежнему избран быть не может.</div>
+    <div class="note warn"><span class="ic">⚠️</span><b>«У нас председателя в прошлом году избрали на 1 год — это по старому закону, что теперь?»</b> До 15.09.2025 закон действительно устанавливал срок полномочий председателя в 1 год — если выборы были до этой даты, избрание проходило именно по этому правилу. Прямого переходного положения о том, что происходит с уже избранными на 1 год председателями при смене закона, в открытых источниках найти не удалось — говорим как есть, а не гадаем. По общей логике права новая норма (3 года) должна применяться к выборам, которые проходят ПОСЛЕ 15.09.2025, а не продлевать автоматически уже идущий годовой срок. Если для вас это принципиально (например, спорите о легитимности текущего председателя) — это тот случай, где стоит получить письменное разъяснение от местной жилищной инспекции или разобрать именно вашу ситуацию через «Разобраться в АППК» в Жалоба-мастере.</div>
+    <div class="note"><span class="ic">💡</span><b>«Хотим назначить председателем человека со стороны, который уже управляет другим домом»</b> — так напрямую нельзя: должность председателя жёстко привязана к конкретному дому и требует быть собственником/членом его семьи. Но закон прямо разрешает похожий путь: нанять <b>управляющего</b> по трудовому договору — это может быть посторонний человек (гражданин РК с документом о профквалификации), и он может вести сразу несколько домов. Председатель и совет дома у вас при этом остаются свои, просто операционную работу передают такому управляющему.</div>
+  </section>
+
+  <!-- УПРАВЛЕНИЕ -->
+  <section class="panel" id="panel-management">
+    <div class="card">
+      <h3>Формы управления домом</h3>
+      <ul>
+        <li>Только две формы: <b>ОСИ</b> (объединение собственников имущества) и <b>НУ</b> (непосредственное управление) — простое товарищество отменено</li>
+        <li>НУ допустимо только для домов с числом квартир <b>менее 36</b><a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/49.htm" target="_blank" rel="noopener">ст.49</a></li>
+        <li>В ОСИ операционную работу (бухгалтерия, обслуживание, заявки) может вести либо сам председатель, либо нанятый по трудовому договору управляющий — но это именно сотрудник дома, а не внешняя управляющая организация</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Собрания и голосование</h3>
+      <ul>
+        <li>Уведомление о собрании — не позже чем за 5 дней<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/42.htm" target="_blank" rel="noopener">ст.42</a></li>
+        <li>Формы: очно, заочно (письменный опрос) или онлайн — все формы действительны, итоги суммируются</li>
+        <li>Ключевые решения (тариф, смета, выборы) — большинством от общего числа собственников (не менее 51%), односторонний тариф запрещён<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/42.htm" target="_blank" rel="noopener">ст.42</a></li>
+        <li>Индивидуальные договоры отдельных собственников в обход ОСИ/собрания — запрещены (Правила управления объектом кондоминиума, в силе с 14.10.2025)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Взносы</h3>
+      <ul>
+        <li><b>Текущие</b> — уборка, освещение, мелкий ремонт, инженерные сети, пожарная безопасность</li>
+        <li><b>Накопительные</b> (капремонт) — крыша, лифты, фасад, трубы; минимум 0,005 МРП за м² (≈19,66 ₸ в 2025)<a class="art" href="https://kodeksy-kz.com/ka/o_zhiliwnyh_otnosheniyah/34-1.htm" target="_blank" rel="noopener">ст.34-1</a></li>
+        <li><b>Целевые</b> — необязательны, вводятся только решением собрания</li>
+      </ul>
+    </div>
+    <div class="steps-wrap card">
+      <h3>Как провести ремонт подъезда</h3>
+      <ul class="steps">
+        <li>Собрать общее собрание (онлайн, очно или опросными листами)</li>
+        <li>Проголосовать — не менее 51% собственников «за»</li>
+        <li>Составить протокол, собрать подписи</li>
+        <li>Подать заявку председателю/в ОСИ</li>
+        <li>Найти подрядчика, согласовать смету</li>
+      </ul>
+      <div class="note"><span class="ic">⚡</span>Срочный мелкий ремонт (например, течёт крыша) председатель или управляющий может инициировать без собрания — но с заявкой и актом.</div>
+    </div>
+  </section>
+
+  <!-- ВОПРОС-ОТВЕТ -->
+  <section class="panel" id="panel-qa">
+    <div id="qaList"></div>
+  </section>
+
+  <footer>Жалоба-мастер · справочный материал, не заменяет консультацию юриста</footer>
+</div>
+
+<script>
+  const mainTabs = document.querySelectorAll('#mainTabs .tab-btn');
+  const panels = document.querySelectorAll('.panel');
+  mainTabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      mainTabs.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      panels.forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  const subTabs = document.querySelectorAll('#rightsSubtabs .subtab-btn');
+  const subPanels = document.querySelectorAll('.subpanel');
+  subTabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      subTabs.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      subPanels.forEach(p => p.classList.remove('active'));
+      document.getElementById('sub-' + btn.dataset.sub).classList.add('active');
+    });
+  });
+
+  const qaData = [
+    ["Можно ли избрать в совет дома или председателем человека, который не собственник?", "Зависит от того, кто этот человек. Если это член семьи собственника (супруг(а), дети, родители), постоянно проживающий с ним, — да, с реформы 15.09.2025 это разрешено (ст.51, 51-1). А если человек вообще не собственник и не родственник (просто арендатор, или, скажем, председатель/управляющий соседнего дома, которого хотят «посадить» и на ваш дом) — нет, председателем или членом совета именно вашего дома он быть не может. Для такой ситуации в законе есть другой, легальный путь — см. следующий вопрос."],
+    ["Хотим, чтобы нашим домом управлял человек, который уже управляет соседним домом и не является ни собственником, ни родственником — это возможно?", "Председателем ОСИ или членом совета дома — нет, этот статус жёстко привязан к конкретному дому и требует быть собственником/его близким родственником. Но закон отдельно предусматривает роль <b>управляющего</b>: его нанимают по трудовому договору, он может не быть собственником и не жить в доме, и может вести сразу несколько домов одновременно — нужны только гражданство РК и документ о профессиональной квалификации (ст.51-1 п.7). Председатель и совет дома у вас при этом остаются свои — они нанимают и контролируют такого управляющего, а не передают ему свои полномочия."],
+    ["На какой срок избирается председатель ОСИ — на 1 год или на 3 года?", "По действующему закону (с 15.09.2025) — на 3 года (ст.51-1 п.1). До этой даты закон действительно устанавливал срок в 1 год — если вашего председателя избирали ДО 15.09.2025, выборы проходили именно по старому правилу. Путаница усиливается тем, что отчётность у председателя годовая (отчёт до 1 апреля за прошедший год) — но это цикл отчётности, а не срок полномочий. Что происходит с уже избранными на 1 год председателями при смене закона — отдельный вопрос без явного ответа в законе, разобран ниже."],
+    ["Нужна ли председателю доверенность, чтобы представлять дом в суде?", "Нет, он действует без доверенности (ст.51-1 п.2)."],
+    ["Может ли совет дома указывать председателю, что делать?", "Один отдельный член совета лично — нет, не может. А вот совет дома как коллегиальный орган — может: если совет собрался, проголосовал и оформил решение протоколом, подписанным большинством членов, такое решение обязательно для исполнения, включая самим председателем (ст.51 п.5). Разница именно в форме — не личное требование одного человека, а коллективное протокольное решение."],
+    ["Может ли совет дома снять или досрочно переизбрать председателя?", "Нет. Председателя избирает общее собрание собственников — только оно вправе его досрочно переизбрать или отстранить, независимо от того, истёк трёхлетний срок или нет. Совет дома может лишь назначить временного ВРИО на срок до 6 месяцев, если председатель объективно более 15 дней не может исполнять обязанности (болезнь, отъезд и т.п.) — это не наказание, а техническая мера (ст.51-1 п.6)."],
+    ["Получают ли члены совета дома зарплату?", "Нет, закон не предусматривает оплату для рядовых членов совета — только для председателя, по решению собрания, не более 30% сметы на управленческие расходы."],
+    ["У нас в доме 30 квартир — обязательно создавать ОСИ?", "Нет, при 36 квартирах и меньше можно выбрать форму непосредственного управления (НУ), без создания ОСИ (ст.49)."],
+    ["Какой минимальный взнос на капремонт?", "0,005 МРП за кв.м площади помещения (около 19,66 тенге в 2025 году) — это минимум, собрание может установить больше (ст.34-1)."],
+    ["До какого числа нужно платить взносы?", "До 25-го числа месяца, следующего за отчётным (ст.34-1 п.8)."],
+    ["Что будет, если не платить взносы?", "Начисляется пеня, причём срок исковой давности на этот долг не распространяется — он не сгорает со временем. После 2 месяцев просрочки председатель вправе взыскать долг через нотариуса или суд (ст.34-1 п.9-10)."],
+    ["Можно ли перенести общедомовую трубу или кран из своего помещения?", "Нет, если система обслуживает 2 и более помещений — нужно письменное согласие не менее 2/3 всех собственников дома, а не только того, через чьё помещение она проходит (ст.40)."],
+    ["У нас подвал продали отдельно от квартир ещё в 2011-2013 годах — можно ли его вернуть как общее имущество?", "Зависит от исходной проектной документации дома на момент сдачи: подвалы по умолчанию считаются общим имуществом (ст.2 п.14), и продажа общего имущества, предусмотренного проектом дома, в частную собственность запрещена (ст.31 п.2-3, п.8). Решает именно то, как подвал был обозначен в ПЕРВОНАЧАЛЬНОЙ документации — был общим/техническим или сразу отдельным нежилым помещением. Честно: на практике суды часто отказывают по сроку исковой давности (3 года) для продаж такой давности, даже когда теоретически спор о статусе имущества ему не подлежит — нужно поднимать архив и оценивать шансы трезво."],
+    ["У нас в доме есть магазин на первом этаже — у его владельца те же права, что у квартировладельцев?", "Да, полностью равный статус: тот же голос, те же взносы, то же право быть избранным в совет дома (ст.34-1, 42, 51)."],
+    ["Что грозит председателю, если он вовремя не открыл счета дома или не сдал отчёт?", "Штраф лично на председателя: 50 МРП за нарушение срока открытия счёта (ч.4 ст.320 КоАП) и 50 МРП за нарушение срока отчёта (ч.5 ст.320 КоАП); при повторном нарушении в течение года — 100 МРП. Платит из своего кармана, не со счёта дома."],
+    ["Сосед держит коляску и велосипед на лестничной площадке — это законно?", "Нет, это нарушение (ст.505 КоАП) — предупреждение или штраф 20 МРП за первый раз, 30 МРП за повторный в течение года. Фиксируйте фото/видео и обращайтесь к председателю ОСИ или в полицию."],
+    ["Сдаю квартиру в аренду — нужно что-то сообщать по дому?", "Да, обязаны уведомить председателя ОСИ или управляющего и предоставить данные арендатора (ст.34 п.6)."]
+  ];
+
+  const qaList = document.getElementById('qaList');
+  qaData.forEach(([q, a]) => {
+    const div = document.createElement('div');
+    div.className = 'qa';
+    div.innerHTML = `<button class="q">${q}</button><div class="a">${a}</div>`;
+    div.querySelector('.q').addEventListener('click', () => div.classList.toggle('open'));
+    qaList.appendChild(div);
+  });
+
+  const promo = document.createElement('div');
+  promo.className = 'promo';
+  promo.innerHTML = `
+    <h3>Вопрос сложнее, и нужен конкретный документ?</h3>
+    <p>Жалоба-мастер превращает вашу ситуацию в готовое обращение, иск или консультацию по закону — с адресатом, сроками и правовым обоснованием.</p>
+    <a class="cta" href="https://zhaloba-master.vercel.app/" target="_blank" rel="noopener">Открыть Жалоба-мастер →</a>
+  `;
+  document.getElementById('panel-qa').appendChild(promo);
+</script>
+</body>
+</html>
