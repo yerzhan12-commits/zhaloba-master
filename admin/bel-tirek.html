@@ -66,7 +66,7 @@ function genCode(){
 document.getElementById('new-code').placeholder = 'Код (пусто = ' + genCode() + ')';
 
 async function api(action, extra){
-  const res = await fetch('/api/bel-tirek/admin', {
+  const res = await fetch('/api/bel-tirek/gate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(Object.assign({ action }, extra)),
