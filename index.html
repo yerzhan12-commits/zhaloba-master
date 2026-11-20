@@ -218,6 +218,13 @@
     background:var(--surface);color:var(--ink);font-size:16px;font-weight:600;cursor:pointer;
   }
   .lang-btn:hover{border-color:var(--blue);color:var(--blue);}
+  .mode-switch-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .mode-switch-btn{
+    padding:8px 13px;border:1px solid var(--border);border-radius:999px;
+    background:var(--surface);color:var(--ink2);font-size:12.5px;font-weight:600;cursor:pointer;
+  }
+  .mode-switch-btn:hover{border-color:var(--blue);color:var(--blue);}
+  .mode-switch-btn.active{background:rgba(57,135,229,0.16);border-color:var(--blue);color:var(--blue);}
   details.card summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--ink2);}
   details.card summary:hover{color:var(--blue);}
   details.card p{margin-bottom:10px;}
@@ -268,12 +275,10 @@
       </div>
     </div>
     <div class="disclaimer" style="margin-bottom:14px;">
-      <b>Дисклеймер.</b> Бұл — өтініш пен шағым жасауға арналған құрал. Мұндағы барлық жоба мен ұсыныстарды сіз енгізген деректер негізінде жасанды интеллект жасайды — бұл көмекші материал, ресми заңгерлік кеңес те, мемлекеттік органның ресми ұстанымы да, адвокатты алмастыру да емес. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.<br><br>
-      <b>Дисклеймер.</b> Это конструктор для составления обращений и жалоб. Все черновики и рекомендации формируются искусственным интеллектом на основе введённых вами данных — это вспомогательный материал, а не официальная юридическая консультация, не официальная позиция госоргана и не замена адвокату. Для сложных или спорных ситуаций обратитесь к юристу.
+      <b>Дисклеймер.</b> Бұл — өтініш пен шағым жасауға арналған құрал. Мұндағы барлық жоба мен ұсыныстарды сіз енгізген деректер негізінде жасанды интеллект жасайды — бұл көмекші материал, ресми заңгерлік кеңес те, мемлекеттік органның ресми ұстанымы да, адвокатты алмастыру да емес. Күрделі немесе даулы жағдайларда заңгерге хабарласыңыз.
     </div>
     <div class="privacy-note" style="margin-bottom:14px;">
-      <b>Бағасы.</b> Алынған жауапты тексеру — әрқашан тегін. АППК бойынша кеңес — 999 ₸. Өтініш құрастыру — 4900 ₸. Әкімшілік талап-арыз құрастыру — 6900 ₸.<br><br>
-      <b>Цена.</b> Проверка полученного от госоргана ответа — всегда бесплатна. Консультация «Разобраться в АППК» — 999 ₸. Составление обращения — 4900 ₸. Составление административного иска — 6900 ₸.
+      <b>Бағасы.</b> Алынған жауапты тексеру — әрқашан тегін. АППК бойынша кеңес — 999 ₸. Өтініш құрастыру — 4900 ₸. Әкімшілік талап-арыз құрастыру — 6900 ₸.
     </div>
     <div class="card">
       <h2>Тілді таңдаңыз / Выберите язык</h2>
@@ -316,6 +321,12 @@
   <!-- Экран 1: свободное описание -->
   <div class="screen" id="screen-intake">
     <button class="btn-secondary" id="intake-back-btn" style="margin-bottom:10px;" data-i18n="intakeBackBtn">← Назад</button>
+    <div class="mode-switch-row" id="mode-switch-row">
+      <button type="button" class="mode-switch-btn" data-switch-mode="review" data-i18n="modeReview">Проверить полученный ответ</button>
+      <button type="button" class="mode-switch-btn" data-switch-mode="consult" data-i18n="modeConsult">🧭 Разобраться в АППК</button>
+      <button type="button" class="mode-switch-btn" data-switch-mode="complaint" data-i18n="modeComplaint">Составить обращение</button>
+      <button type="button" class="mode-switch-btn" data-switch-mode="lawsuit" data-i18n="modeLawsuit">Составить административный иск</button>
+    </div>
     <div class="privacy-note" data-i18n="privacyNote">Конфиденциально: не нужно указывать ФИО, ИИН или другие личные данные — просто опишите ситуацию.</div>
     <div class="card">
       <h2 id="intake-title-el" data-i18n="intakeTitle">Опишите вашу ситуацию своими словами</h2>
@@ -1128,7 +1139,17 @@ function applyMode(){
   document.getElementById('intake-desc-el').textContent = t(descKey);
   document.getElementById('intake-text').setAttribute('placeholder', t(placeholderKey));
   document.getElementById('example-row').style.display = (isReview || isLawsuit || isConsult) ? 'none' : 'flex';
+  document.querySelectorAll('#mode-switch-row .mode-switch-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-switch-mode') === state.mode);
+  });
 }
+
+document.querySelectorAll('#mode-switch-row .mode-switch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.mode = btn.getAttribute('data-switch-mode');
+    applyMode();
+  });
+});
 
 function compressImage(file){
   return new Promise((resolve, reject) => {
@@ -1264,7 +1285,38 @@ const screens = {
 function showScreen(name){
   Object.values(screens).forEach(s => s.classList.remove('active'));
   screens[name].classList.add('active');
+  if (!history.state || history.state.screen !== name) {
+    history.pushState({ screen: name }, '', '');
+  }
 }
+
+function currentScreenName(){
+  return Object.keys(screens).find((k) => screens[k].classList.contains('active'));
+}
+
+// Что должно произойти на этом экране при нажатии физической/браузерной кнопки "Назад"
+// (а не только нашей кнопки "← Назад" внутри экрана) — без этого на телефоне системная
+// кнопка "назад" просто закрывала бы всё приложение вместо перехода на предыдущий шаг.
+// Экраны без записи здесь (language, mode, paymentWait) — конечные/стартовые, там
+// системная кнопка "назад" закрывает/сворачивает страницу как обычно, это ожидаемо.
+const BACK_HANDLERS = {
+  chat: () => goBackOneStep(),
+  intake: () => showScreen('mode'),
+  history: () => showScreen(historyReturnScreen),
+  confirm: () => showScreen('chat'),
+  preview: () => showScreen('confirm'),
+  paywall: () => showScreen('preview'),
+  result: () => showScreen('mode'),
+  resultReview: () => showScreen('mode'),
+  resultConsult: () => showScreen('mode'),
+};
+
+history.replaceState({ screen: 'language' }, '', '');
+
+window.addEventListener('popstate', () => {
+  const handler = BACK_HANDLERS[currentScreenName()];
+  if (handler) handler();
+});
 
 const chatHistory = document.getElementById('chat-history');
 const chatInputCard = document.getElementById('chat-input-card');
