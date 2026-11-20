@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 const SESSION_COOKIE = 'admin_session';
-const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 часов
+const SESSION_TTL_MS = 180 * 24 * 60 * 60 * 1000; // 180 дней — один раз вошёл, дальше не спрашивает пароль
 
 function isProd() {
   return process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production';
